@@ -1,19 +1,18 @@
 'use client'
 import React, { useRef, useEffect } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import gsap from 'gsap'
 
-// --- HIGH-INTENSITY DIRECTIONAL BLOW & CHROMATIC SHADER WITH COVER MATH ---
 const HighVelocityBlowShader = {
   uniforms: {
     uTextureA: { value: null },
     uTextureB: { value: null },
-    uProgress: { value: 0 },    // 0.0 to 1.0
-    uDirection: { value: 1.0 },  // 1.0 (L->R) or -1.0 (R->L)
-    uResolution: { value: new THREE.Vector2(1, 1) }, // Viewport size
-    uVideoResA: { value: new THREE.Vector2(16, 9) }, // Video A aspect ratio
-    uVideoResB: { value: new THREE.Vector2(16, 9) }  // Video B aspect ratio
+    uProgress: { value: 0 },
+    uDirection: { value: 1.0 },
+    uResolution: { value: new THREE.Vector2(1, 1) },
+    uVideoResA: { value: new THREE.Vector2(16, 9) },
+    uVideoResB: { value: new THREE.Vector2(16, 9) }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -32,7 +31,6 @@ const HighVelocityBlowShader = {
     uniform vec2 uVideoResB;
     varying vec2 vUv;
 
-    // Helper function for object-fit: cover UV calculations
     vec2 getCoverUv(vec2 uv, vec2 screenRes, vec2 mediaRes) {
       float screenAspect = screenRes.x / screenRes.y;
       float mediaAspect = mediaRes.x / mediaRes.y;
@@ -46,7 +44,6 @@ const HighVelocityBlowShader = {
       );
     }
 
-    // Pseudo-random noise for directional blow streaks
     float hash(vec2 p) {
       p = fract(p * vec2(234.34, 435.345));
       p += dot(p, p + 34.23);
@@ -54,28 +51,21 @@ const HighVelocityBlowShader = {
     }
 
     void main() {
-      // 1. Correct UV coordinates to prevent aspect distortion
       vec2 uvA = getCoverUv(vUv, uResolution, uVideoResA);
       vec2 uvB = getCoverUv(vUv, uResolution, uVideoResB);
 
-      // Bell curve for phase velocity (peaks at mid-transition)
       float velocity = sin(uProgress * 3.14159265);
-
-      // High-frequency horizontal streak noise
       float streaks = hash(vec2(0.0, vUv.y * 320.0));
 
-      // Directional displacement
       float push = (velocity * 0.18 + streaks * velocity * 0.12) * uDirection;
       vec2 uvPushedA = vec2(uvA.x - push, uvA.y);
       vec2 uvPushedB = vec2(uvB.x + (1.0 - uProgress) * 0.12 * uDirection, uvB.y);
 
-      // CHROMATIC RGB SPLIT
       float rgbSplit = velocity * 0.065 * uDirection;
 
       vec4 colA = vec4(0.0);
       vec4 colB = vec4(0.0);
 
-      // Sample Texture A with aspect-corrected UVs
       colA.r = texture2D(uTextureA, uvPushedA + vec2(rgbSplit * 1.5, 0.0)).r * 0.6 +
                texture2D(uTextureA, uvPushedA + vec2(rgbSplit * 2.0, 0.0)).r * 0.4;
       colA.g = texture2D(uTextureA, uvPushedA).g;
@@ -83,21 +73,16 @@ const HighVelocityBlowShader = {
                texture2D(uTextureA, uvPushedA - vec2(rgbSplit * 2.0, 0.0)).b * 0.4;
       colA.a = 1.0;
 
-      // Sample Texture B with aspect-corrected UVs
       colB.r = texture2D(uTextureB, uvPushedB - vec2(rgbSplit * 0.8, 0.0)).r;
       colB.g = texture2D(uTextureB, uvPushedB).g;
       colB.b = texture2D(uTextureB, uvPushedB + vec2(rgbSplit * 0.8, 0.0)).b;
       colB.a = 1.0;
 
-      // Directional sweep mask
       float coord = uDirection > 0.0 ? vUv.x : (1.0 - vUv.x);
       float sweep = uProgress * 1.4 - (coord * 0.4 + streaks * 0.08);
       float mask = smoothstep(0.0, 1.0, sweep);
 
-      // Mix outgoing frame into incoming frame
       vec4 finalColor = mix(colA, colB, mask);
-
-      // Flash glow
       vec3 blowGlow = vec3(0.9, 0.95, 1.0) * 0.25;
       finalColor.rgb += blowGlow * pow(velocity, 2.0);
 
@@ -106,127 +91,186 @@ const HighVelocityBlowShader = {
   `
 }
 
+function createOptimizedVideoElement() {
+  const v = document.createElement('video')
+  v.muted = true
+  v.loop = true
+  v.playsInline = true
+  v.crossOrigin = 'anonymous'
+  v.preload = 'auto'
+  return v
+}
+
 function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete, onVideoInit }) {
   const materialRef = useRef()
   const dirRef = useRef(1.0)
   const { size } = useThree()
 
+  // Video refs
   const videoARef = useRef(null)
   const videoBRef = useRef(null)
   const texARef = useRef(null)
   const texBRef = useRef(null)
+  const tweenRef = useRef(null)
 
-  // Update uniform resolution on viewport change
+  // Track active texture role: 0 = TexA is active, 1 = TexB is active
+  const activeSlotRef = useRef(0)
+
+  // 1. One-time setup
+  useEffect(() => {
+    if (!videoARef.current) {
+      videoARef.current = createOptimizedVideoElement()
+      const texA = new THREE.VideoTexture(videoARef.current)
+      texA.minFilter = THREE.LinearFilter
+      texA.magFilter = THREE.LinearFilter
+      texA.generateMipmaps = false
+      texARef.current = texA
+    }
+    if (!videoBRef.current) {
+      videoBRef.current = createOptimizedVideoElement()
+      const texB = new THREE.VideoTexture(videoBRef.current)
+      texB.minFilter = THREE.LinearFilter
+      texB.magFilter = THREE.LinearFilter
+      texB.generateMipmaps = false
+      texBRef.current = texB
+    }
+  }, [])
+
+  // 2. Hardware Frame Sync
+  useEffect(() => {
+    let animIdA, animIdB
+
+    const syncVideoA = () => {
+      if (videoARef.current && texARef.current) texARef.current.needsUpdate = true
+      if (videoARef.current && 'requestVideoFrameCallback' in videoARef.current) {
+        animIdA = videoARef.current.requestVideoFrameCallback(syncVideoA)
+      } else {
+        animIdA = requestAnimationFrame(syncVideoA)
+      }
+    }
+
+    const syncVideoB = () => {
+      if (videoBRef.current && texBRef.current) texBRef.current.needsUpdate = true
+      if (videoBRef.current && 'requestVideoFrameCallback' in videoBRef.current) {
+        animIdB = videoBRef.current.requestVideoFrameCallback(syncVideoB)
+      } else {
+        animIdB = requestAnimationFrame(syncVideoB)
+      }
+    }
+
+    syncVideoA()
+    syncVideoB()
+
+    return () => {
+      if (videoARef.current && 'cancelVideoFrameCallback' in videoARef.current) {
+        videoARef.current.cancelVideoFrameCallback(animIdA)
+      } else {
+        cancelAnimationFrame(animIdA)
+      }
+      if (videoBRef.current && 'cancelVideoFrameCallback' in videoBRef.current) {
+        videoBRef.current.cancelVideoFrameCallback(animIdB)
+      } else {
+        cancelAnimationFrame(animIdB)
+      }
+    }
+  }, [])
+
+  // 3. Viewport size sync
   useEffect(() => {
     if (materialRef.current) {
       materialRef.current.uniforms.uResolution.value.set(size.width, size.height)
     }
   }, [size])
 
-  // 1. Initial Active Video Setup
+  // 4. Initial Video Load
   useEffect(() => {
-    if (!videoARef.current) {
-      const vA = document.createElement('video')
-      vA.muted = true
-      vA.loop = true
-      vA.playsInline = true
-      vA.crossOrigin = 'anonymous'
-      videoARef.current = vA
-      texARef.current = new THREE.VideoTexture(vA)
-    }
+    const currentVideo = activeSlotRef.current === 0 ? videoARef.current : videoBRef.current
+    if (!currentVideo || !activeSrc) return
 
-    const vA = videoARef.current
-    if (vA.src !== window.location.origin + activeSrc && activeSrc) {
-      vA.src = activeSrc
-
-      // Extract native video dimensions on metadata load
-      vA.onloadedmetadata = () => {
+    const targetSrc = window.location.origin + activeSrc
+    if (currentVideo.src !== targetSrc && currentVideo.src !== activeSrc) {
+      currentVideo.src = activeSrc
+      currentVideo.onloadedmetadata = () => {
         if (materialRef.current) {
-          materialRef.current.uniforms.uVideoResA.value.set(vA.videoWidth || 16, vA.videoHeight || 9)
+          materialRef.current.uniforms.uVideoResA.value.set(currentVideo.videoWidth || 16, currentVideo.videoHeight || 9)
         }
       }
-
-      vA.play().catch(() => {})
+      currentVideo.play().catch(() => {})
     }
 
-    if (onVideoInit) {
-      onVideoInit(vA)
-    }
+    if (onVideoInit) onVideoInit(currentVideo)
 
     if (materialRef.current) {
-      materialRef.current.uniforms.uTextureA.value = texARef.current
-      materialRef.current.uniforms.uTextureB.value = texARef.current
+      const activeTex = activeSlotRef.current === 0 ? texARef.current : texBRef.current
+      materialRef.current.uniforms.uTextureA.value = activeTex
+      materialRef.current.uniforms.uTextureB.value = activeTex
     }
   }, [activeSrc, onVideoInit])
 
-  // 2. Trigger High-Velocity Blow Transition
+  // 5. Ping-Pong Transition (NO VIDEO RE-ASSIGNMENT AT THE END)
   useEffect(() => {
     if (isTransitioning && nextSrc) {
-      if (!videoBRef.current) {
-        const vB = document.createElement('video')
-        vB.muted = true
-        vB.loop = true
-        vB.playsInline = true
-        vB.crossOrigin = 'anonymous'
-        videoBRef.current = vB
-        texBRef.current = new THREE.VideoTexture(vB)
-      }
+      const isSlotZero = activeSlotRef.current === 0
+      
+      // Determine outgoing and incoming elements dynamically
+      const outgoingVideo = isSlotZero ? videoARef.current : videoBRef.current
+      const incomingVideo = isSlotZero ? videoBRef.current : videoARef.current
+      const outgoingTex = isSlotZero ? texARef.current : texBRef.current
+      const incomingTex = isSlotZero ? texBRef.current : texARef.current
 
-      const vB = videoBRef.current
-      vB.src = nextSrc
+      if (!incomingVideo || !materialRef.current) return
 
-      vB.onloadedmetadata = () => {
+      // Assign target source strictly to the incoming buffer
+      incomingVideo.src = nextSrc
+      incomingVideo.currentTime = 0
+      incomingVideo.onloadedmetadata = () => {
         if (materialRef.current) {
-          materialRef.current.uniforms.uVideoResB.value.set(vB.videoWidth || 16, vB.videoHeight || 9)
+          const resUniform = isSlotZero ? 'uVideoResB' : 'uVideoResA'
+          materialRef.current.uniforms[resUniform].value.set(
+            incomingVideo.videoWidth || 16,
+            incomingVideo.videoHeight || 9
+          )
         }
       }
 
-      const runBlow = () => {
-        if (!materialRef.current) return
+      incomingVideo.play().catch(() => {})
 
-        materialRef.current.uniforms.uTextureB.value = texBRef.current
-        materialRef.current.uniforms.uDirection.value = dirRef.current
+      // Bind outgoing & incoming textures to material
+      materialRef.current.uniforms.uTextureA.value = outgoingTex
+      materialRef.current.uniforms.uTextureB.value = incomingTex
+      materialRef.current.uniforms.uDirection.value = dirRef.current
 
-        gsap.fromTo(
-          materialRef.current.uniforms.uProgress,
-          { value: 0 },
-          {
-            value: 1,
-            duration: 1.32,
-            ease: 'power3.inOut',
-            onComplete: () => {
-              videoARef.current.src = nextSrc
-              videoARef.current.play().catch(() => {})
+      if (tweenRef.current) tweenRef.current.kill()
 
-              // Copy texture B's video size to texture A after transition swap
-              if (materialRef.current) {
-                materialRef.current.uniforms.uVideoResA.value.copy(
-                  materialRef.current.uniforms.uVideoResB.value
-                )
-                materialRef.current.uniforms.uTextureA.value = texARef.current
-                materialRef.current.uniforms.uTextureB.value = texARef.current
-                materialRef.current.uniforms.uProgress.value = 0
-              }
-
-              dirRef.current *= -1.0
-              onTransitionComplete()
-
-              if (onVideoInit) {
-                onVideoInit(videoARef.current)
-              }
+      tweenRef.current = gsap.fromTo(
+        materialRef.current.uniforms.uProgress,
+        { value: 0 },
+        {
+          value: 1,
+          duration: 1.5,
+          ease: 'power4.out',
+          onComplete: () => {
+            // SWAP SLOTS SILENTLY: Set both slots to incomingTex so progress=0 doesn't glitch
+            if (materialRef.current) {
+              materialRef.current.uniforms.uTextureA.value = incomingTex
+              materialRef.current.uniforms.uTextureB.value = incomingTex
+              materialRef.current.uniforms.uProgress.value = 0
             }
-          }
-        )
-      }
 
-      vB.play().then(() => runBlow()).catch(() => runBlow())
+            // Flip active slot pointer for next iteration
+            activeSlotRef.current = isSlotZero ? 1 : 0
+            dirRef.current *= -1.0
+
+            // Pause outgoing video to free up memory & GPU decoding resources
+            outgoingVideo.pause()
+
+            onTransitionComplete()
+            if (onVideoInit) onVideoInit(incomingVideo)
+          }
+        }
+      )
     }
   }, [isTransitioning, nextSrc, onTransitionComplete, onVideoInit])
-
-  useFrame(() => {
-    if (texARef.current) texARef.current.needsUpdate = true
-    if (texBRef.current) texBRef.current.needsUpdate = true
-  })
 
   return (
     <mesh>
@@ -234,6 +278,8 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
       <shaderMaterial
         ref={materialRef}
         args={[HighVelocityBlowShader]}
+        depthTest={false}
+        depthWrite={false}
       />
     </mesh>
   )
@@ -246,6 +292,7 @@ export default function HeroCanvas({ activeSrc, nextSrc, isTransitioning, onTran
         camera={{ position: [0, 0, 1] }}
         gl={{ powerPreference: 'high-performance', antialias: false }}
         dpr={[1, 1.5]}
+        frameloop="always"
       >
         <ShaderPlane
           activeSrc={activeSrc}
