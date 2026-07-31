@@ -9,121 +9,92 @@ function useIsClient() {
   return useSyncExternalStore(emptySubscribe, () => true, () => false);
 }
 
-function SteamyVapor() {
-  const leftGroupRef = useRef();
-  const rightGroupRef = useRef();
-  
-  // Track dynamic opacity state driven by scroll
+function RadialVaporRing() {
+  const containerRef = useRef();
   const [opacityScale, setOpacityScale] = useState(1);
 
   useFrame((state, delta) => {
     const scrollY = typeof window !== "undefined" ? window.scrollY : 0;
     const time = state.clock.elapsedTime;
 
-    // --- FADE OUT LOGIC ---
-    // Start fading immediately, completely invisible by 600px scroll depth
-    const maxScrollFade = 600; 
+    // Fade out as user scrolls down
+    const maxScrollFade = 500;
     const currentFadeFactor = THREE.MathUtils.clamp(1 - scrollY / maxScrollFade, 0, 1);
 
-    // Only trigger state updates when opacity actually changes significantly
     if (Math.abs(opacityScale - currentFadeFactor) > 0.01) {
       setOpacityScale(currentFadeFactor);
     }
 
-    // --- Parting & Scattering Dynamics ---
-    const scrollMult = 0.012;
-    
-    const targetLeftX = -1.5 - scrollY * scrollMult;
-    const targetRightX = 1.5 + scrollY * scrollMult;
-
-    const targetLeftY = Math.sin(time * 0.4) * 0.2 + scrollY * 0.004;
-    const targetRightY = -Math.sin(time * 0.4) * 0.2 - scrollY * 0.005;
-
-    const targetLeftZ = 0 + scrollY * 0.002;
-    const targetRightZ = -1 - scrollY * 0.003;
-
-    const swirlSpeed = 0.008 + scrollY * 0.00005;
-    const lerpSpeed = 0.08;
-
-    // Left Group Transforms
-    if (leftGroupRef.current) {
-      leftGroupRef.current.position.x = THREE.MathUtils.lerp(
-        leftGroupRef.current.position.x,
-        targetLeftX,
-        lerpSpeed
-      );
-      leftGroupRef.current.position.y = THREE.MathUtils.lerp(
-        leftGroupRef.current.position.y,
-        targetLeftY,
-        lerpSpeed
-      );
-      leftGroupRef.current.position.z = THREE.MathUtils.lerp(
-        leftGroupRef.current.position.z,
-        targetLeftZ,
-        lerpSpeed
-      );
-
-      leftGroupRef.current.rotation.z += delta * swirlSpeed;
-      leftGroupRef.current.rotation.x = Math.sin(time * 0.5 + scrollY * 0.002) * 0.15;
-    }
-
-    // Right Group Transforms
-    if (rightGroupRef.current) {
-      rightGroupRef.current.position.x = THREE.MathUtils.lerp(
-        rightGroupRef.current.position.x,
-        targetRightX,
-        lerpSpeed
-      );
-      rightGroupRef.current.position.y = THREE.MathUtils.lerp(
-        rightGroupRef.current.position.y,
-        targetRightY,
-        lerpSpeed
-      );
-      rightGroupRef.current.position.z = THREE.MathUtils.lerp(
-        rightGroupRef.current.position.z,
-        targetRightZ,
-        lerpSpeed
-      );
-
-      rightGroupRef.current.rotation.z -= delta * swirlSpeed;
-      rightGroupRef.current.rotation.y = Math.cos(time * 0.5 + scrollY * 0.002) * 0.15;
+    if (containerRef.current) {
+      // Gentle rotational movement around the center clear pocket
+      containerRef.current.rotation.z = time * 0.02;
+      
+      // Expand the radial clearance as user scrolls
+      const expansion = scrollY * 0.005;
+      containerRef.current.scale.setScalar(1 + expansion);
     }
   });
 
   return (
-    <Clouds limit={20} frustumCulled={false}>
-      {/* LEFT FOG GROUP */}
-      <group ref={leftGroupRef} position={[-1.5, 0, 0]}>
-        <Cloud
-          seed={42}
-          scale={3.5}
-          volume={18}
-          color="#ffffff"
-          // Multiplied base opacity by our dynamic scroll fade factor
-          opacity={0.5 * opacityScale}
-          fade={80}
-          speed={0.25}
-          growth={4}
-          position={[0, 0, 1]}
-        />
-      </group>
+    <group ref={containerRef}>
+      <Clouds limit={24} frustumCulled={false}>
+        {/* TOP-LEFT FOG CLUSTER */}
+        <group position={[-4.5, 3.0, -1]}>
+          <Cloud
+            seed={12}
+            scale={3.2}
+            volume={14}
+            color="#ffffff"
+            opacity={0.35 * opacityScale}
+            fade={60}
+            speed={0.15}
+            growth={3}
+          />
+        </group>
 
-      {/* RIGHT FOG GROUP */}
-      <group ref={rightGroupRef} position={[1.5, 0, 0]}>
-        <Cloud
-          seed={88}
-          scale={4.0}
-          volume={20}
-          color="#e0e0e0"
-          // Multiplied base opacity by our dynamic scroll fade factor
-          opacity={0.4 * opacityScale}
-          fade={100}
-          speed={0.2}
-          growth={3}
-          position={[0, -1, -2]}
-        />
-      </group>
-    </Clouds>
+        {/* TOP-RIGHT FOG CLUSTER */}
+        <group position={[4.5, 3.0, -1]}>
+          <Cloud
+            seed={34}
+            scale={3.5}
+            volume={16}
+            color="#e8e8e8"
+            opacity={0.3 * opacityScale}
+            fade={60}
+            speed={0.2}
+            growth={3}
+          />
+        </group>
+
+        {/* BOTTOM-LEFT FOG CLUSTER */}
+        <group position={[-5.0, -2.8, -1]}>
+          <Cloud
+            seed={56}
+            scale={3.0}
+            volume={12}
+            color="#d0d0d0"
+            opacity={0.25 * opacityScale}
+            fade={70}
+            speed={0.18}
+            growth={2}
+          />
+        </group>
+
+        {/* BOTTOM-RIGHT FOG CLUSTER */}
+        <group position={[5.0, -2.8, -1]}>
+          <Cloud
+            seed={78}
+            scale={3.2}
+            volume={14}
+            color="#ffffff"
+            opacity={0.25 * opacityScale}
+            fade={70}
+            speed={0.12}
+            growth={3}
+          />
+        </group>
+      </Clouds>
+    </group>
   );
 }
 
@@ -134,23 +105,34 @@ export default function GlobalCinematicFog() {
 
   return (
     <div 
-      className="fixed inset-0 w-full h-full pointer-events-none z-50"
+      className="fixed inset-0 w-full h-full pointer-events-none z-40 overflow-hidden"
       style={{ pointerEvents: "none" }}
     >
+      {/* --- SOFT RADIAL LIGHTENED VIGNETTE --- */}
+      <div 
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{
+          // Gentle radial glow that leaves the bottom 20% clear for UI elements
+          background: "radial-gradient(ellipse 65% 55% at 50% 40%, rgba(0,0,0,0) 40%, rgba(10,12,16,0.45) 100%)"
+        }}
+      />
+
+      {/* --- 3D RADIAL FOG CANVAS --- */}
       <Canvas 
         camera={{ position: [0, 0, 7], fov: 75 }}
         gl={{ powerPreference: "high-performance", antialias: false, alpha: true }}
         style={{ pointerEvents: "none", width: "100%", height: "100%" }} 
         events={() => ({ enabled: false })} 
         onCreated={({ scene }) => {
-          scene.fog = new THREE.FogExp2("#0c0c0c", 0.015);
+          // Extremely light scene fog so video details punch through clearly
+          scene.fog = new THREE.FogExp2("#0a0c10", 0.004);
         }}
       >
-        <ambientLight intensity={1.5} />
-        <directionalLight position={[5, 10, 5]} intensity={2.0} />
+        <ambientLight intensity={1.8} />
+        <directionalLight position={[5, 10, 5]} intensity={1.8} />
 
         <Suspense fallback={null}>
-          <SteamyVapor />
+          <RadialVaporRing />
         </Suspense>
       </Canvas>
     </div>

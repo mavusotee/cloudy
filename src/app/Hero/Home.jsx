@@ -2,7 +2,7 @@
 import Controls from '@/components/Controls'
 import Navigation from '@/components/Navigation'
 import HeroCanvas from '@/components/HeroCanvas'
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 
 const PROJECTS = [
   { 
@@ -25,6 +25,10 @@ function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [duration, setDuration] = useState('00:00')
 
+  // 1. ADDED GLOBAL AUDIO STATE
+  const [isMuted, setIsMuted] = useState(true)
+  const activeVideoRef = useRef(null)
+
   // Format raw video duration (seconds) into MM:SS
   const formatTime = (seconds) => {
     if (!seconds || isNaN(seconds)) return '00:00'
@@ -33,9 +37,15 @@ function Home() {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
   }
 
-  // Listens to video events to capture metadata duration as soon as it loads
+  // Captures active video reference & metadata duration
   const handleVideoInit = useCallback((videoEl) => {
     if (!videoEl) return
+
+    // Store reference to currently active video element
+    activeVideoRef.current = videoEl
+
+    // Sync sound state immediately whenever a new video initializes
+    videoEl.muted = isMuted
 
     const updateDuration = () => {
       if (videoEl.duration && !isNaN(videoEl.duration)) {
@@ -43,7 +53,6 @@ function Home() {
       }
     }
 
-    // Capture immediately if metadata is already loaded
     if (videoEl.readyState >= 1) {
       updateDuration()
     }
@@ -55,7 +64,22 @@ function Home() {
       videoEl.removeEventListener('loadedmetadata', updateDuration)
       videoEl.removeEventListener('durationchange', updateDuration)
     }
-  }, [])
+  }, [isMuted])
+
+  // 2. TOGGLE SOUND HANDLER (Passed to Navigation)
+  const handleToggleSound = () => {
+    const nextMutedState = !isMuted
+    setIsMuted(nextMutedState)
+
+    if (activeVideoRef.current) {
+      activeVideoRef.current.muted = nextMutedState
+      if (!nextMutedState) {
+        activeVideoRef.current.volume = 1.0
+        // Play call ensures audio context activates after user interaction
+        activeVideoRef.current.play().catch(() => {})
+      }
+    }
+  }
 
   const handleNext = () => {
     if (isTransitioning) return
@@ -75,7 +99,11 @@ function Home() {
       
       {/* FIXED NAVIGATION HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 p-4 w-full pointer-events-auto">
-        <Navigation />
+        {/* Pass isMuted and handleToggleSound to Navigation */}
+        <Navigation 
+          isMuted={isMuted} 
+          onToggleSound={handleToggleSound} 
+        />
       </header>
 
       {/* THREE.JS CANVAS SHADER BACKGROUND */}
@@ -83,12 +111,13 @@ function Home() {
         activeSrc={PROJECTS[currentIndex].src}
         nextSrc={nextIndex !== null ? PROJECTS[nextIndex].src : null}
         isTransitioning={isTransitioning}
+        isMuted={isMuted} // Pass down sound state
         onTransitionComplete={handleTransitionComplete}
         onVideoInit={handleVideoInit}
       />
 
       {/* OVERLAY */}
-      <div className="absolute inset-0 bg-black/90 z-0 pointer-events-none opacity-50" />
+      <div className="absolute inset-0 bg-black/10 z-0 pointer-events-none opacity-50" />
 
       {/* FOREGROUND UI WRAPPER */}
       <div className="relative z-10 w-full h-full p-4 pt-20 flex flex-col justify-between box-border">
@@ -104,11 +133,11 @@ function Home() {
         />
 
         {/* BOTTOM UI */}
-        <div className="flex items-end justify-between w-full mb-0 text-white font-mono uppercase tracking-tight text-[clamp(0.85rem,0.55rem+0.5vw,2rem)]">
-          <p className="w-[clamp(340px,25vw,920px)]">
+        <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-mono uppercase tracking-tight">
+          <p className="w-[clamp(335px,25vw,915px)] text-[clamp(0.85rem,0.55rem+0.5vw,2.5rem)]">
             VISUAL STUDIO FOR HIGH-END ARCHITECTURE AND CONSTRUCTION BASED IN ADELAIDE
           </p>
-          <p>scroll down</p>
+          <p className="text-[clamp(0.35rem,0.55rem+0.5vw,2rem)]">[scroll down]</p>
         </div>
       </div>
 

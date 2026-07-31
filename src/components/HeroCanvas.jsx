@@ -1,10 +1,11 @@
+// components/HeroCanvas.jsx
 'use client'
 import React, { useRef, useEffect } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import gsap from 'gsap'
 
-const HighVelocityBlowShader = {
+const SmudgeTransitionShader = {
   uniforms: {
     uTextureA: { value: null },
     uTextureB: { value: null },
@@ -31,6 +32,7 @@ const HighVelocityBlowShader = {
     uniform vec2 uVideoResB;
     varying vec2 vUv;
 
+    // Cover UV ratio calculator
     vec2 getCoverUv(vec2 uv, vec2 screenRes, vec2 mediaRes) {
       float screenAspect = screenRes.x / screenRes.y;
       float mediaAspect = mediaRes.x / mediaRes.y;
@@ -44,47 +46,83 @@ const HighVelocityBlowShader = {
       );
     }
 
-    float hash(vec2 p) {
-      p = fract(p * vec2(234.34, 435.345));
-      p += dot(p, p + 34.23);
-      return fract(p.x * p.y);
+    // Fast GLSL Simplex 2D Noise algorithm for liquid warping
+    vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
+    float snoise(vec2 v){
+      const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+               -0.577350269189626, 0.024390243902439);
+      vec2 i  = floor(v + dot(v, C.yy) );
+      vec2 x0 = v -   i + dot(i, C.xx);
+      vec2 i1;
+      i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+      vec4 x12 = x0.xyxy + C.xxzz;
+      x12.xy -= i1;
+      i = mod(i, 289.0);
+      vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+        + i.x + vec3(0.0, i1.x, 1.0 ));
+      vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+      m = m*m ;
+      m = m*m ;
+      vec3 x = 2.0 * fract(p * C.www) - 1.0;
+      vec3 h = abs(x) - 0.5;
+      vec3 ox = floor(x + 0.5);
+      vec3 a0 = x - ox;
+      m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+      vec3 g;
+      g.x  = a0.x  * x0.x  + h.x  * x0.y;
+      g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+      return 130.0 * dot(m, g);
     }
 
     void main() {
       vec2 uvA = getCoverUv(vUv, uResolution, uVideoResA);
       vec2 uvB = getCoverUv(vUv, uResolution, uVideoResB);
 
-      float velocity = sin(uProgress * 3.14159265);
-      float streaks = hash(vec2(0.0, vUv.y * 320.0));
+      // Bell curve velocity (peaks at mid-transition)
+      float transitionVelocity = sin(uProgress * 3.14159265);
 
-      float push = (velocity * 0.18 + streaks * velocity * 0.12) * uDirection;
-      vec2 uvPushedA = vec2(uvA.x - push, uvA.y);
-      vec2 uvPushedB = vec2(uvB.x + (1.0 - uProgress) * 0.12 * uDirection, uvB.y);
+      // Multi-layered organic liquid distortion field
+      float noiseVal = snoise(vUv * 3.5 + vec2(uProgress * 1.8, uProgress * 0.8));
+      float secondaryNoise = snoise(vUv * 8.0 - vec2(uProgress * 2.5));
+      
+      // Compute organic directional smudge offset
+      vec2 smudgeOffset = vec2(
+        noiseVal * 0.18 + secondaryNoise * 0.06,
+        snoise(vUv * 4.5) * 0.12
+      ) * transitionVelocity * uDirection;
 
-      float rgbSplit = velocity * 0.065 * uDirection;
+      // Distorted UVs for incoming and outgoing frames
+      vec2 distortedUvA = uvA + smudgeOffset;
+      vec2 distortedUvB = uvB - smudgeOffset * (1.0 - uProgress);
 
+      // Lens chromatic aberration / RGB split during the peak smudge
+      float rgbSplit = transitionVelocity * 0.04 * uDirection;
+
+      // Sample Outgoing Texture (Texture A) with chromatic smear
       vec4 colA = vec4(0.0);
-      vec4 colB = vec4(0.0);
-
-      colA.r = texture2D(uTextureA, uvPushedA + vec2(rgbSplit * 1.5, 0.0)).r * 0.6 +
-               texture2D(uTextureA, uvPushedA + vec2(rgbSplit * 2.0, 0.0)).r * 0.4;
-      colA.g = texture2D(uTextureA, uvPushedA).g;
-      colA.b = texture2D(uTextureA, uvPushedA - vec2(rgbSplit * 1.5, 0.0)).b * 0.6 +
-               texture2D(uTextureA, uvPushedA - vec2(rgbSplit * 2.0, 0.0)).b * 0.4;
+      colA.r = texture2D(uTextureA, distortedUvA + vec2(rgbSplit, rgbSplit * 0.5)).r;
+      colA.g = texture2D(uTextureA, distortedUvA).g;
+      colA.b = texture2D(uTextureA, distortedUvA - vec2(rgbSplit, rgbSplit * 0.5)).b;
       colA.a = 1.0;
 
-      colB.r = texture2D(uTextureB, uvPushedB - vec2(rgbSplit * 0.8, 0.0)).r;
-      colB.g = texture2D(uTextureB, uvPushedB).g;
-      colB.b = texture2D(uTextureB, uvPushedB + vec2(rgbSplit * 0.8, 0.0)).b;
+      // Sample Incoming Texture (Texture B) with chromatic smear
+      vec4 colB = vec4(0.0);
+      colB.r = texture2D(uTextureB, distortedUvB - vec2(rgbSplit * 0.8, rgbSplit * 0.4)).r;
+      colB.g = texture2D(uTextureB, distortedUvB).g;
+      colB.b = texture2D(uTextureB, distortedUvB + vec2(rgbSplit * 0.8, rgbSplit * 0.4)).b;
       colB.a = 1.0;
 
-      float coord = uDirection > 0.0 ? vUv.x : (1.0 - vUv.x);
-      float sweep = uProgress * 1.4 - (coord * 0.4 + streaks * 0.08);
-      float mask = smoothstep(0.0, 1.0, sweep);
+      // Mask with organic liquid wave edge instead of linear sweep
+      float maskX = uDirection > 0.0 ? vUv.x : (1.0 - vUv.x);
+      float organicEdge = maskX + noiseVal * 0.25;
+      float mask = smoothstep(0.0, 1.0, (uProgress * 1.5 - organicEdge * 0.5));
 
+      // Final mix
       vec4 finalColor = mix(colA, colB, mask);
-      vec3 blowGlow = vec3(0.9, 0.95, 1.0) * 0.25;
-      finalColor.rgb += blowGlow * pow(velocity, 2.0);
+
+      // Subtle atmospheric glow highlight along the liquid edge
+      float edgeHighlight = smoothstep(0.0, 0.1, 1.0 - abs(mask - 0.5) * 2.0) * transitionVelocity;
+      finalColor.rgb += vec3(0.85, 0.9, 1.0) * edgeHighlight * 0.15;
 
       gl_FragColor = finalColor;
     }
@@ -106,17 +144,14 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
   const dirRef = useRef(1.0)
   const { size } = useThree()
 
-  // Video refs
   const videoARef = useRef(null)
   const videoBRef = useRef(null)
   const texARef = useRef(null)
   const texBRef = useRef(null)
   const tweenRef = useRef(null)
 
-  // Track active texture role: 0 = TexA is active, 1 = TexB is active
   const activeSlotRef = useRef(0)
 
-  // 1. One-time setup
   useEffect(() => {
     if (!videoARef.current) {
       videoARef.current = createOptimizedVideoElement()
@@ -136,7 +171,6 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
     }
   }, [])
 
-  // 2. Hardware Frame Sync
   useEffect(() => {
     let animIdA, animIdB
 
@@ -175,14 +209,12 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
     }
   }, [])
 
-  // 3. Viewport size sync
   useEffect(() => {
     if (materialRef.current) {
       materialRef.current.uniforms.uResolution.value.set(size.width, size.height)
     }
   }, [size])
 
-  // 4. Initial Video Load
   useEffect(() => {
     const currentVideo = activeSlotRef.current === 0 ? videoARef.current : videoBRef.current
     if (!currentVideo || !activeSrc) return
@@ -207,12 +239,10 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
     }
   }, [activeSrc, onVideoInit])
 
-  // 5. Ping-Pong Transition (NO VIDEO RE-ASSIGNMENT AT THE END)
   useEffect(() => {
     if (isTransitioning && nextSrc) {
       const isSlotZero = activeSlotRef.current === 0
-      
-      // Determine outgoing and incoming elements dynamically
+
       const outgoingVideo = isSlotZero ? videoARef.current : videoBRef.current
       const incomingVideo = isSlotZero ? videoBRef.current : videoARef.current
       const outgoingTex = isSlotZero ? texARef.current : texBRef.current
@@ -220,9 +250,11 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
 
       if (!incomingVideo || !materialRef.current) return
 
-      // Assign target source strictly to the incoming buffer
       incomingVideo.src = nextSrc
       incomingVideo.currentTime = 0
+      incomingVideo.muted = false
+      incomingVideo.volume = 1.0
+
       incomingVideo.onloadedmetadata = () => {
         if (materialRef.current) {
           const resUniform = isSlotZero ? 'uVideoResB' : 'uVideoResA'
@@ -233,35 +265,40 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
         }
       }
 
-      incomingVideo.play().catch(() => {})
+      incomingVideo.play().catch((err) => {
+        console.warn("Autoplay with audio blocked by browser, falling back to muted:", err)
+        incomingVideo.muted = true
+        incomingVideo.play()
+      })
 
-      // Bind outgoing & incoming textures to material
+      if (outgoingVideo) {
+        gsap.to(outgoingVideo, { volume: 0, duration: 1.0 })
+      }
+
       materialRef.current.uniforms.uTextureA.value = outgoingTex
       materialRef.current.uniforms.uTextureB.value = incomingTex
       materialRef.current.uniforms.uDirection.value = dirRef.current
 
       if (tweenRef.current) tweenRef.current.kill()
 
+      // Adjust GSAP duration & easing to complement liquid movement
       tweenRef.current = gsap.fromTo(
         materialRef.current.uniforms.uProgress,
         { value: 0 },
         {
           value: 1,
-          duration: 1.5,
-          ease: 'power4.out',
+          duration: 1.3,
+          ease: 'power2.inOut',
           onComplete: () => {
-            // SWAP SLOTS SILENTLY: Set both slots to incomingTex so progress=0 doesn't glitch
             if (materialRef.current) {
               materialRef.current.uniforms.uTextureA.value = incomingTex
               materialRef.current.uniforms.uTextureB.value = incomingTex
               materialRef.current.uniforms.uProgress.value = 0
             }
 
-            // Flip active slot pointer for next iteration
             activeSlotRef.current = isSlotZero ? 1 : 0
             dirRef.current *= -1.0
 
-            // Pause outgoing video to free up memory & GPU decoding resources
             outgoingVideo.pause()
 
             onTransitionComplete()
@@ -277,7 +314,7 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
         ref={materialRef}
-        args={[HighVelocityBlowShader]}
+        args={[SmudgeTransitionShader]}
         depthTest={false}
         depthWrite={false}
       />

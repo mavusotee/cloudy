@@ -66,14 +66,14 @@ function page() {
         </div>
 
         {/* INTRO SECTION */}
-        <div className="flex flex-row items-start justify-between w-full text-ghost-white">
+        <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white">
           <h1 className="font-mono tracking-tight text-[14px]">
             IT ALL STARTS WITH AN IDEA
           </h1>
 
           <div className="flex flex-col items-start justify-end space-y-12 w-1/2 translate-x-20">
             <Split duration="2">
-              <p className="w-[685.9px] leading-[120%] font-regular text-[40px] tracking-tight uppercase">
+              <p className="w-[695.9px] leading-[120%] font-regular text-[50px] tracking-tight uppercase">
                 A hidden visual story costs more than missed contracts—it steals the authority your work has already earned.
               </p>
             </Split>

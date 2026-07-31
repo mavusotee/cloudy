@@ -14,7 +14,7 @@ function Controls({
   const formattedTotal = String(totalVideos).padStart(2, '0')
 
   return (
-    <div className="flex items-center justify-between text-ghost-white w-full">
+    <div className="hidden md:flex items-center justify-between text-ghost-white w-full">
 
       {/* LEFT-CONTROLS */}
       <div className="flex flex-col items-start justify-start space-y-1 w-[clamp(140px,30vw,360px)]">
@@ -31,7 +31,7 @@ function Controls({
       <div>
         <button 
           aria-label="Play video"
-          className="bg-carbon-black w-[clamp(60px,5vw+35px,100px)] h-[clamp(60px,5vw+35px,100px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[0.95rem] text-center flex items-center justify-center transition-transform hover:scale-105"
+          className="bg-carbon-black w-[clamp(60px,5vw+35px,100px)] h-[clamp(60px,5vw+35px,100px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[0.95rem] text-center flex items-center justify-center transition-transform hover:scale-105 opacity-0"
         >
           <PlayIcon strokeWidth="2" className="w-[clamp(16px,1.5vw+12px,38px)] h-[clamp(16px,1.5vw+10px,28px)]" />
         </button>
