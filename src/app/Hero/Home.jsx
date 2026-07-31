@@ -133,8 +133,8 @@ function Home() {
         />
 
         {/* BOTTOM UI */}
-        <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-mono uppercase tracking-tight">
-          <p className="w-[clamp(335px,25vw,915px)] text-[clamp(0.85rem,0.55rem+0.5vw,2.5rem)]">
+        <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-mono uppercase tracking-tight leading-[140%] md:leading-normal">
+          <p className="w-[clamp(335px,25vw,915px)] text-[clamp(1.2rem,0.55rem+0.5vw,2.5rem)]">
             VISUAL STUDIO FOR HIGH-END ARCHITECTURE AND CONSTRUCTION BASED IN ADELAIDE
           </p>
           <p className="text-[clamp(0.35rem,0.55rem+0.5vw,2rem)]">[scroll down]</p>

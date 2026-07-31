@@ -54,7 +54,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         </button>
 
         {/* CHECK AVAILABILITY BUTTON */}
-        <button className="bg-carbon-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(160px,12vw+70px,224px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.55rem,0.65rem+0.3vw,1.25rem)] text-center flex items-center justify-center">
+        <button className="bg-carbon-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(145px,12vw+70px,224px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.15rem,0.65rem+0.3vw,1.25rem)] text-center flex items-center justify-center">
           Check availability
         </button>
       </div>

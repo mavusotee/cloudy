@@ -50,30 +50,27 @@ const videos = [
 
 function page() {
   return (
-    /* Container MUST have 'relative' so absolute layers anchor to it */
-    <div className="bg-carbon-black w-full min-h-screen py-6 px-6 flex flex-col space-y-32 relative overflow-hidden">
-      {/* 1. FOG CANVAS: Stretches across the full scrollable page height */}
-
-      {/* 2. FOREGROUND CONTENT: Sits safely at z-10 above the grid and fog */}
-      <div className="relative z-10 flex flex-col space-y-28 w-full">
+    <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:px-8 flex flex-col space-y-16 md:space-y-32 relative overflow-hidden">
+      {/* FOREGROUND CONTENT */}
+      <div className="relative z-10 flex flex-col space-y-16 md:space-y-28 w-full">
         {/* NAV */}
         <div className="flex flex-row items-center justify-between w-full text-lavender">
-          <div className="font-mono tracking-tight text-[12px] flex items-center gap-2">
+          <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2">
             <div className="w-2 h-2 bg-ghost-white" />
             <h1>OUR IDENTITY</h1>
           </div>
-          <h1 className="font-mono tracking-tight text-[10px]">[CLOUD_1]</h1>
+          <h1 className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)]">[CLOUD_1]</h1>
         </div>
 
         {/* INTRO SECTION */}
-        <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white">
-          <h1 className="font-mono tracking-tight text-[14px]">
+        <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-8 lg:gap-12">
+          <h1 className="font-mono tracking-tight text-[clamp(0.75rem,1.1vw,0.875rem)]">
             IT ALL STARTS WITH AN IDEA
           </h1>
 
-          <div className="flex flex-col items-start justify-end space-y-12 w-1/2 translate-x-20">
+          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full lg:w-3/5">
             <Split duration="2">
-              <p className="w-[695.9px] leading-[120%] font-regular text-[50px] tracking-tight uppercase">
+              <p className="w-full leading-[135%] md:leading-[120%] font-regular text-[clamp(1.7rem,3.5vw,3.125rem)] tracking-tight uppercase">
                 A hidden visual story costs more than missed contracts—it steals the authority your work has already earned.
               </p>
             </Split>
@@ -83,144 +80,60 @@ function page() {
         </div>
 
         {/* HEADER & WORKS SECTION */}
-        <div className="flex flex-col space-y-6 pt-10">
+        <div className="flex flex-col space-y-6 pt-6 md:pt-10">
           <div className="flex flex-row items-center justify-between w-full text-zinc-300">
-            <div className="font-mono tracking-tight text-[10px] flex items-center gap-2">
+            <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
               <div className="w-2 h-2 bg-zinc-600" />
               <h1>SELECTED WORKS</h1>
             </div>
-            <h1 className="font-mono tracking-tight text-[10px]">[CLOUD_2]</h1>
+            <h1 className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)]">[CLOUD_2]</h1>
           </div>
 
-          <div className="flex flex-row items-end justify-between w-full text-ghost-white">
-            <div className="flex flex-row items-start gap-6 font-mono">
-              <h1 className="text-[270px] tracking-[-8%] font-light leading-none">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-4">
+            <div className="flex flex-row items-start gap-3 sm:gap-6 font-mono">
+              <h1 className="text-[clamp(4rem,18vw,16.875rem)] tracking-[-8%] font-light leading-none">
                 WORK
               </h1>
-              <sup className="text-3xl pt-2 leading-none font-mono font-light tracking-tight">
+              <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-2 leading-none font-mono font-light tracking-tight">
                 [{videos.length < 10 ? `0${videos.length}` : videos.length}]
               </sup>
             </div>
 
-            <div className="flex flex-col items-end justify-end space-y-4">
+            <div className="flex flex-col items-end justify-end space-y-4 self-end sm:self-auto">
               <Button text="VIEW ALL WORKS" href="/Works" />
             </div>
           </div>
 
-          {/* WORKS GRID */}
-          <div className="flex flex-col space-y-22">
-            {/* ROW-1 (Index 0 & 1) */}
-            <div className="flex flex-row items-center justify-center w-full text-lavender">
-              <div className="flex flex-col space-y-2 w-full">
+          {/* WORKS GRID (Flex Column Layout - All video blocks uniform) */}
+          <div className="flex flex-col space-y-12 md:space-y-20 pt-8">
+            {videos.map((video) => (
+              <div key={video.id} className="flex flex-col space-y-2 w-full text-lavender">
+                {/* Top Meta Bar */}
                 <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[16px]">
-                    {videos[0].date}
+                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                    {video.date}
                   </h1>
-                  <h2 className="font-sans font-medium tracking-tight text-[16px]">
-                    {videos[0].durationTop}
+                  <h2 className="font-sans font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                    {video.durationTop}
                   </h2>
                 </div>
-                <div className="w-full h-[30rem]">
-                  <VimeoPlayer urlOrId={videos[0].url} />
-                </div>
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-sans tracking-tight text-[20px] font-medium">
-                    {videos[0].title}
-                  </h1>
-                  <h2 className="font-sans tracking-tight text-[12px]">
-                    {videos[0].durationBottom}
-                  </h2>
-                </div>
-              </div>
 
-              <div className="flex flex-col space-y-2 w-full">
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[16px]">
-                    {videos[1].date}
-                  </h1>
-                  <h2 className="font-sans tracking-tight text-[16px]">
-                    {videos[1].durationTop}
-                  </h2>
+                {/* Video Player Frame */}
+                <div className="w-full aspect-video overflow-hidden bg-zinc-900">
+                  <VimeoPlayer urlOrId={video.url} />
                 </div>
-                <div className="w-full h-[30rem]">
-                  <VimeoPlayer urlOrId={videos[1].url} />
-                </div>
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-sans tracking-tight text-[20px] font-medium">
-                    {videos[1].title}
-                  </h1>
-                  <h2 className="font-sans tracking-tight text-[12px]">
-                    {videos[1].durationBottom}
-                  </h2>
-                </div>
-              </div>
-            </div>
 
-            {/* VID-BLOCK-3 (Index 2) */}
-            <div className="flex flex-col space-y-2 w-full text-lavender">
-              <div className="flex flex-row items-center justify-between w-full px-2">
-                <h1 className="font-geist-mono tracking-tight text-[16px]">
-                  {videos[2].date}
-                </h1>
-                <h2 className="font-sans tracking-tight text-[16px]">{videos[2].durationTop}</h2>
-              </div>
-              <div className="w-full h-[45rem]">
-                <VimeoPlayer urlOrId={videos[2].url} />
-              </div>
-              <div className="flex flex-row items-center justify-between w-full px-2">
-                <h1 className="font-sans tracking-tight text-[20px] font-medium">
-                  {videos[2].title}
-                </h1>
-                <h2 className="font-sans tracking-tight text-[12px]">{videos[2].durationBottom}</h2>
-              </div>
-            </div>
-
-            {/* ROW-3 (Index 3 & 4) */}
-            <div className="flex flex-row items-center justify-center w-full space-x-6 text-lavender">
-              <div className="flex flex-col space-y-2 w-full">
+                {/* Bottom Meta Bar */}
                 <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[16px]">
-                    {videos[3].date}
+                  <h1 className="font-sans tracking-tight text-[clamp(1rem,1.5vw,1.25rem)] font-medium">
+                    {video.title}
                   </h1>
-                  <h2 className="font-sans tracking-tight text-[16px]">
-                    {videos[3].durationTop}
-                  </h2>
-                </div>
-                <div className="w-full h-[30rem]">
-                  <VimeoPlayer urlOrId={videos[3].url} />
-                </div>
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-sans tracking-tight text-[20px] font-medium">
-                    {videos[3].title}
-                  </h1>
-                  <h2 className="font-sans tracking-tight text-[12px]">
-                    {videos[3].durationBottom}
+                  <h2 className="font-sans tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)]">
+                    {video.durationBottom}
                   </h2>
                 </div>
               </div>
-
-              <div className="flex flex-col space-y-2 w-full translate-y-12 text-lavender">
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[16px]">
-                    {videos[4].date}
-                  </h1>
-                  <h2 className="font-sans tracking-tight text-[16px]">
-                    {videos[4].durationTop}
-                  </h2>
-                </div>
-                <div className="w-full h-[30rem]">
-                  <VimeoPlayer urlOrId={videos[4].url} />
-                </div>
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-sans tracking-tight text-[16px]">
-                    {videos[4].title}
-                  </h1>
-                  <h2 className="font-sans tracking-tight text-[12px]">
-                    {videos[4].durationBottom}
-                  </h2>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
