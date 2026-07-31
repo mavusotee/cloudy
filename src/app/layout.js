@@ -1,6 +1,11 @@
 import { Geist, Geist_Mono, Plus_Jakarta_Sans, Fragment_Mono } from "next/font/google";
 import "./globals.css";
 import GlobalCinematicFog from "@/components/CinematicFog";
+import dynamic from 'next/dynamic'
+import ClientFogWrapper from "@/components/ClientFogWrapper";
+
+
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +39,7 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${fragmentMono.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col"><GlobalCinematicFog />{children}</body>
+      <body className="min-h-full flex flex-col"><ClientFogWrapper />{children}</body>
     </html>
   );
 }
