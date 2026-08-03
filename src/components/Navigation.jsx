@@ -32,7 +32,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         <button
           onClick={onToggleSound}
           aria-label={isMuted ? "Unmute audio" : "Mute audio"}
-          className="bg-carbon-black hover:bg-zinc-800 transition-colors h-[clamp(44px,2.5vw+20px,55px)] px-4 rounded-full border border-eclipse font-mono text-[clamp(0.45rem,0.65rem+0.3vw,1.25rem)] uppercase flex items-center justify-center space-x-2 text-ghost-white cursor-pointer"
+          className="hidden md:flex items-center bg-carbon-black hover:bg-zinc-800 transition-colors h-[clamp(44px,2.5vw+20px,55px)] px-4 rounded-full border border-eclipse font-mono text-[clamp(0.45rem,0.65rem+0.3vw,1.25rem)] uppercase flex items-center justify-center space-x-2 text-ghost-white cursor-pointer"
         >
           {isMuted ? (
             <>
