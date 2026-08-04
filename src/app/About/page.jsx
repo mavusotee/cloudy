@@ -5,6 +5,7 @@ import VimeoPlayer from "@/components/VimeoPlayer";
 import SmudgyTextReveal from "@/components/SmudgyTextReveal";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import ServicesSection from "@/components/ServicesSection";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -91,7 +92,7 @@ export default function Page() {
         </div>
 
         {/* HEADER & WORKS SECTION */}
-        <div className="flex flex-col space-y-6 pt-6 lg:pt-10">
+        <div className="flex flex-col space-y-6 pt-14 lg:pt-20">
           <div className="flex flex-row items-center justify-between w-full text-zinc-300">
             <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
               <div className="w-2 h-2 bg-zinc-300" />
@@ -102,8 +103,8 @@ export default function Page() {
 
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-4 sm:gap-0">
             <div className="flex flex-row items-start gap-4 sm:gap-6 font-mono">
-              <h1 className="text-[clamp(4rem,18vw,16.875rem)] tracking-[-8%] font-light leading-none">
-                WORK
+              <h1 className="text-[clamp(4rem,15vw,10.875rem)] tracking-[-8%] font-light leading-none">
+               LATEST WORK
               </h1>
               <sup className="hidden text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-2 leading-none font-mono font-light tracking-tight">
                 [{videos.length < 10 ? `0${videos.length}` : videos.length}]
@@ -241,6 +242,8 @@ export default function Page() {
           </div>
         </div>
       </div>
+
+      <ServicesSection />
     </div>
   );
 }

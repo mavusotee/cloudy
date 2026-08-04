@@ -108,7 +108,7 @@ export default function GlobalCinematicFog() {
       className="fixed inset-0 w-full h-full pointer-events-none z-40 overflow-hidden"
       style={{ pointerEvents: "none" }}
     >
-      {/* --- SOFT RADIAL LIGHTENED VIGNETTE --- */}
+      {/* --- SOFT RADIAL LIGHTENED VIGNETTE --- 
       <div 
         className="absolute inset-0 pointer-events-none z-10"
         style={{
@@ -116,6 +116,7 @@ export default function GlobalCinematicFog() {
           background: "radial-gradient(ellipse 65% 55% at 50% 40%, rgba(0,0,0,0) 40%, rgba(10,12,16,0.45) 100%)"
         }}
       />
+      */}
 
       {/* --- 3D RADIAL FOG CANVAS --- */}
       <Canvas 

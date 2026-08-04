@@ -117,7 +117,7 @@ function Home() {
       />
 
       {/* OVERLAY */}
-      <div className="absolute inset-0 bg-black/10 z-0 pointer-events-none opacity-50" />
+      <div className="absolute inset-0 bg-black/50 z-0 pointer-events-none opacity-50" />
 
       {/* FOREGROUND UI WRAPPER */}
       <div className="relative z-10 w-full h-full p-4 pt-20 flex flex-col justify-between box-border">
