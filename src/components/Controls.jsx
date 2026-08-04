@@ -14,10 +14,10 @@ function Controls({
   const formattedTotal = String(totalVideos).padStart(2, '0')
 
   return (
-    <div className="hidden md:flex items-center justify-between text-ghost-white w-full">
+    <div className="flex items-center justify-between text-ghost-white w-full">
 
-      {/* LEFT-CONTROLS */}
-      <div className="flex flex-col items-start justify-start space-y-1 w-[clamp(140px,30vw,360px)]">
+      {/* LEFT-CONTROLS (Hidden on Mobile) */}
+      <div className="hidden md:flex flex-col items-start justify-start space-y-1 w-[clamp(140px,30vw,360px)]">
         <h1 className="font-sans font-semibold text-[clamp(0.5rem,0.45rem+0.2vw,0.625rem)]">FEATURED WORKS</h1>
         <div className="flex items-center justify-between w-full text-[clamp(0.65rem,0.5rem+0.5vw,1.25rem)] font-geist-mono">
           <h1 className="truncate">{title}</h1>
@@ -27,20 +27,20 @@ function Controls({
         <div className="bg-zinc-400 w-full h-[0.25px]" />
       </div>
 
-      {/* PLAY BUTTON */}
-      <div>
+      {/* PLAY BUTTON (Hidden on Mobile) */}
+      <div className="hidden md:block">
         <button 
           aria-label="Play video"
-          className="font-geist-mono cursor-pointer hidden md:flex mix-blend-difference text-xl hover:font-semibold transition duration-300"
+          className="font-geist-mono cursor-pointer mix-blend-difference text-xl hover:font-semibold transition duration-300"
         >
           [ PLAY ]
         </button>
       </div>
 
-      {/* RIGHT-CONTROLS */}
-      <div className="flex flex-col items-end justify-start space-y-1 w-[clamp(110px,30vw,300px)]">
+      {/* RIGHT-CONTROLS (Full Width on Mobile, Fixed Clamp on Desktop) */}
+      <div className="flex flex-col items-end justify-start space-y-1 w-full md:w-[clamp(110px,30vw,300px)]">
         <div className="flex items-center justify-between w-full text-[clamp(0.65rem,0.55rem+0.3vw,0.95rem)] font-geist-mono">
-          <h1 className='font-geist-mono font-bold'>{formattedIndex} / {formattedTotal}</h1>
+          <h1 className="font-geist-mono font-bold">{formattedIndex} / {formattedTotal}</h1>
           
           <button 
             onClick={onNext}

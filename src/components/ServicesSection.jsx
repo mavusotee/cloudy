@@ -68,20 +68,21 @@ function ServiceItem({ service, index, isOpen, onToggle }) {
         {/* TITLE */}
         <div
           onClick={onToggle}
-          className="cursor-pointer flex items-center justify-between w-full pr-4"
+          className="cursor-pointer flex items-center justify-between w-full pr-[clamp(0.5rem,2vw,1rem)]"
         >
-          <h1 className="text-7xl font-sans uppercase tracking-tight transition-colors duration-300 group-hover:text-lavender">
+          {/* Base text-7xl (4.5rem/72px) clamped down to 1.75rem (28px) on small screens */}
+          <h1 className="text-[clamp(1.75rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tight transition-colors duration-300 group-hover:text-lavender leading-[1.05]">
             {service.title}
           </h1>
         </div>
 
-        {/* SMALL BUTTON TOGGLE - Appears only on row hover unless already open */}
+        {/* SMALL BUTTON TOGGLE - Always clickable on mobile, hover-triggered on desktop when closed */}
         <div
           onClick={onToggle}
-          className={`cursor-pointer shrink-0 pl-4 transition-opacity duration-300 ${
+          className={`cursor-pointer shrink-0 pl-[clamp(0.5rem,2vw,1rem)] transition-opacity duration-300 ${
             isOpen
               ? "opacity-100 pointer-events-auto"
-              : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+              : "opacity-100 md:opacity-0 pointer-events-auto md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto"
           }`}
         >
           <SmallButton isOpen={isOpen} index={index} />
@@ -93,13 +94,14 @@ function ServiceItem({ service, index, isOpen, onToggle }) {
         ref={contentRef}
         className="h-0 opacity-0 overflow-hidden w-full origin-top"
       >
-        <p className="text-zinc-500 font-mono uppercase w-[670px] max-w-full pt-8 pb-2">
+        {/* Base w-[670px] clamped down to 100% full-width on mobile; text size clamped fluidly */}
+        <p className="text-zinc-500 font-mono uppercase w-[clamp(280px,50vw,670px)] max-w-full pt-[clamp(1rem,2.5vw,2rem)] pb-[clamp(0.25rem,0.75vw,0.5rem)] text-[clamp(0.7rem,0.65rem+0.35vw,0.875rem)] leading-relaxed">
           {service.description}
         </p>
       </div>
 
       {/* FULL-WIDTH UNDERLINE */}
-      <div className="w-full bg-eclipse h-[1px] mt-8" />
+      <div className="w-full bg-eclipse h-[1px] mt-[clamp(1.25rem,3vw,2rem)]" />
     </div>
   );
 }
@@ -112,7 +114,8 @@ export default function ServicesSection() {
   };
 
   return (
-    <div className="w-full h-auto bg-carbon-black text-ghost-white mt-30">
+    // Base mt-30 (7.5rem/120px) clamped down to 3rem (48px)
+    <div className="w-full h-auto bg-carbon-black text-ghost-white mt-[clamp(3rem,8vw,7.5rem)]">
       {/* HEADER */}
       <div className="flex flex-row items-center justify-between w-full text-zinc-300">
         <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
@@ -124,8 +127,8 @@ export default function ServicesSection() {
         </h1>
       </div>
 
-      {/* MAPPED SERVICES */}
-      <div className="flex flex-col space-y-18 mt-32 w-full">
+      {/* MAPPED SERVICES - Base mt-32 (8rem) & space-y-18 (4.5rem) clamped down for mobile */}
+      <div className="flex flex-col space-y-[clamp(2rem,5vw,4.5rem)] mt-[clamp(3.5rem,8vw,8rem)] w-full">
         {services.map((service, index) => (
           <ServiceItem
             key={service.id}
