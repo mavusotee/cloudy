@@ -6,15 +6,15 @@ import React, { useState, useCallback, useRef } from 'react'
 
 const PROJECTS = [
   { 
-    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785489876/double_a___hazelwood_2160p_lnodhq.mp4', 
+    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4', 
     title: 'HAZELWOOD RESIDENCE' 
   },
   { 
-    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785489189/16Cliff_qossp1.mp4', 
-    title: 'KRIVIC' 
+    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4', 
+    title: 'THE BUILDING COMPANY' 
   },
   { 
-    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785496892/eston_property___gilbert_street_1080p_r3msmo.mp4', 
+    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4', 
     title: 'THE BUILDING COMPANY' 
   }
 ]
