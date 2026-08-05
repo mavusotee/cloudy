@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import SmallButton from "./SmallButton";
-import gsap from "gsap";
 
 const services = [
   {
@@ -25,76 +24,32 @@ const services = [
   },
 ];
 
-function ServiceItem({ service, index, isOpen, onToggle }) {
-  const contentRef = useRef(null);
-  const isMounted = useRef(false);
-
-  useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-
-    if (!isMounted.current) {
-      isMounted.current = true;
-      if (isOpen) {
-        gsap.set(el, {
-          height: "auto",
-          opacity: 1,
-        });
-      }
-      return;
-    }
-
-    if (isOpen) {
-      gsap.to(el, {
-        height: "auto",
-        opacity: 1,
-        duration: 0.5,
-        ease: "power3.out",
-      });
-    } else {
-      gsap.to(el, {
-        height: 0,
-        opacity: 0,
-        duration: 0.4,
-        ease: "power3.inOut",
-      });
-    }
-  }, [isOpen]);
-
+function ServiceItem({ service, index }) {
   return (
     <div className="group flex flex-col w-full">
       {/* HEADER ROW */}
       <div className="flex flex-row items-start justify-between w-full">
-        {/* TITLE */}
-        <div
-          onClick={onToggle}
-          className="cursor-pointer flex items-center justify-between w-full pr-[clamp(0.5rem,2vw,1rem)]"
-        >
-          {/* Base text-7xl (4.5rem/72px) clamped down to 1.75rem (28px) on small screens */}
+        {/* NUMBER + TITLE CONTAINER (Strict Start Alignment) */}
+        <div className="flex items-start gap-x-[clamp(1rem,2.5vw,2.5rem)] w-full pr-[clamp(0.5rem,2vw,1rem)]">
+          {/* NUMBERING - Fixed Width & Matching Top Line Height Offset */}
+          <span className="shrink-0 w-[clamp(24px,3vw,40px)] font-mono text-zinc-500 text-[clamp(0.875rem,1.2vw,1.125rem)] pt-[clamp(0.2rem,0.5vw,0.6rem)] select-none">
+            ({service.id})
+          </span>
+
+          {/* TITLE */}
           <h1 className="text-[clamp(1.75rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tight transition-colors duration-300 group-hover:text-lavender leading-[1.05]">
             {service.title}
           </h1>
         </div>
 
-        {/* SMALL BUTTON TOGGLE - Always clickable on mobile, hover-triggered on desktop when closed */}
-        <div
-          onClick={onToggle}
-          className={`cursor-pointer shrink-0 pl-[clamp(0.5rem,2vw,1rem)] transition-opacity duration-300 ${
-            isOpen
-              ? "opacity-100 pointer-events-auto"
-              : "opacity-100 md:opacity-0 pointer-events-auto md:pointer-events-none md:group-hover:opacity-100 md:group-hover:pointer-events-auto"
-          }`}
-        >
-          <SmallButton isOpen={isOpen} index={index} />
+        {/* SMALL BUTTON TOGGLE */}
+        <div className="shrink-0 pl-[clamp(0.5rem,2vw,1rem)] opacity-100 pointer-events-auto pt-[clamp(0.2rem,0.5vw,0.4rem)]">
+          <SmallButton isOpen={true} index={index} />
         </div>
       </div>
 
-      {/* GSAP DROPDOWN CONTENT */}
-      <div
-        ref={contentRef}
-        className="h-0 opacity-0 overflow-hidden w-full origin-top"
-      >
-        {/* Base w-[670px] clamped down to 100% full-width on mobile; text size clamped fluidly */}
+      {/* DESCRIPTION CONTENT - Indented precisely past the fixed number column width */}
+      <div className="w-full pl-[calc(clamp(24px,3vw,40px)+clamp(1rem,2.5vw,2.5rem))]">
         <p className="text-zinc-500 font-mono uppercase w-[clamp(280px,50vw,670px)] max-w-full pt-[clamp(1rem,2.5vw,2rem)] pb-[clamp(0.25rem,0.75vw,0.5rem)] text-[clamp(0.7rem,0.65rem+0.35vw,0.875rem)] leading-relaxed">
           {service.description}
         </p>
@@ -107,14 +62,7 @@ function ServiceItem({ service, index, isOpen, onToggle }) {
 }
 
 export default function ServicesSection() {
-  const [openId, setOpenId] = React.useState("01");
-
-  const handleToggle = (id) => {
-    setOpenId((prevId) => (prevId === id ? null : id));
-  };
-
   return (
-    // Base mt-30 (7.5rem/120px) clamped down to 3rem (48px)
     <div className="w-full h-auto bg-carbon-black text-ghost-white mt-[clamp(3rem,8vw,7.5rem)]">
       {/* HEADER */}
       <div className="flex flex-row items-center justify-between w-full text-zinc-300">
@@ -127,16 +75,10 @@ export default function ServicesSection() {
         </h1>
       </div>
 
-      {/* MAPPED SERVICES - Base mt-32 (8rem) & space-y-18 (4.5rem) clamped down for mobile */}
+      {/* MAPPED SERVICES */}
       <div className="flex flex-col space-y-[clamp(2rem,5vw,4.5rem)] mt-[clamp(3.5rem,8vw,8rem)] w-full">
         {services.map((service, index) => (
-          <ServiceItem
-            key={service.id}
-            service={service}
-            index={index}
-            isOpen={openId === service.id}
-            onToggle={() => handleToggle(service.id)}
-          />
+          <ServiceItem key={service.id} service={service} index={index} />
         ))}
       </div>
     </div>

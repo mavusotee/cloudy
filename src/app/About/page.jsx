@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 import SmallButton from "@/components/SmallButton";
 import SmallBut from "@/components/SmallBut";
@@ -50,7 +50,9 @@ const videos = [
 ];
 
 export default function Page() {
-  // Ensure ScrollTrigger refreshes calculations after DOM layout settles
+  const cursorRef = useRef(null);
+  const [isHoveringVideo, setIsHoveringVideo] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
@@ -59,8 +61,60 @@ export default function Page() {
     return () => clearTimeout(timer);
   }, []);
 
+  // GSAP Mouse Follower Logic
+  useEffect(() => {
+    const cursor = cursorRef.current;
+    if (!cursor) return;
+
+    // Center cursor baseline
+    gsap.set(cursor, { xPercent: -50, yPercent: -50 });
+
+    const xTo = gsap.quickTo(cursor, "x", { duration: 0.2, ease: "power3" });
+    const yTo = gsap.quickTo(cursor, "y", { duration: 0.2, ease: "power3" });
+
+    const moveCursor = (e) => {
+      xTo(e.clientX);
+      yTo(e.clientY);
+    };
+
+    window.addEventListener("mousemove", moveCursor);
+    return () => window.removeEventListener("mousemove", moveCursor);
+  }, []);
+
+  // GSAP Scale In/Out Animation on Video Hover State
+  useEffect(() => {
+    const cursor = cursorRef.current;
+    if (!cursor) return;
+
+    if (isHoveringVideo) {
+      gsap.to(cursor, {
+        scale: 1,
+        opacity: 1,
+        duration: 0.25,
+        ease: "power2.out",
+      });
+    } else {
+      gsap.to(cursor, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.2,
+        ease: "power2.in",
+      });
+    }
+  }, [isHoveringVideo]);
+
   return (
     <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:px-6 flex flex-col space-y-16 lg:space-y-32 relative overflow-x-hidden">
+      {/* CUSTOM CURSOR OVERLAY */}
+      <div
+        ref={cursorRef}
+        className="fixed top-0 left-0 pointer-events-none z-50 hidden md:block scale-0 opacity-0 mix-blend-difference text-white"
+      >
+        <span className="font-geist-mono text-xl font-medium tracking-tight">
+          [ CLICK ]
+        </span>
+      </div>
+
       {/* FOREGROUND CONTENT */}
       <div className="relative z-10 flex flex-col space-y-16 lg:space-y-28 w-full">
         {/* NAV */}
@@ -81,9 +135,7 @@ export default function Page() {
           </h1>
 
           <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full lg:w-1/2 lg:translate-x-0 xl:translate-x-20">
-            {/* TILTED DIAGONAL OVAL SMUDGY REVEAL */}
             <SmudgyTextReveal text="A hidden visual story costs more than missed contracts—it steals the authority your work has already earned." />
-
             <Button text="ABOUT CLOUDHAUS" href="/About" />
           </div>
         </div>
@@ -100,17 +152,19 @@ export default function Page() {
             </h1>
           </div>
 
+          {/* WORKS HEADER ROW */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-4 sm:gap-0">
             <div className="flex flex-row items-start gap-4 sm:gap-6 font-geist-mono">
-              <h1 className="text-[clamp(4rem,15vw,19.875rem)] tracking-[-8%] font-light leading-none">
-                WORK
+              <h1 className="text-[clamp(8rem,20vw,36.875rem)] tracking-[-8%] font-light leading-none">
+                Work
               </h1>
-              <sup className="hidden text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-2 leading-none font-mono font-light tracking-tight">
-                [{videos.length < 10 ? `0${videos.length}` : videos.length}]
+              <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-2 leading-none font-sans font-light tracking-tight">
+                ({videos.length < 10 ? `0${videos.length}` : videos.length})
               </sup>
             </div>
 
-            <div className="flex flex-col items-end justify-end space-y-4 self-end sm:self-auto">
+            {/* BUTTON: MOBILE = LEFT BELOW TITLE | DESKTOP = BOTTOM RIGHT */}
+            <div className="flex flex-col items-start sm:items-end justify-end sm:self-end w-full sm:w-auto">
               <Button text="VIEW ALL WORKS" href="/Works" />
             </div>
           </div>
@@ -125,11 +179,15 @@ export default function Page() {
                   <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
                     {videos[0].date}
                   </h1>
-                  <h2 className="font-sans font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
                     {videos[0].durationTop}
                   </h2>
                 </div>
-                <div className="w-full aspect-video lg:aspect-none lg:h-[30rem] overflow-hidden">
+                <div
+                  className="w-full aspect-video lg:aspect-none lg:h-[30rem] overflow-hidden cursor-none"
+                  onMouseEnter={() => setIsHoveringVideo(true)}
+                  onMouseLeave={() => setIsHoveringVideo(false)}
+                >
                   <video
                     src={videos[0].url}
                     autoPlay
@@ -140,7 +198,7 @@ export default function Page() {
                   />
                 </div>
                 <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-sans tracking-tight text-[clamp(1rem,1.5vw,1.25rem)] font-medium">
+                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
                     {videos[0].title}
                   </h1>
                   <SmallBut />
@@ -153,11 +211,15 @@ export default function Page() {
                   <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
                     {videos[1].date}
                   </h1>
-                  <h2 className="font-sans font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
                     {videos[1].durationTop}
                   </h2>
                 </div>
-                <div className="w-full aspect-video lg:aspect-none lg:h-[30rem] overflow-hidden">
+                <div
+                  className="w-full aspect-video lg:aspect-none lg:h-[30rem] overflow-hidden cursor-none"
+                  onMouseEnter={() => setIsHoveringVideo(true)}
+                  onMouseLeave={() => setIsHoveringVideo(false)}
+                >
                   <video
                     src={videos[1].url}
                     autoPlay
@@ -168,7 +230,7 @@ export default function Page() {
                   />
                 </div>
                 <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-sans tracking-tight text-[clamp(1rem,1.5vw,1.25rem)] font-medium">
+                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
                     {videos[1].title}
                   </h1>
                   <SmallBut />
@@ -182,11 +244,15 @@ export default function Page() {
                 <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
                   {videos[2].date}
                 </h1>
-                <h2 className="font-sans tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
                   {videos[2].durationTop}
                 </h2>
               </div>
-              <div className="w-full aspect-video lg:aspect-none lg:h-screen overflow-hidden">
+              <div
+                className="w-full aspect-video lg:aspect-none lg:h-screen overflow-hidden cursor-none"
+                onMouseEnter={() => setIsHoveringVideo(true)}
+                onMouseLeave={() => setIsHoveringVideo(false)}
+              >
                 <video
                   src={videos[2].url}
                   autoPlay
@@ -197,14 +263,13 @@ export default function Page() {
                 />
               </div>
               <div className="flex flex-row items-center justify-between w-full px-2">
-                <h1 className="font-sans tracking-tight text-[clamp(1rem,1.5vw,1.25rem)] font-medium">
+                <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
                   {videos[2].title}
                 </h1>
                 <SmallBut />
               </div>
             </div>
 
-            {/* ROW 3 */}
             {/* ROW 3 (EDITORIAL ASYMMETRIC GRID) */}
             <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
               {/* Card 4 (Dominant / Larger) */}
@@ -213,11 +278,15 @@ export default function Page() {
                   <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
                     {videos[3].date}
                   </h1>
-                  <h2 className="font-sans tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
                     {videos[3].durationTop}
                   </h2>
                 </div>
-                <div className="w-full aspect-video lg:aspect-none lg:h-[36rem] overflow-hidden">
+                <div
+                  className="w-full aspect-video lg:aspect-none lg:h-[36rem] overflow-hidden cursor-none"
+                  onMouseEnter={() => setIsHoveringVideo(true)}
+                  onMouseLeave={() => setIsHoveringVideo(false)}
+                >
                   <video
                     src={videos[3].url}
                     autoPlay
@@ -228,7 +297,7 @@ export default function Page() {
                   />
                 </div>
                 <div className="flex flex-row items-center justify-between w-full px-2 pt-1">
-                  <h1 className="font-sans tracking-tight text-[clamp(1rem,1.5vw,1.25rem)] font-medium">
+                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
                     {videos[3].title}
                   </h1>
                   <SmallBut />
@@ -241,11 +310,15 @@ export default function Page() {
                   <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
                     {videos[4].date}
                   </h1>
-                  <h2 className="font-sans tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
                     {videos[4].durationTop}
                   </h2>
                 </div>
-                <div className="w-full aspect-video lg:aspect-none lg:h-[26rem] overflow-hidden">
+                <div
+                  className="w-full aspect-video lg:aspect-none lg:h-[26rem] overflow-hidden cursor-none"
+                  onMouseEnter={() => setIsHoveringVideo(true)}
+                  onMouseLeave={() => setIsHoveringVideo(false)}
+                >
                   <video
                     src={videos[4].url}
                     autoPlay
@@ -256,7 +329,7 @@ export default function Page() {
                   />
                 </div>
                 <div className="flex flex-row items-center justify-between w-full px-2 pt-1">
-                  <h1 className="font-sans tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
                     {videos[4].title}
                   </h1>
                   <SmallBut />

@@ -13,7 +13,7 @@ function ClientsSection() {
 
           {/*TITLE*/}
           <div className="flex flex-col space-y-18 mt-10">
-             <h1 className="text-6xl font-plus-jarkata-sans tracking-tight text-ghost-white font-medium">OUR CURRENT ROSTER</h1>
+             <h1 className="text-6xl font-plus-jarkata-sans tracking-tight text-ghost-white w-[40rem]">CLIENTS WE'VE COLLABORATED WITH:</h1>
 
              <div className="flex flex-row space-x-6 overflow-hidden">
                 <div className="w-[45rem] h-[15rem] border border-eclipse bg-carbon-black"></div>
