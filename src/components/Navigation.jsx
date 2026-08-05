@@ -59,7 +59,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
   }, [isVisible])
 
   return (
-    <nav className="flex flex-row items-center justify-between w-full text-ghost-white p-2 md:px-4 md:py-4">
+    <nav className="flex flex-row items-center justify-between w-full text-ghost-white  md:px-4 md:py-4">
       {/* LOGO */}
       <div ref={logoRef} className="mix-blend-difference">
         <Link href="/">
