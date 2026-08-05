@@ -184,7 +184,7 @@ export default function Page() {
                   </h2>
                 </div>
                 <div
-                  className="w-full aspect-video lg:aspect-none lg:h-[30rem] overflow-hidden cursor-none"
+                  className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-[30rem] overflow-hidden cursor-none"
                   onMouseEnter={() => setIsHoveringVideo(true)}
                   onMouseLeave={() => setIsHoveringVideo(false)}
                 >
@@ -216,7 +216,7 @@ export default function Page() {
                   </h2>
                 </div>
                 <div
-                  className="w-full aspect-video lg:aspect-none lg:h-[30rem] overflow-hidden cursor-none"
+                  className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-[30rem] overflow-hidden cursor-none"
                   onMouseEnter={() => setIsHoveringVideo(true)}
                   onMouseLeave={() => setIsHoveringVideo(false)}
                 >
@@ -249,7 +249,7 @@ export default function Page() {
                 </h2>
               </div>
               <div
-                className="w-full aspect-video lg:aspect-none lg:h-screen overflow-hidden cursor-none"
+                className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-screen overflow-hidden cursor-none"
                 onMouseEnter={() => setIsHoveringVideo(true)}
                 onMouseLeave={() => setIsHoveringVideo(false)}
               >
@@ -283,7 +283,7 @@ export default function Page() {
                   </h2>
                 </div>
                 <div
-                  className="w-full aspect-video lg:aspect-none lg:h-[36rem] overflow-hidden cursor-none"
+                  className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-[36rem] overflow-hidden cursor-none"
                   onMouseEnter={() => setIsHoveringVideo(true)}
                   onMouseLeave={() => setIsHoveringVideo(false)}
                 >
@@ -315,7 +315,7 @@ export default function Page() {
                   </h2>
                 </div>
                 <div
-                  className="w-full aspect-video lg:aspect-none lg:h-[26rem] overflow-hidden cursor-none"
+                  className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-[26rem] overflow-hidden cursor-none"
                   onMouseEnter={() => setIsHoveringVideo(true)}
                   onMouseLeave={() => setIsHoveringVideo(false)}
                 >

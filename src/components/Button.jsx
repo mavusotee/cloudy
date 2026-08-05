@@ -74,7 +74,7 @@ export default function Button({
       <button 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`relative overflow-hidden bg-carbon-black px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(160px,12vw+70px,196px)] h-[clamp(44px,2.5vw+20px,49px)] rounded-full border border-eclipse font-geist-mono tracking-tight font-light uppercase text-[clamp(0.75rem,0.65rem+0.3vw,0.95rem)] text-center flex items-center justify-center cursor-pointer ${className}`}
+        className={`relative overflow-hidden bg-carbon-black px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(140px,12vw+70px,196px)] h-[clamp(42px,2.5vw+20px,49px)] rounded-full border border-eclipse font-geist-mono tracking-tight font-light uppercase text-[clamp(0.35rem,0.65rem+0.3vw,0.95rem)] text-center flex items-center justify-center cursor-pointer ${className}`}
       >
         {/* R3F WebGL Fill Layer */}
         <div className="absolute inset-0 w-full h-full pointer-events-none rounded-full overflow-hidden">

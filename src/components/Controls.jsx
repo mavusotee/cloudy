@@ -39,7 +39,7 @@ function Controls({
 
       {/* RIGHT-CONTROLS (Full Width on Mobile, Fixed Clamp on Desktop) */}
       <div className="flex flex-col items-end justify-start space-y-1 w-full md:w-[clamp(110px,30vw,300px)]">
-        <div className="flex items-center justify-between w-full text-[clamp(0.65rem,0.55rem+0.3vw,0.95rem)] font-geist-mono">
+        <div className="flex items-center justify-between w-full text-[clamp(0.85rem,0.55rem+0.3vw,0.95rem)] font-geist-mono">
           <h1 className="font-geist-mono font-bold">{formattedIndex} / {formattedTotal}</h1>
           
           <button 
@@ -47,7 +47,7 @@ function Controls({
             className="flex items-center justify-center gap-2 cursor-pointer hover:opacity-75 transition-opacity"
           >
             <div className="text-white bg-white w-[clamp(3px,0.25vw+2px,12px)] h-[clamp(3px,0.25vw+2px,15px)]" />
-            <h1>NEXT</h1>
+            <h1 className="text-lg md:text-sm">NEXT</h1>
           </button>
         </div>
 
