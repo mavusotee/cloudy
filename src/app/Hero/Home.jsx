@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import Controls from '@/components/Controls'
 import Navigation from '@/components/Navigation'
 import HeroCanvas from '@/components/HeroCanvas'
@@ -95,7 +95,7 @@ function Home() {
   }
 
   return (
-    <main className="relative w-full h-screen h-[100dvh] overflow-hidden bg-zinc-900">
+    <main className="relative w-full h-dvh overflow-hidden bg-zinc-900">
       
       {/* FIXED NAVIGATION HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 p-4 w-full pointer-events-auto">
