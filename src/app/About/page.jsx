@@ -136,7 +136,7 @@ export default function Page() {
 
         {/* INTRO SECTION */}
         <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-8 lg:gap-0">
-          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1.1vw,0.875rem)]">
+          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.35rem,1.1vw,0.875rem)]">
             IT ALL STARTS WITH AN IDEA.
           </h1>
 
@@ -206,15 +206,13 @@ export default function Page() {
                   />
                 </div>
                 <div className="flex flex-row items-start justify-between w-full px-2 text-ghost-white">
-                  <div className="flex flex-col">
-                    <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
+                  <div className="flex flex-col pt-2">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
                       {videos[0].title}
+                    </p>
+                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                      {videos[0].subtitle}
                     </h1>
-                    {videos[0].subtitle && (
-                      <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
-                        {videos[0].subtitle}
-                      </p>
-                    )}
                   </div>
                   <SmallBut />
                 </div>
@@ -245,15 +243,13 @@ export default function Page() {
                   />
                 </div>
                 <div className="flex flex-row items-start justify-between w-full px-2">
-                  <div className="flex flex-col">
-                    <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
+                  <div className="flex flex-col pt-2">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
                       {videos[1].title}
+                    </p>
+                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                      {videos[1].subtitle}
                     </h1>
-                    {videos[1].subtitle && (
-                      <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
-                        {videos[1].subtitle}
-                      </p>
-                    )}
                   </div>
                   <SmallBut />
                 </div>
@@ -284,16 +280,14 @@ export default function Page() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="flex flex-row items-start justify-between w-full px-2">
+              <div className="flex flex-row items-start justify-between w-full px-2 pt-2">
                 <div className="flex flex-col">
-                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
+                  <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
                     {videos[2].title}
+                  </p>
+                  <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                    {videos[2].subtitle}
                   </h1>
-                  {videos[2].subtitle && (
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
-                      {videos[2].subtitle}
-                    </p>
-                  )}
                 </div>
                 <SmallBut />
               </div>
@@ -326,15 +320,13 @@ export default function Page() {
                   />
                 </div>
                 <div className="flex flex-row items-start justify-between w-full px-2 pt-1">
-                  <div className="flex flex-col">
-                    <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
+                  <div className="flex flex-col pt-2">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
                       {videos[3].title}
+                    </p>
+                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                      {videos[3].subtitle}
                     </h1>
-                    {videos[3].subtitle && (
-                      <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
-                        {videos[3].subtitle}
-                      </p>
-                    )}
                   </div>
                   <SmallBut />
                 </div>
@@ -366,14 +358,12 @@ export default function Page() {
                 </div>
                 <div className="flex flex-row items-start justify-between w-full px-2 pt-1">
                   <div className="flex flex-col">
-                    <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
                       {videos[4].title}
+                    </p>
+                    <h1 className="font-sans font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1.3rem)] text-ghost-white">
+                      {videos[4].subtitle}
                     </h1>
-                    {videos[4].subtitle && (
-                      <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
-                        {videos[4].subtitle}
-                      </p>
-                    )}
                   </div>
                   <SmallBut />
                 </div>

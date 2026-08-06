@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import SmallButton from "./SmallButton";
 
 const services = [
   {
@@ -24,32 +23,28 @@ const services = [
   },
 ];
 
-function ServiceItem({ service, index }) {
+function ServiceItem({ service }) {
   return (
     <div className="group flex flex-col w-full">
       {/* HEADER ROW */}
       <div className="flex flex-row items-start justify-between w-full">
-        {/* NUMBER + TITLE CONTAINER (Strict Start Alignment) */}
-        <div className="flex items-start gap-x-[clamp(1.5rem,2.5vw,2.5rem)] w-full pr-[clamp(0.5rem,2vw,1rem)]">
-          {/* NUMBERING - Fixed Width & Matching Top Line Height Offset */}
-          <span className="shrink-0 w-[clamp(24px,3vw,40px)] font-geist-mono font-medium text-zinc-200 text-[clamp(0.875rem,1.2vw,1.125rem)] pt-[clamp(0.2rem,0.5vw,0.6rem)] select-none">
-            ({service.id})
-          </span>
-
-          {/* TITLE */}
-          <h1 className="text-[clamp(2.05rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tight transition-colors duration-300 group-hover:text-ghost-white font-medium leading-[1.05]">
+        {/* TITLE CONTAINER */}
+        <div className="flex items-start w-full pr-[clamp(0.5rem,2vw,1rem)]">
+          <h1 className="text-[clamp(2.05rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tighter transition-colors duration-300 group-hover:text-ghost-white font-medium leading-[1.05]">
             {service.title}
           </h1>
         </div>
 
-        {/* SMALL BUTTON TOGGLE */}
-        <div className="hidden md:block shrink-0 pl-[clamp(0.5rem,2vw,1rem)] opacity-100 pointer-events-auto pt-[clamp(0.2rem,0.5vw,0.4rem)]">
-          <SmallButton isOpen={true} index={index} />
+        {/* NUMBERING - Positioned Right */}
+        <div className="shrink-0 pl-[clamp(0.5rem,2vw,1rem)] pt-[clamp(0.2rem,0.5vw,0.6rem)]">
+          <span className="font-geist-mono font-medium text-zinc-200 text-[clamp(0.875rem,1.2vw,1.825rem)] select-none">
+            ({service.id})
+          </span>
         </div>
       </div>
 
-      {/* DESCRIPTION CONTENT - Indented precisely past the fixed number column width */}
-      <div className="w-full pl-[calc(clamp(24px,3vw,40px)+clamp(1rem,2.5vw,2.5rem))]">
+      {/* DESCRIPTION CONTENT */}
+      <div className="w-full">
         <p className="text-zinc-500 font-mono uppercase w-[clamp(400px,50vw,670px)] max-w-full pt-[clamp(1rem,2.5vw,2rem)] pb-[clamp(0.25rem,0.75vw,0.5rem)] text-[clamp(0.7rem,0.65rem+0.35vw,0.875rem)] leading-relaxed">
           {service.description}
         </p>
