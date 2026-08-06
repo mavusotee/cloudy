@@ -11,7 +11,8 @@ function Navigation({ isMuted = true, onToggleSound }) {
   
   const menuOverlayRef = useRef(null)
   const menuContentRef = useRef(null)
-  const tlRef = useRef(null)
+  const openTlRef = useRef(null)
+  const closeTlRef = useRef(null)
 
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
@@ -64,7 +65,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
     }
   }, [isVisible])
 
-  // GSAP Clip-Path Mobile Menu Timeline Setup
+  // GSAP Custom Open & Reverse Timeline Setup
   useEffect(() => {
     if (!menuOverlayRef.current) return
 
@@ -73,11 +74,12 @@ function Navigation({ isMuted = true, onToggleSound }) {
       display: "none"
     })
 
-    const tl = gsap.timeline({ paused: true })
+    // Forward Open Timeline
+    const openTl = gsap.timeline({ paused: true })
+      .set(menuOverlayRef.current, { display: "flex" })
       .to(menuOverlayRef.current, {
-        display: "flex",
         clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-        duration: 1.75,
+        duration: 1.2,
         ease: "power4.inOut"
       })
       .from(
@@ -86,13 +88,37 @@ function Navigation({ isMuted = true, onToggleSound }) {
           y: 40,
           opacity: 0,
           duration: 0.8,
-          stagger: 0.08,
+          stagger: 0.06,
           ease: "power3.out"
         },
-        "-=0.3"
+        "-=0.4"
       )
 
-    tlRef.current = tl
+    // Reverse Exit Timeline (Accelerated Exit & Snappy Text Collapse)
+    const closeTl = gsap.timeline({ 
+      paused: true,
+      onComplete: () => {
+        gsap.set(menuOverlayRef.current, { display: "none" })
+        setIsMobileMenuOpen(false)
+        document.body.style.overflow = ''
+      }
+    })
+      .to(menuContentRef.current?.children || [], {
+        y: -20,
+        x: -10,
+        opacity: 0,
+        duration: 0.6,
+        stagger: -0.04, // Reverse stagger on exit
+        ease: "power2.in"
+      })
+      .to(menuOverlayRef.current, {
+        clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+        duration: 0.8,
+        ease: "power4.inOut"
+      }, "-=0.15")
+
+    openTlRef.current = openTl
+    closeTlRef.current = closeTl
   }, [])
 
   // Handle Mobile Menu Open / Close Animation
@@ -100,19 +126,18 @@ function Navigation({ isMuted = true, onToggleSound }) {
     if (!isMobileMenuOpen) {
       setIsMobileMenuOpen(true)
       document.body.style.overflow = 'hidden'
-      tlRef.current?.play()
+      closeTlRef.current?.pause(0)
+      openTlRef.current?.restart()
     } else {
-      tlRef.current?.reverse().then(() => {
-        setIsMobileMenuOpen(false)
-        document.body.style.overflow = ''
-      })
+      openTlRef.current?.pause()
+      closeTlRef.current?.restart()
     }
   }
 
   return (
     <>
       <nav className="flex flex-row items-center justify-between w-full text-ghost-white md:px-2 md:py-4 relative z-40">
-        {/* LOGO (Animates out on scroll) */}
+        {/* LOGO */}
         <div ref={logoRef} className="mix-blend-difference">
           <Link href="/">
             <Image 
@@ -126,7 +151,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </Link>
         </div>
 
-        {/* LINKS DESKTOP (Animates out on scroll) */}
+        {/* LINKS DESKTOP */}
         <div
           ref={linksRef}
           className="hidden md:flex items-center justify-center space-x-4 font-mono uppercase text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)] translate-x-[clamp(0px,12vw,190px)] mix-blend-difference"
@@ -137,9 +162,9 @@ function Navigation({ isMuted = true, onToggleSound }) {
           <Link href="/#">CONTACT</Link>
         </div>
 
-        {/* RIGHT ACTION BUTTONS (STAYS VISIBLE ON SCROLL) */}
+        {/* RIGHT ACTION BUTTONS */}
         <div className="flex items-center space-x-2 sm:space-x-3">
-          {/* SOUND TOGGLE BUTTON (Desktop Only) */}
+          {/* SOUND TOGGLE BUTTON */}
           <button
             onClick={onToggleSound}
             aria-label={isMuted ? "Unmute audio" : "Mute audio"}
@@ -162,12 +187,12 @@ function Navigation({ isMuted = true, onToggleSound }) {
             )}
           </button>
 
-          {/* CHECK AVAILABILITY BUTTON (Desktop Only) */}
+          {/* CHECK AVAILABILITY BUTTON */}
           <button className="hidden md:flex bg-carbon-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(155px,12vw+70px,224px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.3rem,0.63rem+0.3vw,1.25rem)] text-center items-center justify-center text-ghost-white">
             Check availability
           </button>
 
-          {/* MOBILE MENU BUTTON (Mobile Only) */}
+          {/* MOBILE MENU BUTTON */}
           <button
             onClick={toggleMobileMenu}
             className="flex md:hidden bg-ghost-white hover:bg-zinc-200 transition-colors px-5 py-0 h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-ghost-white font-mono tracking-tighter uppercase text-[clamp(0.75rem,0.63rem+0.3vw,1rem)] text-carbon-black items-center justify-center font-bold"
@@ -177,7 +202,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         </div>
       </nav>
 
-      {/* FULL-SCREEN MOBILE OVERLAY (GSAP clip-path animation) */}
+      {/* FULL-SCREEN MOBILE OVERLAY */}
       <div
         ref={menuOverlayRef}
         className="fixed inset-0 z-50 bg-carbon-black flex flex-col justify-between p-6 text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
@@ -219,20 +244,20 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </Link>
         </div>
 
-        <div className="pt-6  flex flex-row items-start   space-y-4">
+        <div className="pt-6 flex flex-row items-start space-y-4">
           <div className="flex flex-col gap-1">
-           <h1 className="text-eclipse font-mono font-medium tracking-tight text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]">SOCIALS</h1>
-          <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.65rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
-            <Link className="hover:text-zinc-700" href="https://instagram.com/itsjmvisuals" target="_blank" rel="noopener noreferrer">
-              INSTAGRAM
-            </Link>
-            <Link className="hover:text-zinc-700" href="https://facebook.com" target="_blank" rel="noopener noreferrer">
-              FACEBOOK
-            </Link>
-            <Link className="hover:text-zinc-700" href="https://vimeo.com" target="_blank" rel="noopener noreferrer">
-              VIMEO
-            </Link>
-          </div>
+            <h1 className="text-eclipse font-mono font-medium tracking-tight text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]">SOCIALS</h1>
+            <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.65rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
+              <Link className="hover:text-zinc-700" href="https://instagram.com/itsjmvisuals" target="_blank" rel="noopener noreferrer">
+                INSTAGRAM
+              </Link>
+              <Link className="hover:text-zinc-700" href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+                FACEBOOK
+              </Link>
+              <Link className="hover:text-zinc-700" href="https://vimeo.com" target="_blank" rel="noopener noreferrer">
+                VIMEO
+              </Link>
+            </div>
           </div>
         </div>
       </div>
