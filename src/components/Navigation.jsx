@@ -77,7 +77,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
       .to(menuOverlayRef.current, {
         display: "flex",
         clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-        duration: 0.75,
+        duration: 1.75,
         ease: "power4.inOut"
       })
       .from(
@@ -85,7 +85,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         {
           y: 40,
           opacity: 0,
-          duration: 0.5,
+          duration: 0.8,
           stagger: 0.08,
           ease: "power3.out"
         },
@@ -221,8 +221,8 @@ function Navigation({ isMuted = true, onToggleSound }) {
 
         <div className="pt-6  flex flex-row items-start   space-y-4">
           <div className="flex flex-col gap-1">
-           <h1 className="text-eclipse font-mono font-medium tracking-tight text-[clamp(0.85rem,0.65vw+0.3rem,1rem)]">SOCIALS</h1>
-          <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.85rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
+           <h1 className="text-eclipse font-mono font-medium tracking-tight text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]">SOCIALS</h1>
+          <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.65rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
             <Link className="hover:text-zinc-700" href="https://instagram.com/itsjmvisuals" target="_blank" rel="noopener noreferrer">
               INSTAGRAM
             </Link>
