@@ -180,7 +180,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
       {/* FULL-SCREEN MOBILE OVERLAY (GSAP clip-path animation) */}
       <div
         ref={menuOverlayRef}
-        className="fixed inset-0 z-50 bg-carbon-black flex flex-col justify-between p-6 text-ghost-white md:hidden"
+        className="fixed inset-0 z-50 bg-carbon-black flex flex-col justify-between p-6 text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
       >
         <div className="flex items-center justify-between w-full">
           <Link href="/" onClick={toggleMobileMenu}>
@@ -204,7 +204,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         </div>
 
         {/* ANIMATED MENU CONTENT */}
-        <div ref={menuContentRef} className="flex flex-col space-y-6 font-mono text-4xl uppercase font-light my-auto">
+        <div ref={menuContentRef} className="flex flex-col space-y-2 font-sans text-6xl uppercase font-medium my-auto tracking-[-6%]">
           <Link href="/" onClick={toggleMobileMenu} className="hover:text-zinc-400 transition-colors">
             ABOUT
           </Link>
@@ -219,10 +219,21 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </Link>
         </div>
 
-        <div className="pt-6 border-t border-eclipse/40 flex flex-col space-y-4">
-          <button className="bg-ghost-white text-carbon-black w-full h-12 rounded-full font-mono uppercase text-sm font-semibold tracking-tight">
-            Check availability
-          </button>
+        <div className="pt-6  flex flex-row items-start   space-y-4">
+          <div className="flex flex-col gap-1">
+           <h1 className="text-eclipse font-mono font-medium tracking-tight text-[clamp(0.85rem,0.65vw+0.3rem,1rem)]">SOCIALS</h1>
+          <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.85rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
+            <Link className="hover:text-zinc-700" href="https://instagram.com/itsjmvisuals" target="_blank" rel="noopener noreferrer">
+              INSTAGRAM
+            </Link>
+            <Link className="hover:text-zinc-700" href="https://facebook.com" target="_blank" rel="noopener noreferrer">
+              FACEBOOK
+            </Link>
+            <Link className="hover:text-zinc-700" href="https://vimeo.com" target="_blank" rel="noopener noreferrer">
+              VIMEO
+            </Link>
+          </div>
+          </div>
         </div>
       </div>
     </>

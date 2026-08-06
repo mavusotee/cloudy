@@ -1,6 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Split from "./Split";
+import { ArrowLeft } from "lucide-react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const services = [
   {
@@ -24,34 +31,82 @@ const services = [
 ];
 
 function ServiceItem({ service }) {
-  return (
-    <div className="group flex flex-col w-full">
-      {/* HEADER ROW */}
-      <div className="flex flex-row items-start justify-between w-full">
-        {/* TITLE CONTAINER */}
-        <div className="flex items-start w-full pr-[clamp(0.5rem,2vw,1rem)]">
-          <h1 className="text-[clamp(2.05rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tighter transition-colors duration-300 group-hover:text-ghost-white font-medium leading-[1.05]">
-            {service.title}
-          </h1>
-        </div>
+  const lineRef = useRef(null);
+  const containerRef = useRef(null);
 
-        {/* NUMBERING - Positioned Right */}
-        <div className="shrink-0 pl-[clamp(0.5rem,2vw,1rem)] pt-[clamp(0.2rem,0.5vw,0.6rem)]">
-          <span className="font-geist-mono font-medium text-zinc-200 text-[clamp(0.875rem,1.2vw,1.825rem)] select-none">
-            ({service.id})
+  useGSAP(
+    () => {
+      if (!lineRef.current) return;
+
+      gsap.fromTo(
+        lineRef.current,
+        {
+          scaleX: 0,
+          transformOrigin: "left center",
+        },
+        {
+          scaleX: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 85%",
+            end: "bottom 70%",
+            scrub: 0.8, // Tied to scroll progress with a silky 0.8s catch-up
+          },
+        }
+      );
+    },
+    { scope: containerRef }
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className="group flex flex-col space-y-8 md:space-y-4 w-full"
+    >
+      {/* HEADER & CONTENT ROW */}
+      <div className="flex flex-row items-start justify-between w-full">
+        {/* NUMBERING */}
+        <div className="shrink-0 w-12 md:w-20 pt-[clamp(0.2rem,0.5vw,0.6rem)]">
+          <span className="font-sans font-semibold tracking-tighter text-zinc-200 text-[clamp(1.075rem,1.5vw,2.5rem)] select-none">
+            {service.id}
           </span>
         </div>
+
+        {/* SHARED COLUMN FOR TITLE + DESCRIPTION */}
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex flex-row items-start justify-between w-full">
+            {/* TITLE */}
+            <div className="flex items-start w-full md:translate-x-40">
+              <Split duration="1.5" skew="5" start="top 75%">
+                <h1 className="text-[clamp(2.05rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tighter transition-colors duration-300 group-hover:text-ghost-white font-medium leading-[1.05]">
+                  {service.title}
+                </h1>
+              </Split>
+            </div>
+
+            {/* ARROW */}
+            <div className="hidden md:flex items-center shrink-0 pl-4 pt-2">
+              ( <ArrowLeft /> )
+            </div>
+          </div>
+
+          {/* DESCRIPTION */}
+          <div className="w-full md:translate-x-40 pt-4 md:pt-8">
+            <Split duration="1.8">
+              <p className="text-zinc-500 font-mono uppercase w-[clamp(350px,50vw,600px)] max-w-full pt-4 pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed">
+                {service.description}
+              </p>
+            </Split>
+          </div>
+        </div>
       </div>
 
-      {/* DESCRIPTION CONTENT */}
-      <div className="w-full">
-        <p className="text-zinc-500 font-mono uppercase w-[clamp(400px,50vw,670px)] max-w-full pt-[clamp(1rem,2.5vw,2rem)] pb-[clamp(0.25rem,0.75vw,0.5rem)] text-[clamp(0.7rem,0.65rem+0.35vw,0.875rem)] leading-relaxed">
-          {service.description}
-        </p>
-      </div>
-
-      {/* FULL-WIDTH UNDERLINE */}
-      <div className="w-full bg-eclipse h-[1px] mt-[clamp(1.25rem,3vw,2rem)]" />
+      {/* FULL-WIDTH UNDERLINE (SCRUBBED ON SCROLL) */}
+      <div
+        ref={lineRef}
+        className="w-full bg-zinc-800 h-[1px] mt-[clamp(1.25rem,3vw,2rem)]"
+      />
     </div>
   );
 }
@@ -60,9 +115,9 @@ export default function ServicesSection() {
   return (
     <div className="w-full h-auto bg-carbon-black text-ghost-white mt-[clamp(3rem,8vw,7.5rem)]">
       {/* HEADER */}
-      <div className="flex flex-row items-center justify-between w-full text-zinc-300">
+      <div className="flex flex-row items-center justify-between w-full">
         <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
-          <div className="w-2 h-2 bg-zinc-300" />
+          <div className="w-2 h-2 bg-ghost-white" />
           <h1>OUR SERVICES</h1>
         </div>
         <h1 className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)]">

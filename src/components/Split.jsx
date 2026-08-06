@@ -7,7 +7,7 @@ import { useGSAP } from "@gsap/react";
 
 gsap.registerPlugin(SplitText, ScrollTrigger);
 
-export default function Split({ children, animateOnScroll = true, delay = 0, duration = 1 }) {
+export default function Split({ children, animateOnScroll = true, delay = 0, duration = 1, skew = 0 }) {
   const containerRef = useRef(null);
   const elementRef = useRef([]);
   const splitRef = useRef([]);
@@ -50,8 +50,9 @@ export default function Split({ children, animateOnScroll = true, delay = 0, dur
         y: "0%",
         duration: duration,
         stagger: 0.1,
-        ease: "power4.out",
+        ease: "power4.inOut",
         delay: delay,
+       
       };
 
       if (animateOnScroll) {
@@ -61,6 +62,7 @@ export default function Split({ children, animateOnScroll = true, delay = 0, dur
             trigger: containerRef.current,
             start: "top 75%",
             once: true,
+            
           }
         })
       } else {
