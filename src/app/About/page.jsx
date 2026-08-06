@@ -8,6 +8,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ServicesSection from "@/components/ServicesSection";
 import ClientsSection from "@/components/ClientsSection";
+import { ArrowLeft } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -18,34 +19,39 @@ const videos = [
     durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4",
     title: "THE BUILDING COMPANY",
+    subtitle: "EVERGREEN RESIDENCE",
   },
   {
     id: 2,
     date: "01 . 2022",
     durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4",
-    title: "MAVTECH DESIGNS",
+    title: "MORGAN BUILD",
+    subtitle: "WOODS PROJECT",
   },
   {
     id: 3,
     date: "01 . 2022",
     durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4",
-    title: "THE BUILDING COMPANY",
+    title: "4LIFE CONSTRUCTIONS",
+    subtitle: "THE DUNE HOUSE",
   },
   {
     id: 4,
     date: "01 . 2022",
     durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922167/skatepark_house_comp_1080p_v29fnm.mp4",
-    title: "THE BUILDING COMPANY",
+    title: "MORGAN BUILD",
+    subtitle: "SKATEPARK HOUSE",
   },
   {
     id: 5,
     date: "01 . 2022",
     durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921778/north_adelaide_comp_1440p_exjydf.mp4",
-    title: "MAVTECH DESIGNS",
+    title: "KRIVIC",
+    subtitle: "NORTH ADELAIDE",
   },
 ];
 
@@ -123,31 +129,33 @@ export default function Page() {
             <div className="w-2 h-2 bg-ghost-white" />
             <h1>OUR IDENTITY</h1>
           </div>
-          <h1 className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)]">
+          <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.725rem)] text-ghost-white">
             [CLOUD_1]
           </h1>
         </div>
 
         {/* INTRO SECTION */}
         <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-8 lg:gap-0">
-          <h1 className="font-mono tracking-tight text-[clamp(0.75rem,1.1vw,0.875rem)]">
-            IT ALL STARTS WITH AN IDEA
+          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1.1vw,0.875rem)]">
+            IT ALL STARTS WITH AN IDEA.
           </h1>
 
-          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full lg:w-1/2 lg:translate-x-0 xl:translate-x-20">
-            <SmudgyTextReveal text="A hidden visual story costs more than missed contracts—it steals the authority your work has already earned." />
+          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full lg:w-1/2 lg:translate-x-0 xl:translate-x-80 font-medium">
+            <SmudgyTextReveal text="A hidden visual story costs more than missed contracts, it steals the authority your work has already earned." />
             <Button text="ABOUT CLOUDHAUS" href="/About" />
           </div>
+
+          <div className="hidden md:flex ">( <ArrowLeft /> )</div>
         </div>
 
         {/* HEADER & WORKS SECTION */}
         <div className="flex flex-col space-y-6 pt-14 lg:pt-20">
           <div className="flex flex-row items-center justify-between w-full text-zinc-300">
-            <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
+            <div className="font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
               <div className="w-2 h-2 bg-zinc-300" />
               <h1>SELECTED WORKS</h1>
             </div>
-            <h1 className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)]">
+            <h1 className="font-geist-mono font-medium tracking-tight text-ghost-white text-[clamp(0.5rem,0.8vw,0.725rem)]">
               [CLOUD_2]
             </h1>
           </div>
@@ -155,10 +163,10 @@ export default function Page() {
           {/* WORKS HEADER ROW */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-4 sm:gap-0">
             <div className="flex flex-row items-start gap-4 sm:gap-6 font-geist-mono">
-              <h1 className="text-[clamp(8rem,20vw,36.875rem)] tracking-[-8%] font-light leading-none">
+              <h1 className="text-[clamp(8rem,20vw,38.875rem)] tracking-[-12%] font-light leading-none">
                 Work
               </h1>
-              <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-2 leading-none font-sans font-light tracking-tight">
+              <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
                 ({videos.length < 10 ? `0${videos.length}` : videos.length})
               </sup>
             </div>
@@ -170,9 +178,9 @@ export default function Page() {
           </div>
 
           {/* WORKS GRID */}
-          <div className="flex flex-col space-y-8 lg:space-y-12 pt-6">
+          <div className="flex flex-col space-y-8 lg:space-y-28 pt-6">
             {/* ROW 1 */}
-            <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-6 text-lavender">
+            <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-0 text-lavender">
               {/* Card 1 */}
               <div className="flex flex-col space-y-2 w-full">
                 <div className="flex flex-row items-center justify-between w-full px-2">
@@ -197,10 +205,17 @@ export default function Page() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
-                    {videos[0].title}
-                  </h1>
+                <div className="flex flex-row items-start justify-between w-full px-2 text-ghost-white">
+                  <div className="flex flex-col">
+                    <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
+                      {videos[0].title}
+                    </h1>
+                    {videos[0].subtitle && (
+                      <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
+                        {videos[0].subtitle}
+                      </p>
+                    )}
+                  </div>
                   <SmallBut />
                 </div>
               </div>
@@ -229,10 +244,17 @@ export default function Page() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
-                    {videos[1].title}
-                  </h1>
+                <div className="flex flex-row items-start justify-between w-full px-2">
+                  <div className="flex flex-col">
+                    <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
+                      {videos[1].title}
+                    </h1>
+                    {videos[1].subtitle && (
+                      <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
+                        {videos[1].subtitle}
+                      </p>
+                    )}
+                  </div>
                   <SmallBut />
                 </div>
               </div>
@@ -262,10 +284,17 @@ export default function Page() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="flex flex-row items-center justify-between w-full px-2">
-                <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
-                  {videos[2].title}
-                </h1>
+              <div className="flex flex-row items-start justify-between w-full px-2">
+                <div className="flex flex-col">
+                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
+                    {videos[2].title}
+                  </h1>
+                  {videos[2].subtitle && (
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
+                      {videos[2].subtitle}
+                    </p>
+                  )}
+                </div>
                 <SmallBut />
               </div>
             </div>
@@ -296,10 +325,17 @@ export default function Page() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex flex-row items-center justify-between w-full px-2 pt-1">
-                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
-                    {videos[3].title}
-                  </h1>
+                <div className="flex flex-row items-start justify-between w-full px-2 pt-1">
+                  <div className="flex flex-col">
+                    <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(1rem,1.5vw,1.25rem)]">
+                      {videos[3].title}
+                    </h1>
+                    {videos[3].subtitle && (
+                      <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
+                        {videos[3].subtitle}
+                      </p>
+                    )}
+                  </div>
                   <SmallBut />
                 </div>
               </div>
@@ -328,10 +364,17 @@ export default function Page() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="flex flex-row items-center justify-between w-full px-2 pt-1">
-                  <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
-                    {videos[4].title}
-                  </h1>
+                <div className="flex flex-row items-start justify-between w-full px-2 pt-1">
+                  <div className="flex flex-col">
+                    <h1 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
+                      {videos[4].title}
+                    </h1>
+                    {videos[4].subtitle && (
+                      <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 tracking-tight">
+                        {videos[4].subtitle}
+                      </p>
+                    )}
+                  </div>
                   <SmallBut />
                 </div>
               </div>

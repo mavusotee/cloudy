@@ -43,20 +43,20 @@ export default function SmudgyTextReveal({ text = "" }) {
       gsap.fromTo(
         sortedChars,
         {
-          color: "rgb(82, 82, 91)", // Base muted zinc gray
+          color: "rgb(43, 43, 45)", // Base muted zinc gray
         },
         {
           color: "rgb(255, 255, 255)", // Full white target
           stagger: {
-            each: 0.015,
+            each: 0.025,
             from: "start", // Color ripple grows outward from the center
           },
           ease: "power1.inOut",
           scrollTrigger: {
             trigger: containerRef.current,
-            start: "top 82%",
+            start: "top 80%",
             end: "top 28%",
-            scrub: 0.8,
+            scrub: 0.9,
             pin: false,
             preventOverlaps: true,
             fastScrollEnd: true,
@@ -75,7 +75,7 @@ export default function SmudgyTextReveal({ text = "" }) {
 
   return (
     <div ref={containerRef} className="relative w-full lg:max-w-[715.9px]">
-      <p className="w-full leading-[120%] font-regular text-[clamp(1.5rem,3.5vw,3.125rem)] tracking-tight uppercase flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]">
+      <p className="w-full leading-[100%] font-regular text-[clamp(1.5rem,3.5vw,3.125rem)] tracking-tight uppercase flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]">
         {words.map((word, wordIdx) => (
           <span key={wordIdx} className="inline-block whitespace-nowrap">
             {word.split("").map((char, charIdx) => (
