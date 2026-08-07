@@ -1,18 +1,170 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import Button from "@/components/Button";
-import SmallButton from "@/components/SmallButton";
 import Footer from "@/components/Footer";
-import SmallBut from "@/components/SmallBut";
 import SmudgyTextReveal from "@/components/SmudgyTextReveal";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ServicesSection from "@/components/ServicesSection";
 import ClientsSection from "@/components/ClientsSection";
 import { ArrowLeft } from "lucide-react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 
 gsap.registerPlugin(ScrollTrigger);
 
+// ----------------------------------------------------------------------
+// 1. REACT THREE FIBER - ANALOG TV NOISE SHADER MESH
+// ----------------------------------------------------------------------
+const NoiseShaderMaterial = {
+  uniforms: {
+    uTime: { value: 0 },
+    uOpacity: { value: 0 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform float uTime;
+    uniform float uOpacity;
+    varying vec2 vUv;
+
+    // Pseudo-random noise function
+    float random(vec2 st) {
+      return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+    }
+
+    void main() {
+      vec2 st = vUv;
+      
+      // Fine granularity TV static noise
+      float grain = random(st * 400.0 + vec2(uTime * 15.0, uTime * 25.0));
+      
+      // CRT TV Scanlines
+      float scanline = sin(st.y * 800.0) * 0.08;
+      
+      // Analog Chromatic Aberration (RGB Shift)
+      float r = random(st * 400.0 + vec2(uTime * 15.0 + 0.02, uTime * 25.0));
+      float b = random(st * 400.0 + vec2(uTime * 15.0 - 0.02, uTime * 25.0));
+      
+      vec3 color = vec3(r, grain, b) - scanline;
+      
+      gl_FragColor = vec4(color, uOpacity);
+    }
+  `,
+};
+
+function TVNoisePlane({ opacityRef }) {
+  const meshRef = useRef();
+  const materialRef = useRef();
+
+  useFrame((state, delta) => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value += delta;
+      if (opacityRef.current !== undefined) {
+        materialRef.current.uniforms.uOpacity.value = opacityRef.current.value;
+      }
+    }
+  });
+
+  return (
+    <mesh ref={meshRef}>
+      <planeGeometry args={[2, 2]} />
+      <shaderMaterial
+        ref={materialRef}
+        args={[NoiseShaderMaterial]}
+        transparent
+        depthTest={false}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
+const R3FTVNoise = forwardRef((props, ref) => {
+  const opacityRef = useRef({ value: 0 });
+
+  useImperativeHandle(ref, () => ({
+    triggerNoise: () => {
+      gsap.killTweensOf(opacityRef.current);
+      gsap.timeline()
+        .set(opacityRef.current, { value: 0.85 })
+        .to(opacityRef.current, {
+          value: 0,
+          duration: 0.32,
+          ease: "power3.out",
+        });
+    },
+  }));
+
+  return (
+    <div className="absolute inset-0 pointer-events-none mix-blend-screen z-20 overflow-hidden">
+      <Canvas
+        camera={{ position: [0, 0, 1] }}
+        gl={{ preserveDrawingBuffer: true, alpha: true, antialias: false }}
+        className="w-full h-full pointer-events-none"
+      >
+        <TVNoisePlane opacityRef={opacityRef} />
+      </Canvas>
+    </div>
+  );
+});
+
+R3FTVNoise.displayName = "R3FTVNoise";
+
+// ----------------------------------------------------------------------
+// 2. SMALL BUTTON COMPONENT WITH GSAP BLUR PULSE
+// ----------------------------------------------------------------------
+const SmallButton = forwardRef(({ isOpen }, ref) => {
+  const buttonRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({
+    triggerBlur: () => {
+      if (!buttonRef.current) return;
+
+      gsap.killTweensOf(buttonRef.current);
+
+      gsap.fromTo(
+        buttonRef.current,
+        {
+          filter: "blur(22px) brightness(1.5)",
+          scale: 0.92,
+          opacity: 0.5,
+        },
+        {
+          filter: "blur(0px) brightness(1)",
+          scale: 1,
+          opacity: 1,
+          duration: 0.45,
+          ease: "back.out(1.7)",
+        }
+      );
+    },
+  }));
+
+  return (
+    <div
+      ref={buttonRef}
+      className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(7.5rem,10vw,8.6875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
+        isOpen
+          ? "bg-ghost-white text-carbon-black border-ghost-white hover:bg-zinc-300"
+          : "bg-carbon-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
+      }`}
+    >
+      {isOpen ? "CLOSE" : "CLICK TO VIEW"}
+    </div>
+  );
+});
+
+SmallButton.displayName = "SmallButton";
+
+// ----------------------------------------------------------------------
+// 3. VIDEO DATA & HELPERS
+// ----------------------------------------------------------------------
 const initialVideos = [
   {
     id: 1,
@@ -58,118 +210,17 @@ const formatTime = (seconds) => {
   return `${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
 };
 
-// Reusable Video Component with GSAP Half-Capture Frame animation & Hover-to-Pause logic
-function VideoCard({ item, time, onTimeUpdate, handleLoadedMetadata, onHoverStart, onHoverEnd, heightClass, isFullWidth }) {
-  const containerRef = useRef(null);
-  const tlRef = useRef(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const ctx = gsap.context(() => {
-      const topL = containerRef.current.querySelector(".corner-tl");
-      const topR = containerRef.current.querySelector(".corner-tr");
-      const botL = containerRef.current.querySelector(".corner-bl");
-      const botR = containerRef.current.querySelector(".corner-br");
-
-      tlRef.current = gsap.timeline({ paused: true })
-        .to([topL, topR, botL, botR], {
-          opacity: 1,
-          scale: 1,
-          duration: 0.35,
-          ease: "power2.out",
-        })
-        .to(topL, { x: 0, y: 0, duration: 0.35, ease: "power2.out" }, 0)
-        .to(topR, { x: 0, y: 0, duration: 0.35, ease: "power2.out" }, 0)
-        .to(botL, { x: 0, y: 0, duration: 0.35, ease: "power2.out" }, 0)
-        .to(botR, { x: 0, y: 0, duration: 0.35, ease: "power2.out" }, 0);
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
-
-  const handleMouseEnter = (e) => {
-    if (tlRef.current) tlRef.current.play();
-    onHoverStart();
-    const video = containerRef.current.querySelector("video");
-    if (video) video.pause();
-  };
-
-  const handleMouseLeave = (e) => {
-    if (tlRef.current) tlRef.current.reverse();
-    onHoverEnd();
-    const video = containerRef.current.querySelector("video");
-    if (video) video.play();
-  };
-
-  return (
-    <div className="flex flex-col space-y-2 w-full">
-      <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
-        <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
-          {item.date}
-        </h1>
-        <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
-          {time}
-        </h2>
-      </div>
-
-      <div
-        ref={containerRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className={`relative ${
-          isFullWidth
-            ? "w-screen left-1/2 -translate-x-1/2"
-            : "w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0"
-        } ${heightClass} overflow-hidden cursor-none`}
-      >
-        <video
-          src={item.url}
-          autoPlay
-          loop
-          muted
-          playsInline
-          onLoadedMetadata={handleLoadedMetadata}
-          onTimeUpdate={onTimeUpdate}
-          className="w-full h-full object-cover brightness-90 contrast-105"
-        />
-
-        {/* DARK MOODY OVERLAY */}
-        <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-
-        {/* GSAP CAPTURE CORNER BRACKETS (MIX BLEND DIFFERENCE) */}
-        <div className="absolute inset-0 pointer-events-none mix-blend-difference z-20 p-4">
-          {/* Top Left */}
-          <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-white opacity-0 scale-90 -translate-x-3 -translate-y-3" />
-          {/* Top Right */}
-          <div className="corner-tr absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white opacity-0 scale-90 translate-x-3 -translate-y-3" />
-          {/* Bottom Left */}
-          <div className="corner-bl absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-white opacity-0 scale-90 -translate-x-3 translate-y-3" />
-          {/* Bottom Right */}
-          <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-white opacity-0 scale-90 translate-x-3 translate-y-3" />
-        </div>
-      </div>
-
-      <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
-        <div className="flex flex-col">
-          <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-            {item.title}
-          </p>
-          <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
-            {item.subtitle}
-          </h1>
-        </div>
-        <SmallBut />
-      </div>
-    </div>
-  );
-}
-
+// ----------------------------------------------------------------------
+// 4. MAIN PAGE COMPONENT
+// ----------------------------------------------------------------------
 export default function Page() {
   const cursorRef = useRef(null);
   const [isHoveringVideo, setIsHoveringVideo] = useState(false);
 
-  // State to hold live playback times for each video ID
+  const videoContainersRef = useRef([]);
+  const buttonRefs = useRef([]);
+  const noiseRefs = useRef([]);
+
   const [timeState, setTimeState] = useState({
     1: "00:00",
     2: "00:00",
@@ -203,7 +254,7 @@ export default function Page() {
     return () => clearTimeout(timer);
   }, []);
 
-  // GSAP Mouse Follower Logic
+  // GSAP Custom Cursor Tracker
   useEffect(() => {
     const cursor = cursorRef.current;
     if (!cursor) return;
@@ -222,7 +273,7 @@ export default function Page() {
     return () => window.removeEventListener("mousemove", moveCursor);
   }, []);
 
-  // GSAP Scale In/Out Animation on Video Hover State
+  // GSAP Cursor Hover Scale
   useEffect(() => {
     const cursor = cursorRef.current;
     if (!cursor) return;
@@ -243,6 +294,74 @@ export default function Page() {
       });
     }
   }, [isHoveringVideo]);
+
+  // Combined Master Hover Handler
+  const handleContainerMouseEnter = (index, containerEl) => {
+    setIsHoveringVideo(true);
+
+    if (!containerEl) return;
+
+    // 1. Trigger R3F WebGL Noise Shader Burst
+    if (noiseRefs.current[index]?.triggerNoise) {
+      noiseRefs.current[index].triggerNoise();
+    }
+
+    // 2. Corner Bracket Frame Animation
+    const topL = containerEl.querySelector(".corner-tl");
+    const topR = containerEl.querySelector(".corner-tr");
+    const botL = containerEl.querySelector(".corner-bl");
+    const botR = containerEl.querySelector(".corner-br");
+
+    gsap.to([topL, topR, botL, botR], {
+      opacity: 1,
+      scale: 1,
+      x: 0,
+      y: 0,
+      duration: 0.35,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
+
+    // 3. Pause video playback
+    const video = containerEl.querySelector("video");
+    if (video) video.pause();
+
+    // 4. Trigger dramatic blur pulse on SmallButton
+    if (buttonRefs.current[index]?.triggerBlur) {
+      buttonRefs.current[index].triggerBlur();
+    }
+  };
+
+  const handleContainerMouseLeave = (index, containerEl) => {
+    setIsHoveringVideo(false);
+
+    if (!containerEl) return;
+
+    // 1. Reverse Corner Bracket Frame
+    const topL = containerEl.querySelector(".corner-tl");
+    const topR = containerEl.querySelector(".corner-tr");
+    const botL = containerEl.querySelector(".corner-bl");
+    const botR = containerEl.querySelector(".corner-br");
+
+    gsap.to(topL, { opacity: 0, scale: 0.9, x: -12, y: -12, duration: 0.25, ease: "power2.in" });
+    gsap.to(topR, { opacity: 0, scale: 0.9, x: 12, y: -12, duration: 0.25, ease: "power2.in" });
+    gsap.to(botL, { opacity: 0, scale: 0.9, x: -12, y: 12, duration: 0.25, ease: "power2.in" });
+    gsap.to(botR, { opacity: 0, scale: 0.9, x: 12, y: 12, duration: 0.25, ease: "power2.in" });
+
+    // 2. Resume video playback
+    const video = containerEl.querySelector("video");
+    if (video) video.play();
+  };
+
+  // Helper Renderer for Bracket Overlay
+  const renderBrackets = () => (
+    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
+      <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
+      <div className="corner-tr absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white opacity-0 scale-90 translate-x-3 -translate-y-3 mix-blend-difference" />
+      <div className="corner-bl absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-white opacity-0 scale-90 -translate-x-3 translate-y-3 mix-blend-difference" />
+      <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-white opacity-0 scale-90 translate-x-3 translate-y-3 mix-blend-difference" />
+    </div>
+  );
 
   return (
     <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:px-6 flex flex-col space-y-16 lg:space-y-32 relative overflow-x-hidden">
@@ -286,7 +405,7 @@ export default function Page() {
         {/* HEADER & WORKS SECTION */}
         <div className="flex flex-col space-y-6 pt-14 lg:pt-20">
           <div className="flex flex-row items-center justify-between w-full text-zinc-300">
-            <div className="font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
+            <div className="opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
               <div className="w-2 h-2 bg-zinc-300" />
               <h1>SELECTED WORKS</h1>
             </div>
@@ -297,8 +416,8 @@ export default function Page() {
 
           {/* WORKS HEADER ROW */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-4 sm:gap-0">
-            <div className="flex flex-row items-start gap-4 sm:gap-6 font-geist-mono">
-              <h1 className="text-[clamp(8rem,20vw,30.875rem)] tracking-[-8%] font-light leading-none uppercase">
+            <div className="flex flex-row items-start gap-4 sm:gap-6 font-monot">
+              <h1 className="text-[clamp(5rem,20vw,28.875rem)] tracking-[-8%] font-light leading-none uppercase">
                 Works
               </h1>
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
@@ -313,62 +432,230 @@ export default function Page() {
 
           {/* WORKS GRID */}
           <div className="flex flex-col space-y-8 lg:space-y-28 pt-6">
+            
             {/* ROW 1 */}
             <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-0 text-lavender">
-              <VideoCard
-                item={initialVideos[0]}
-                time={timeState[1]}
-                onTimeUpdate={(e) => handleTimeUpdate(1, e)}
-                handleLoadedMetadata={handleLoadedMetadata}
-                onHoverStart={() => setIsHoveringVideo(true)}
-                onHoverEnd={() => setIsHoveringVideo(false)}
-                heightClass="aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
-              />
-              <VideoCard
-                item={initialVideos[1]}
-                time={timeState[2]}
-                onTimeUpdate={(e) => handleTimeUpdate(2, e)}
-                handleLoadedMetadata={handleLoadedMetadata}
-                onHoverStart={() => setIsHoveringVideo(true)}
-                onHoverEnd={() => setIsHoveringVideo(false)}
-                heightClass="aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
-              />
+              
+              {/* VIDEO 0 */}
+              <div className="flex flex-col space-y-2 w-full">
+                <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
+                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
+                    {initialVideos[0].date}
+                  </h1>
+                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
+                    {timeState[1]}
+                  </h2>
+                </div>
+                <div
+                  ref={(el) => (videoContainersRef.current[0] = el)}
+                  onMouseEnter={() => handleContainerMouseEnter(0, videoContainersRef.current[0])}
+                  onMouseLeave={() => handleContainerMouseLeave(0, videoContainersRef.current[0])}
+                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
+                >
+                  <video
+                    src={initialVideos[0].url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onTimeUpdate={(e) => handleTimeUpdate(1, e)}
+                    className="w-full h-full object-cover brightness-90 contrast-105"
+                  />
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
+                  <R3FTVNoise ref={(el) => (noiseRefs.current[0] = el)} />
+                  {renderBrackets()}
+                </div>
+                <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
+                  <div className="flex flex-col">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+                      {initialVideos[0].title}
+                    </p>
+                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                      {initialVideos[0].subtitle}
+                    </h1>
+                  </div>
+                  <SmallButton ref={(el) => (buttonRefs.current[0] = el)} />
+                </div>
+              </div>
+
+              {/* VIDEO 1 */}
+              <div className="flex flex-col space-y-2 w-full">
+                <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
+                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
+                    {initialVideos[1].date}
+                  </h1>
+                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
+                    {timeState[2]}
+                  </h2>
+                </div>
+                <div
+                  ref={(el) => (videoContainersRef.current[1] = el)}
+                  onMouseEnter={() => handleContainerMouseEnter(1, videoContainersRef.current[1])}
+                  onMouseLeave={() => handleContainerMouseLeave(1, videoContainersRef.current[1])}
+                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
+                >
+                  <video
+                    src={initialVideos[1].url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onTimeUpdate={(e) => handleTimeUpdate(2, e)}
+                    className="w-full h-full object-cover brightness-90 contrast-105"
+                  />
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
+                  <R3FTVNoise ref={(el) => (noiseRefs.current[1] = el)} />
+                  {renderBrackets()}
+                </div>
+                <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
+                  <div className="flex flex-col">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+                      {initialVideos[1].title}
+                    </p>
+                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                      {initialVideos[1].subtitle}
+                    </h1>
+                  </div>
+                  <SmallButton ref={(el) => (buttonRefs.current[1] = el)} />
+                </div>
+              </div>
+
             </div>
 
-            {/* ROW 2 - FEATURED (EDGE-TO-EDGE FULLSCREEN) */}
-            <VideoCard
-              item={initialVideos[2]}
-              time={timeState[3]}
-              onTimeUpdate={(e) => handleTimeUpdate(3, e)}
-              handleLoadedMetadata={handleLoadedMetadata}
-              onHoverStart={() => setIsHoveringVideo(true)}
-              onHoverEnd={() => setIsHoveringVideo(false)}
-              heightClass="h-[60vh] lg:h-screen"
-              isFullWidth={true}
-            />
-
-            {/* ROW 3 (EDITORIAL ASYMMETRIC GRID) */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
-              <VideoCard
-                item={initialVideos[3]}
-                time={timeState[4]}
-                onTimeUpdate={(e) => handleTimeUpdate(4, e)}
-                handleLoadedMetadata={handleLoadedMetadata}
-                onHoverStart={() => setIsHoveringVideo(true)}
-                onHoverEnd={() => setIsHoveringVideo(false)}
-                heightClass="aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem]"
-              />
-              <div className="w-full lg:translate-y-24">
-                <VideoCard
-                  item={initialVideos[4]}
-                  time={timeState[5]}
-                  onTimeUpdate={(e) => handleTimeUpdate(5, e)}
-                  handleLoadedMetadata={handleLoadedMetadata}
-                  onHoverStart={() => setIsHoveringVideo(true)}
-                  onHoverEnd={() => setIsHoveringVideo(false)}
-                  heightClass="aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem]"
-                />
+            {/* ROW 2 - FEATURED (FULL WIDTH) */}
+            <div className="flex flex-col space-y-2 w-full">
+              <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
+                <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
+                  {initialVideos[2].date}
+                </h1>
+                <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
+                  {timeState[3]}
+                </h2>
               </div>
+              <div
+                ref={(el) => (videoContainersRef.current[2] = el)}
+                onMouseEnter={() => handleContainerMouseEnter(2, videoContainersRef.current[2])}
+                onMouseLeave={() => handleContainerMouseLeave(2, videoContainersRef.current[2])}
+                className="relative w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen overflow-hidden cursor-none"
+              >
+                <video
+                  src={initialVideos[2].url}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onTimeUpdate={(e) => handleTimeUpdate(3, e)}
+                  className="w-full h-full object-cover brightness-90 contrast-105"
+                />
+                <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
+                <R3FTVNoise ref={(el) => (noiseRefs.current[2] = el)} />
+                {renderBrackets()}
+              </div>
+              <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
+                <div className="flex flex-col">
+                  <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+                    {initialVideos[2].title}
+                  </p>
+                  <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                    {initialVideos[2].subtitle}
+                  </h1>
+                </div>
+                <SmallButton ref={(el) => (buttonRefs.current[2] = el)} />
+              </div>
+            </div>
+
+            {/* ROW 3 (ASYMMETRIC GRID) */}
+            <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
+              
+              {/* VIDEO 3 */}
+              <div className="flex flex-col space-y-2 w-full">
+                <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
+                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
+                    {initialVideos[3].date}
+                  </h1>
+                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
+                    {timeState[4]}
+                  </h2>
+                </div>
+                <div
+                  ref={(el) => (videoContainersRef.current[3] = el)}
+                  onMouseEnter={() => handleContainerMouseEnter(3, videoContainersRef.current[3])}
+                  onMouseLeave={() => handleContainerMouseLeave(3, videoContainersRef.current[3])}
+                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem] overflow-hidden cursor-none"
+                >
+                  <video
+                    src={initialVideos[3].url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onTimeUpdate={(e) => handleTimeUpdate(4, e)}
+                    className="w-full h-full object-cover brightness-90 contrast-105"
+                  />
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
+                  <R3FTVNoise ref={(el) => (noiseRefs.current[3] = el)} />
+                  {renderBrackets()}
+                </div>
+                <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
+                  <div className="flex flex-col">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+                      {initialVideos[3].title}
+                    </p>
+                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                      {initialVideos[3].subtitle}
+                    </h1>
+                  </div>
+                  <SmallButton ref={(el) => (buttonRefs.current[3] = el)} />
+                </div>
+              </div>
+
+              {/* VIDEO 4 */}
+              <div className="w-full lg:translate-y-24 flex flex-col space-y-2">
+                <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
+                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
+                    {initialVideos[4].date}
+                  </h1>
+                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
+                    {timeState[5]}
+                  </h2>
+                </div>
+                <div
+                  ref={(el) => (videoContainersRef.current[4] = el)}
+                  onMouseEnter={() => handleContainerMouseEnter(4, videoContainersRef.current[4])}
+                  onMouseLeave={() => handleContainerMouseLeave(4, videoContainersRef.current[4])}
+                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem] overflow-hidden cursor-none"
+                >
+                  <video
+                    src={initialVideos[4].url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onTimeUpdate={(e) => handleTimeUpdate(5, e)}
+                    className="w-full h-full object-cover brightness-90 contrast-105"
+                  />
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
+                  <R3FTVNoise ref={(el) => (noiseRefs.current[4] = el)} />
+                  {renderBrackets()}
+                </div>
+                <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
+                  <div className="flex flex-col">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+                      {initialVideos[4].title}
+                    </p>
+                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+                      {initialVideos[4].subtitle}
+                    </h1>
+                  </div>
+                  <SmallButton ref={(el) => (buttonRefs.current[4] = el)} />
+                </div>
+              </div>
+
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 @theme {
   --font-mono: var(--font-geist-mono), monospace;
+  --font-monot: var(--font-fragment-mono), monospace;
   --font-sans: var(--font-plus-jakarta-sans), sans-serif;
   --font-geist-mono: var(--font-geist-mono), monospace;
 
@@ -9,6 +10,15 @@
   --color-carbon-black: #0c0c0c;
   --color-lavender: #e6e6fa;
   --color-eclipse: #3a3a3a;
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); opacity: 1; }
+  100% { transform: translateY(1000%); opacity: 0; }
+}
+
+.scanline-effect {
+  animation: scanline 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @layer utilities {
