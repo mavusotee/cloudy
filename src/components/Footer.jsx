@@ -49,7 +49,7 @@ function Footer() {
       </div>
 
       {/* BOTTOM CONTENT */}
-      <div className="flex flex-col md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.3rem,2vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-[clamp(2.5rem,6vw,4rem)]">
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.3rem,2.5vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-[clamp(2.5rem,6vw,4rem)]">
         {/* GROUPED 1st AND 2nd DIVS: Horizontal on mobile, inline with desktop row */}
         <div className="flex flex-row md:contents justify-between w-full md:w-auto">
           <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
