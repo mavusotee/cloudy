@@ -8,7 +8,7 @@ import gsap from 'gsap'
 function Navigation({ isMuted = true, onToggleSound }) {
   const logoRef = useRef(null)
   const linksRef = useRef(null)
-  
+
   const menuOverlayRef = useRef(null)
   const menuContentRef = useRef(null)
   const openTlRef = useRef(null)
@@ -28,7 +28,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
       } else if (currentScrollY > lastScrollY) {
         setIsVisible(false) // Scrolling down -> hide
       } else {
-        setIsVisible(true)  // Scrolling up -> show
+        setIsVisible(true) // Scrolling up -> show
       }
 
       setLastScrollY(currentScrollY)
@@ -74,6 +74,9 @@ function Navigation({ isMuted = true, onToggleSound }) {
       display: "none"
     })
 
+    // Target the inner links directly inside the overflow-hidden wrappers
+    const linkItems = menuContentRef.current?.querySelectorAll('a') || []
+
     const openTl = gsap.timeline({ paused: true })
       .set(menuOverlayRef.current, { display: "flex" })
       .to(menuOverlayRef.current, {
@@ -81,16 +84,20 @@ function Navigation({ isMuted = true, onToggleSound }) {
         duration: 1.2,
         ease: "power4.inOut"
       })
-      .from(
-        menuContentRef.current?.children || [],
+      .fromTo(
+        linkItems,
         {
-          y: 40,
+          yPercent: 100, // Starts completely hidden below wrapper boundary
           opacity: 0,
-          duration: 0.8,
-          stagger: 0.06,
+        },
+        {
+          yPercent: 0,   // Slides up inside wrapper boundary
+          opacity: 1,
+          duration: 0.95,
+          stagger: 0.08,
           ease: "power3.out"
         },
-        "-=0.4"
+        "-=0.5"
       )
 
     const closeTl = gsap.timeline({ 
@@ -101,19 +108,19 @@ function Navigation({ isMuted = true, onToggleSound }) {
         document.body.style.overflow = ''
       }
     })
-      .to(menuContentRef.current?.children || [], {
-        y: -20,
-        x: -10,
+      .to(linkItems, {
+        yPercent: -100,
+        xPercent: -8, // Slides up and away into wrapper ceiling
         opacity: 0,
-        duration: 0.6,
+        duration: 1,
         stagger: -0.04,
-        ease: "power2.in"
+        ease: "power3.in"
       })
       .to(menuOverlayRef.current, {
         clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
         duration: 0.8,
         ease: "power4.inOut"
-      }, "-=0.15")
+      }, "-=0.2")
 
     openTlRef.current = openTl
     closeTlRef.current = closeTl
@@ -225,19 +232,28 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </button>
         </div>
 
+        {/* MENU LINKS CONTAINER WITH OVERFLOW-HIDDEN WRAPPERS */}
         <div ref={menuContentRef} className="flex flex-col space-y-2 font-sans text-6xl uppercase font-medium my-auto tracking-[-6%]">
-          <Link href="/" onClick={toggleMobileMenu} className="hover:text-zinc-400 transition-colors">
-            ABOUT
-          </Link>
-          <Link href="/#" onClick={toggleMobileMenu} className="hover:text-zinc-400 transition-colors">
-            WORK
-          </Link>
-          <Link href="/#" onClick={toggleMobileMenu} className="hover:text-zinc-400 transition-colors">
-            MORE
-          </Link>
-          <Link href="/#" onClick={toggleMobileMenu} className="hover:text-zinc-400 transition-colors">
-            CONTACT
-          </Link>
+          <div className="overflow-hidden">
+            <Link href="/" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
+              ABOUT
+            </Link>
+          </div>
+          <div className="overflow-hidden">
+            <Link href="/#" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
+              WORK
+            </Link>
+          </div>
+          <div className="overflow-hidden">
+            <Link href="/#" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
+              MORE
+            </Link>
+          </div>
+          <div className="overflow-hidden">
+            <Link href="/#" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
+              CONTACT
+            </Link>
+          </div>
         </div>
 
         <div className="pt-6 flex flex-row items-start space-y-4">
