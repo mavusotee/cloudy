@@ -13,11 +13,10 @@ import { ArrowLeft } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const videos = [
+const initialVideos = [
   {
     id: 1,
     date: "01 . 2022",
-    durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4",
     title: "THE BUILDING COMPANY",
     subtitle: "EVERGREEN RESIDENCE",
@@ -25,7 +24,6 @@ const videos = [
   {
     id: 2,
     date: "01 . 2022",
-    durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4",
     title: "MORGAN BUILD",
     subtitle: "WOODS PROJECT",
@@ -33,7 +31,6 @@ const videos = [
   {
     id: 3,
     date: "01 . 2022",
-    durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4",
     title: "4LIFE CONSTRUCTIONS",
     subtitle: "THE DUNE HOUSE",
@@ -41,7 +38,6 @@ const videos = [
   {
     id: 4,
     date: "01 . 2022",
-    durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922167/skatepark_house_comp_1080p_v29fnm.mp4",
     title: "MORGAN BUILD",
     subtitle: "SKATEPARK HOUSE",
@@ -49,16 +45,155 @@ const videos = [
   {
     id: 5,
     date: "01 . 2022",
-    durationTop: "01:03",
     url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921778/north_adelaide_comp_1440p_exjydf.mp4",
     title: "KRIVIC",
     subtitle: "NORTH ADELAIDE",
   },
 ];
 
+const formatTime = (seconds) => {
+  if (isNaN(seconds)) return "00:00";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
+};
+
+// Reusable Video Component with GSAP Half-Capture Frame animation & Hover-to-Pause logic
+function VideoCard({ item, time, onTimeUpdate, handleLoadedMetadata, onHoverStart, onHoverEnd, heightClass, isFullWidth }) {
+  const containerRef = useRef(null);
+  const tlRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const topL = containerRef.current.querySelector(".corner-tl");
+      const topR = containerRef.current.querySelector(".corner-tr");
+      const botL = containerRef.current.querySelector(".corner-bl");
+      const botR = containerRef.current.querySelector(".corner-br");
+
+      tlRef.current = gsap.timeline({ paused: true })
+        .to([topL, topR, botL, botR], {
+          opacity: 1,
+          scale: 1,
+          duration: 0.35,
+          ease: "power2.out",
+        })
+        .to(topL, { x: 0, y: 0, duration: 0.35, ease: "power2.out" }, 0)
+        .to(topR, { x: 0, y: 0, duration: 0.35, ease: "power2.out" }, 0)
+        .to(botL, { x: 0, y: 0, duration: 0.35, ease: "power2.out" }, 0)
+        .to(botR, { x: 0, y: 0, duration: 0.35, ease: "power2.out" }, 0);
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const handleMouseEnter = (e) => {
+    if (tlRef.current) tlRef.current.play();
+    onHoverStart();
+    const video = containerRef.current.querySelector("video");
+    if (video) video.pause();
+  };
+
+  const handleMouseLeave = (e) => {
+    if (tlRef.current) tlRef.current.reverse();
+    onHoverEnd();
+    const video = containerRef.current.querySelector("video");
+    if (video) video.play();
+  };
+
+  return (
+    <div className="flex flex-col space-y-2 w-full">
+      <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
+        <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
+          {item.date}
+        </h1>
+        <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
+          {time}
+        </h2>
+      </div>
+
+      <div
+        ref={containerRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`relative ${
+          isFullWidth
+            ? "w-screen left-1/2 -translate-x-1/2"
+            : "w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0"
+        } ${heightClass} overflow-hidden cursor-none`}
+      >
+        <video
+          src={item.url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onLoadedMetadata={handleLoadedMetadata}
+          onTimeUpdate={onTimeUpdate}
+          className="w-full h-full object-cover brightness-90 contrast-105"
+        />
+
+        {/* DARK MOODY OVERLAY */}
+        <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
+
+        {/* GSAP CAPTURE CORNER BRACKETS (MIX BLEND DIFFERENCE) */}
+        <div className="absolute inset-0 pointer-events-none mix-blend-difference z-20 p-4">
+          {/* Top Left */}
+          <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-white opacity-0 scale-90 -translate-x-3 -translate-y-3" />
+          {/* Top Right */}
+          <div className="corner-tr absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white opacity-0 scale-90 translate-x-3 -translate-y-3" />
+          {/* Bottom Left */}
+          <div className="corner-bl absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-white opacity-0 scale-90 -translate-x-3 translate-y-3" />
+          {/* Bottom Right */}
+          <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-white opacity-0 scale-90 translate-x-3 translate-y-3" />
+        </div>
+      </div>
+
+      <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
+        <div className="flex flex-col">
+          <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+            {item.title}
+          </p>
+          <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
+            {item.subtitle}
+          </h1>
+        </div>
+        <SmallBut />
+      </div>
+    </div>
+  );
+}
+
 export default function Page() {
   const cursorRef = useRef(null);
   const [isHoveringVideo, setIsHoveringVideo] = useState(false);
+
+  // State to hold live playback times for each video ID
+  const [timeState, setTimeState] = useState({
+    1: "00:00",
+    2: "00:00",
+    3: "00:00",
+    4: "00:00",
+    5: "00:00",
+  });
+
+  const handleLoadedMetadata = (e) => {
+    const video = e.currentTarget;
+    if (video && video.duration) {
+      video.currentTime = Math.random() * video.duration;
+    }
+  };
+
+  const handleTimeUpdate = (id, e) => {
+    const video = e.currentTarget;
+    if (video) {
+      setTimeState((prev) => ({
+        ...prev,
+        [id]: formatTime(video.currentTime),
+      }));
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -73,7 +208,6 @@ export default function Page() {
     const cursor = cursorRef.current;
     if (!cursor) return;
 
-    // Center cursor baseline
     gsap.set(cursor, { xPercent: -50, yPercent: -50 });
 
     const xTo = gsap.quickTo(cursor, "x", { duration: 0.2, ease: "power3" });
@@ -164,15 +298,14 @@ export default function Page() {
           {/* WORKS HEADER ROW */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-4 sm:gap-0">
             <div className="flex flex-row items-start gap-4 sm:gap-6 font-geist-mono">
-              <h1 className="text-[clamp(8rem,20vw,38.875rem)] tracking-[-12%] font-light leading-none">
-                Work
+              <h1 className="text-[clamp(8rem,20vw,30.875rem)] tracking-[-8%] font-light leading-none uppercase">
+                Works
               </h1>
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
-                ({videos.length < 10 ? `0${videos.length}` : videos.length})
+                ({initialVideos.length < 10 ? `0${initialVideos.length}` : initialVideos.length})
               </sup>
             </div>
 
-            {/* BUTTON: MOBILE = LEFT BELOW TITLE | DESKTOP = BOTTOM RIGHT */}
             <div className="flex flex-col items-start sm:items-end justify-end sm:self-end w-full sm:w-auto">
               <Button text="VIEW ALL WORKS" href="/Works" />
             </div>
@@ -182,192 +315,59 @@ export default function Page() {
           <div className="flex flex-col space-y-8 lg:space-y-28 pt-6">
             {/* ROW 1 */}
             <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-0 text-lavender">
-              {/* Card 1 */}
-              <div className="flex flex-col space-y-2 w-full">
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
-                    {videos[0].date}
-                  </h1>
-                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
-                    {videos[0].durationTop}
-                  </h2>
-                </div>
-                <div
-                  className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
-                  onMouseEnter={() => setIsHoveringVideo(true)}
-                  onMouseLeave={() => setIsHoveringVideo(false)}
-                >
-                  <video
-                    src={videos[0].url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-row items-start justify-between w-full px-2 text-ghost-white">
-                  <div className="flex flex-col pt-2">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                      {videos[0].title}
-                    </p>
-                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
-                      {videos[0].subtitle}
-                    </h1>
-                  </div>
-                  <SmallBut />
-                </div>
-              </div>
-
-              {/* Card 2 */}
-              <div className="flex flex-col space-y-2 w-full">
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
-                    {videos[1].date}
-                  </h1>
-                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
-                    {videos[1].durationTop}
-                  </h2>
-                </div>
-                <div
-                  className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
-                  onMouseEnter={() => setIsHoveringVideo(true)}
-                  onMouseLeave={() => setIsHoveringVideo(false)}
-                >
-                  <video
-                    src={videos[1].url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-row items-start justify-between w-full px-2">
-                  <div className="flex flex-col pt-2">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                      {videos[1].title}
-                    </p>
-                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
-                      {videos[1].subtitle}
-                    </h1>
-                  </div>
-                  <SmallBut />
-                </div>
-              </div>
+              <VideoCard
+                item={initialVideos[0]}
+                time={timeState[1]}
+                onTimeUpdate={(e) => handleTimeUpdate(1, e)}
+                handleLoadedMetadata={handleLoadedMetadata}
+                onHoverStart={() => setIsHoveringVideo(true)}
+                onHoverEnd={() => setIsHoveringVideo(false)}
+                heightClass="aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
+              />
+              <VideoCard
+                item={initialVideos[1]}
+                time={timeState[2]}
+                onTimeUpdate={(e) => handleTimeUpdate(2, e)}
+                handleLoadedMetadata={handleLoadedMetadata}
+                onHoverStart={() => setIsHoveringVideo(true)}
+                onHoverEnd={() => setIsHoveringVideo(false)}
+                heightClass="aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
+              />
             </div>
 
-            {/* ROW 2 - FEATURED (FULL SCREEN HEIGHT ON DESKTOP) */}
-            <div className="flex flex-col space-y-2 w-full text-lavender">
-              <div className="flex flex-row items-center justify-between w-full px-2">
-                <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
-                  {videos[2].date}
-                </h1>
-                <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
-                  {videos[2].durationTop}
-                </h2>
-              </div>
-              <div
-                className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-screen overflow-hidden cursor-none"
-                onMouseEnter={() => setIsHoveringVideo(true)}
-                onMouseLeave={() => setIsHoveringVideo(false)}
-              >
-                <video
-                  src={videos[2].url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="flex flex-row items-start justify-between w-full px-2 pt-2">
-                <div className="flex flex-col">
-                  <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                    {videos[2].title}
-                  </p>
-                  <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
-                    {videos[2].subtitle}
-                  </h1>
-                </div>
-                <SmallBut />
-              </div>
-            </div>
+            {/* ROW 2 - FEATURED (EDGE-TO-EDGE FULLSCREEN) */}
+            <VideoCard
+              item={initialVideos[2]}
+              time={timeState[3]}
+              onTimeUpdate={(e) => handleTimeUpdate(3, e)}
+              handleLoadedMetadata={handleLoadedMetadata}
+              onHoverStart={() => setIsHoveringVideo(true)}
+              onHoverEnd={() => setIsHoveringVideo(false)}
+              heightClass="h-[60vh] lg:h-screen"
+              isFullWidth={true}
+            />
 
             {/* ROW 3 (EDITORIAL ASYMMETRIC GRID) */}
             <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
-              {/* Card 4 (Dominant / Larger) */}
-              <div className="flex flex-col space-y-2 w-full">
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
-                    {videos[3].date}
-                  </h1>
-                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
-                    {videos[3].durationTop}
-                  </h2>
-                </div>
-                <div
-                  className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem] overflow-hidden cursor-none"
-                  onMouseEnter={() => setIsHoveringVideo(true)}
-                  onMouseLeave={() => setIsHoveringVideo(false)}
-                >
-                  <video
-                    src={videos[3].url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-row items-start justify-between w-full px-2 pt-1">
-                  <div className="flex flex-col pt-2">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                      {videos[3].title}
-                    </p>
-                    <h1 className="font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white">
-                      {videos[3].subtitle}
-                    </h1>
-                  </div>
-                  <SmallBut />
-                </div>
-              </div>
-
-              {/* Card 5 (Smaller / Secondary & Offset) */}
-              <div className="flex flex-col space-y-2 w-full lg:translate-y-24">
-                <div className="flex flex-row items-center justify-between w-full px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-400">
-                    {videos[4].date}
-                  </h1>
-                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)]">
-                    {videos[4].durationTop}
-                  </h2>
-                </div>
-                <div
-                  className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem] overflow-hidden cursor-none"
-                  onMouseEnter={() => setIsHoveringVideo(true)}
-                  onMouseLeave={() => setIsHoveringVideo(false)}
-                >
-                  <video
-                    src={videos[4].url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-row items-start justify-between w-full px-2 pt-1">
-                  <div className="flex flex-col">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                      {videos[4].title}
-                    </p>
-                    <h1 className="font-sans font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1.3rem)] text-ghost-white">
-                      {videos[4].subtitle}
-                    </h1>
-                  </div>
-                  <SmallBut />
-                </div>
+              <VideoCard
+                item={initialVideos[3]}
+                time={timeState[4]}
+                onTimeUpdate={(e) => handleTimeUpdate(4, e)}
+                handleLoadedMetadata={handleLoadedMetadata}
+                onHoverStart={() => setIsHoveringVideo(true)}
+                onHoverEnd={() => setIsHoveringVideo(false)}
+                heightClass="aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem]"
+              />
+              <div className="w-full lg:translate-y-24">
+                <VideoCard
+                  item={initialVideos[4]}
+                  time={timeState[5]}
+                  onTimeUpdate={(e) => handleTimeUpdate(5, e)}
+                  handleLoadedMetadata={handleLoadedMetadata}
+                  onHoverStart={() => setIsHoveringVideo(true)}
+                  onHoverEnd={() => setIsHoveringVideo(false)}
+                  heightClass="aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem]"
+                />
               </div>
             </div>
           </div>

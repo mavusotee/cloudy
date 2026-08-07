@@ -65,33 +65,33 @@ function Navigation({ isMuted = true, onToggleSound }) {
     }
   }, [isVisible])
 
-  // GSAP Custom Open & Reverse Timeline Setup
+  // GSAP Vertical Top-to-Bottom Clip-Path Animation
   useEffect(() => {
     if (!menuOverlayRef.current) return
 
+    // Initial State: Squeezed flat to top line
     gsap.set(menuOverlayRef.current, {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
       display: "none"
     })
 
-    // Target the inner links directly inside the overflow-hidden wrappers
     const linkItems = menuContentRef.current?.querySelectorAll('a') || []
 
     const openTl = gsap.timeline({ paused: true })
       .set(menuOverlayRef.current, { display: "flex" })
       .to(menuOverlayRef.current, {
         clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-        duration: 1.2,
-        ease: "power4.inOut"
+        duration: 0.75,
+        ease: "power3.inOut"
       })
       .fromTo(
         linkItems,
         {
-          yPercent: 100, // Starts completely hidden below wrapper boundary
+          yPercent: 100,
           opacity: 0,
         },
         {
-          yPercent: 0,   // Slides up inside wrapper boundary
+          yPercent: 0,
           opacity: 1,
           duration: 0.95,
           stagger: 0.08,
@@ -110,16 +110,16 @@ function Navigation({ isMuted = true, onToggleSound }) {
     })
       .to(linkItems, {
         yPercent: -100,
-        xPercent: -8, // Slides up and away into wrapper ceiling
+        xPercent: -8,
         opacity: 0,
-        duration: 1,
+        duration: 0.8,
         stagger: -0.04,
         ease: "power3.in"
       })
       .to(menuOverlayRef.current, {
         clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-        duration: 0.8,
-        ease: "power4.inOut"
+        duration: 0.65,
+        ease: "power3.inOut"
       }, "-=0.2")
 
     openTlRef.current = openTl
