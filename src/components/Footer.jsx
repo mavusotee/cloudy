@@ -10,8 +10,8 @@ function Footer() {
         {/*LEFT DIV*/}
         <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,3vw,3rem)]">
            <div className="flex flex-col space-y-[clamp(1.2rem,2vw,1.5rem)]">
-            <h1 className="w-full max-w-[clamp(35rem,50vw,42.8125rem)] tracking-tight text-[clamp(2.25rem,4.5vw,3.4375rem)] font-sans text-ghost-white leading-[110%]">YOU BUILT THE SPACE NOW SECURE THE LEGACY</h1>
-            <p className="w-full max-w-[clamp(22rem,40vw,36.875rem)] text-[clamp(1rem,1.2vw,1rem)] text-zinc-600 leading-[130%] font-geist-mono uppercase">You’ve put everything into building something incredible. Now, let’s make sure the rest of the world sees it that way.</p>
+            <h1 className="w-full max-w-[clamp(35rem,50vw,42.8125rem)] tracking-tight text-[clamp(2.15rem,3.5vw,3.6375rem)] font-sans text-ghost-white leading-[110%]">YOU BUILT THE SPACE NOW SECURE THE LEGACY</h1>
+            <p className="w-full max-w-[clamp(20rem,40vw,36.875rem)] text-[clamp(0.8rem,1.2vw,1rem)] text-zinc-600 leading-[130%] font-geist-mono uppercase">You’ve put everything into building something incredible. Now, let’s make sure the rest of the world sees it that way.</p>
            </div>
 
            <Button text='CHECK AVAILABILITY' link="/contact" className=""/>
@@ -48,7 +48,7 @@ function Footer() {
         
       </div>
 
-      <div className="flex flex-row items-end md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.1rem,3.2vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-[clamp(2rem,5vw,4rem)]">
+      <div className="flex flex-row items-end md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.1rem,1.7vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-[clamp(2.5rem,6vw,4rem)]">
         <div className="flex flex-col md:flex-row space-x-[clamp(0.5rem,4.5vw,6rem)]">
           <h1>BASED IN ADELAIDE</h1>
           <h1>PRIVACY POLICY</h1>
