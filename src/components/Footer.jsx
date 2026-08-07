@@ -48,7 +48,7 @@ function Footer() {
         
       </div>
 
-      <div className="flex flex-row items-end md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.5rem,3.2vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-[clamp(2rem,5vw,4rem)]">
+      <div className="flex flex-row items-end md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.1rem,3.2vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-[clamp(2rem,5vw,4rem)]">
         <div className="flex flex-col md:flex-row space-x-[clamp(0.5rem,4.5vw,6rem)]">
           <h1>BASED IN ADELAIDE</h1>
           <h1>PRIVACY POLICY</h1>
