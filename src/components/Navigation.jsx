@@ -54,8 +54,8 @@ function Navigation({ isMuted = true, onToggleSound }) {
       })
     } else {
       gsap.to(elements, {
-        y: -34,
-        opacity: 0,
+        y: 0,
+        opacity: 1,
         delay: 0.1,
         duration: 0.4,
         ease: "power2.in",

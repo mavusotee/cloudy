@@ -62,13 +62,13 @@ function ServiceItem({ service }) {
   return (
     <div
       ref={containerRef}
-      className="group flex flex-col space-y-8 md:space-y-4 w-full"
+      className="group flex flex-col space-y-8 md:space-y-6 w-full"
     >
       {/* HEADER & CONTENT ROW */}
       <div className="flex flex-row items-start justify-between w-full">
         {/* NUMBERING */}
         <div className="shrink-0 w-12 md:w-20 pt-[clamp(0.2rem,0.5vw,0.6rem)]">
-          <span className="font-sans font-semibold tracking-tighter text-zinc-200 text-[clamp(1.075rem,1.5vw,2.5rem)] select-none">
+          <span className="font-sans font-semibold tracking-tighter text-zinc-600 text-[clamp(1.075rem,2.5vw,4.5rem)] select-none">
             {service.id}
           </span>
         </div>
@@ -92,9 +92,9 @@ function ServiceItem({ service }) {
           </div>
 
           {/* DESCRIPTION */}
-          <div className="w-full md:translate-x-40 pt-4 md:pt-8">
+          <div className="w-full md:translate-x-40 pt-4 md:pt-20">
             <Split duration="1.8">
-              <p className="text-zinc-500 font-mono uppercase w-[clamp(350px,50vw,600px)] max-w-full pt-4 pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed">
+              <p className="text-zinc-100 font-sans  w-[clamp(350px,50vw,600px)] max-w-full pt-4 pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed">
                 {service.description}
               </p>
             </Split>
@@ -105,7 +105,7 @@ function ServiceItem({ service }) {
       {/* FULL-WIDTH UNDERLINE (SCRUBBED ON SCROLL) */}
       <div
         ref={lineRef}
-        className="w-full bg-zinc-800 h-[1px] mt-[clamp(1.25rem,3vw,2rem)]"
+        className="w-full bg-zinc-800 h-[1.5px] mt-[clamp(1.25rem,3vw,2rem)]"
       />
     </div>
   );

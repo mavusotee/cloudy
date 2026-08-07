@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 import SmallButton from "@/components/SmallButton";
+import Footer from "@/components/Footer";
 import SmallBut from "@/components/SmallBut";
 import SmudgyTextReveal from "@/components/SmudgyTextReveal";
 import gsap from "gsap";
@@ -375,6 +376,7 @@ export default function Page() {
 
       <ServicesSection />
       <ClientsSection />
+      <Footer />
     </div>
   );
 }
