@@ -136,8 +136,8 @@ export default function Page() {
         </div>
 
         {/* INTRO SECTION */}
-        <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-8 lg:gap-0">
-          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.35rem,1.1vw,0.875rem)]">
+        <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-12 lg:gap-0">
+          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.65rem,1.1vw,0.875rem)]">
             IT ALL STARTS WITH AN IDEA.
           </h1>
 
@@ -193,7 +193,7 @@ export default function Page() {
                   </h2>
                 </div>
                 <div
-                  className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-[30rem] overflow-hidden cursor-none"
+                  className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
                   onMouseEnter={() => setIsHoveringVideo(true)}
                   onMouseLeave={() => setIsHoveringVideo(false)}
                 >
@@ -230,7 +230,7 @@ export default function Page() {
                   </h2>
                 </div>
                 <div
-                  className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-[30rem] overflow-hidden cursor-none"
+                  className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
                   onMouseEnter={() => setIsHoveringVideo(true)}
                   onMouseLeave={() => setIsHoveringVideo(false)}
                 >
@@ -268,7 +268,7 @@ export default function Page() {
                 </h2>
               </div>
               <div
-                className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-screen overflow-hidden cursor-none"
+                className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-screen overflow-hidden cursor-none"
                 onMouseEnter={() => setIsHoveringVideo(true)}
                 onMouseLeave={() => setIsHoveringVideo(false)}
               >
@@ -307,7 +307,7 @@ export default function Page() {
                   </h2>
                 </div>
                 <div
-                  className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-[36rem] overflow-hidden cursor-none"
+                  className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem] overflow-hidden cursor-none"
                   onMouseEnter={() => setIsHoveringVideo(true)}
                   onMouseLeave={() => setIsHoveringVideo(false)}
                 >
@@ -344,7 +344,7 @@ export default function Page() {
                   </h2>
                 </div>
                 <div
-                  className="w-full aspect-video lg:aspect-none h-[20rem] lg:h-[26rem] overflow-hidden cursor-none"
+                  className="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem] overflow-hidden cursor-none"
                   onMouseEnter={() => setIsHoveringVideo(true)}
                   onMouseLeave={() => setIsHoveringVideo(false)}
                 >

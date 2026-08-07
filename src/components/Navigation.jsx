@@ -18,7 +18,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Track scroll direction (Hides ONLY logo and desktop links on scroll)
+  // Track scroll direction
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
@@ -26,9 +26,9 @@ function Navigation({ isMuted = true, onToggleSound }) {
       if (currentScrollY < 20) {
         setIsVisible(true)
       } else if (currentScrollY > lastScrollY) {
-        setIsVisible(false) // Scrolling down -> hide logo & links
+        setIsVisible(false) // Scrolling down -> hide
       } else {
-        setIsVisible(true)  // Scrolling up -> show logo & links
+        setIsVisible(true)  // Scrolling up -> show
       }
 
       setLastScrollY(currentScrollY)
@@ -38,7 +38,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
 
-  // GSAP Scroll Animation ONLY for Logo and Nav Links
+  // GSAP Scroll Animation
   useEffect(() => {
     const elements = [logoRef.current, linksRef.current].filter(Boolean)
 
@@ -74,7 +74,6 @@ function Navigation({ isMuted = true, onToggleSound }) {
       display: "none"
     })
 
-    // Forward Open Timeline
     const openTl = gsap.timeline({ paused: true })
       .set(menuOverlayRef.current, { display: "flex" })
       .to(menuOverlayRef.current, {
@@ -94,7 +93,6 @@ function Navigation({ isMuted = true, onToggleSound }) {
         "-=0.4"
       )
 
-    // Reverse Exit Timeline (Accelerated Exit & Snappy Text Collapse)
     const closeTl = gsap.timeline({ 
       paused: true,
       onComplete: () => {
@@ -108,7 +106,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         x: -10,
         opacity: 0,
         duration: 0.6,
-        stagger: -0.04, // Reverse stagger on exit
+        stagger: -0.04,
         ease: "power2.in"
       })
       .to(menuOverlayRef.current, {
@@ -121,7 +119,6 @@ function Navigation({ isMuted = true, onToggleSound }) {
     closeTlRef.current = closeTl
   }, [])
 
-  // Handle Mobile Menu Open / Close Animation
   const toggleMobileMenu = () => {
     if (!isMobileMenuOpen) {
       setIsMobileMenuOpen(true)
@@ -137,9 +134,10 @@ function Navigation({ isMuted = true, onToggleSound }) {
   return (
     <>
       <nav className="flex flex-row items-center justify-between w-full text-ghost-white md:px-2 md:py-4 relative z-40">
-        {/* LOGO */}
-        <div ref={logoRef} className="mix-blend-difference">
-          <Link href="/">
+        
+        {/* ONLY THE LOGO HAS MIX-BLEND-DIFFERENCE */}
+        <div ref={logoRef} className="mix-blend-difference pointer-events-auto [isolation:auto]">
+          <Link href="/" className="block">
             <Image 
               src={Logo} 
               alt="Logo" 
@@ -151,10 +149,10 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </Link>
         </div>
 
-        {/* LINKS DESKTOP */}
+        {/* LINKS DESKTOP - NO BLEND MODE */}
         <div
           ref={linksRef}
-          className="hidden md:flex items-center justify-center space-x-4 font-mono uppercase text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)] translate-x-[clamp(0px,12vw,190px)] mix-blend-difference"
+          className="hidden md:flex items-center justify-center space-x-4 font-mono uppercase text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)] translate-x-[clamp(0px,12vw,190px)] pointer-events-auto"
         >
           <Link href="/">ABOUT</Link>
           <Link href="/#">WORK</Link>
@@ -162,8 +160,8 @@ function Navigation({ isMuted = true, onToggleSound }) {
           <Link href="/#">CONTACT</Link>
         </div>
 
-        {/* RIGHT ACTION BUTTONS */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        {/* RIGHT ACTION BUTTONS - NO BLEND MODE */}
+        <div className="flex items-center space-x-2 sm:space-x-3 pointer-events-auto">
           {/* SOUND TOGGLE BUTTON */}
           <button
             onClick={onToggleSound}
@@ -188,21 +186,21 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </button>
 
           {/* CHECK AVAILABILITY BUTTON */}
-          <button className="hidden md:flex bg-carbon-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(155px,12vw+70px,224px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.3rem,0.63rem+0.3vw,1.25rem)] text-center items-center justify-center text-ghost-white">
+          <button className="hidden md:flex bg-carbon-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(155px,12vw+70px,224px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.3rem,0.63rem+0.3vw,1.25rem)] text-center items-center justify-center text-ghost-white cursor-pointer">
             Check availability
           </button>
 
           {/* MOBILE MENU BUTTON */}
           <button
             onClick={toggleMobileMenu}
-            className="flex md:hidden bg-ghost-white hover:bg-zinc-200 transition-colors px-5 py-0 h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-ghost-white font-mono tracking-tighter uppercase text-[clamp(0.75rem,0.63rem+0.3vw,1rem)] text-carbon-black items-center justify-center font-bold"
+            className="flex md:hidden bg-ghost-white hover:bg-zinc-200 transition-colors px-5 py-0 h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-ghost-white font-mono tracking-tighter uppercase text-[clamp(0.75rem,0.63rem+0.3vw,1rem)] text-carbon-black items-center justify-center font-bold cursor-pointer"
           >
             Menu
           </button>
         </div>
       </nav>
 
-      {/* FULL-SCREEN MOBILE OVERLAY */}
+      {/* MOBILE OVERLAY */}
       <div
         ref={menuOverlayRef}
         className="fixed inset-0 z-50 bg-carbon-black flex flex-col justify-between p-6 text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
@@ -219,7 +217,6 @@ function Navigation({ isMuted = true, onToggleSound }) {
             />
           </Link>
 
-          {/* CLOSE BUTTON */}
           <button
             onClick={toggleMobileMenu}
             className="bg-ghost-white text-carbon-black px-4 h-11 rounded-full font-mono text-xs uppercase font-bold flex items-center justify-center"
@@ -228,7 +225,6 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </button>
         </div>
 
-        {/* ANIMATED MENU CONTENT */}
         <div ref={menuContentRef} className="flex flex-col space-y-2 font-sans text-6xl uppercase font-medium my-auto tracking-[-6%]">
           <Link href="/" onClick={toggleMobileMenu} className="hover:text-zinc-400 transition-colors">
             ABOUT

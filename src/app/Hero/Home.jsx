@@ -25,11 +25,10 @@ function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [duration, setDuration] = useState('00:00')
 
-  // 1. ADDED GLOBAL AUDIO STATE
+  // Global Audio State
   const [isMuted, setIsMuted] = useState(true)
   const activeVideoRef = useRef(null)
 
-  // Format raw video duration (seconds) into MM:SS
   const formatTime = (seconds) => {
     if (!seconds || isNaN(seconds)) return '00:00'
     const mins = Math.floor(seconds / 60)
@@ -37,14 +36,10 @@ function Home() {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
   }
 
-  // Captures active video reference & metadata duration
   const handleVideoInit = useCallback((videoEl) => {
     if (!videoEl) return
 
-    // Store reference to currently active video element
     activeVideoRef.current = videoEl
-
-    // Sync sound state immediately whenever a new video initializes
     videoEl.muted = isMuted
 
     const updateDuration = () => {
@@ -66,7 +61,6 @@ function Home() {
     }
   }, [isMuted])
 
-  // 2. TOGGLE SOUND HANDLER (Passed to Navigation)
   const handleToggleSound = () => {
     const nextMutedState = !isMuted
     setIsMuted(nextMutedState)
@@ -75,7 +69,6 @@ function Home() {
       activeVideoRef.current.muted = nextMutedState
       if (!nextMutedState) {
         activeVideoRef.current.volume = 1.0
-        // Play call ensures audio context activates after user interaction
         activeVideoRef.current.play().catch(() => {})
       }
     }
@@ -97,9 +90,8 @@ function Home() {
   return (
     <main className="relative w-full h-dvh overflow-hidden bg-zinc-900">
       
-      {/* FIXED NAVIGATION HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 p-4 w-full pointer-events-auto">
-        {/* Pass isMuted and handleToggleSound to Navigation */}
+      {/* FIXED NAVIGATION HEADER - CLEAN CONTAINER NO MIX-BLEND */}
+      <header className="fixed top-0 left-0 right-0 z-50 p-4 w-full pointer-events-none">
         <Navigation 
           isMuted={isMuted} 
           onToggleSound={handleToggleSound} 
@@ -111,33 +103,35 @@ function Home() {
         activeSrc={PROJECTS[currentIndex].src}
         nextSrc={nextIndex !== null ? PROJECTS[nextIndex].src : null}
         isTransitioning={isTransitioning}
-        isMuted={isMuted} // Pass down sound state
+        isMuted={isMuted}
         onTransitionComplete={handleTransitionComplete}
         onVideoInit={handleVideoInit}
       />
 
       {/* OVERLAY */}
-      <div className="absolute inset-0 bg-black/50 z-0 pointer-events-none opacity-50" />
+      <div className="absolute inset-0 bg-black/30 z-0 pointer-events-none" />
 
       {/* FOREGROUND UI WRAPPER */}
-      <div className="relative z-10 w-full h-full p-4 pt-20 flex flex-col justify-between box-border">
+      <div className="relative z-10 w-full h-full p-4 pt-20 flex flex-col justify-between box-border pointer-events-none">
         <div aria-hidden="true" />
 
         {/* CONTROLS */}
-        <Controls 
-          onNext={handleNext} 
-          currentIndex={currentIndex + 1}
-          totalVideos={PROJECTS.length}
-          title={PROJECTS[currentIndex].title}
-          duration={duration}
-        />
+        <div className="pointer-events-auto">
+          <Controls 
+            onNext={handleNext} 
+            currentIndex={currentIndex + 1}
+            totalVideos={PROJECTS.length}
+            title={PROJECTS[currentIndex].title}
+            duration={duration}
+          />
+        </div>
 
         {/* BOTTOM UI */}
-        <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal">
+        <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal pointer-events-auto">
           <p className="w-[clamp(320px,25vw,925px)] text-[clamp(1rem,0.55rem+0.6vw,4.5rem)]">
             VISUAL STUDIO FOR HIGH-END ARCHITECTURE AND CONSTRUCTION BASED IN ADELAIDE
           </p>
-          <p className=" text-zinc-200 md:text-ghost-white text-[clamp(0.45rem,0.55rem+0.5vw,2rem)]">(scroll down)</p>
+          <p className="text-zinc-200 md:text-ghost-white text-[clamp(0.45rem,0.55rem+0.5vw,2rem)]">(scroll down)</p>
         </div>
       </div>
 
