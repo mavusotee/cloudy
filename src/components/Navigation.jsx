@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Logo from '@/Assets/Logo/cloud.svg'
 import gsap from 'gsap'
+import BlurFlicker from './BlurFlicker'
 
 function Navigation({ isMuted = true, onToggleSound }) {
   const logoRef = useRef(null)
@@ -170,6 +171,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         {/* RIGHT ACTION BUTTONS - NO BLEND MODE */}
         <div className="flex items-center space-x-2 sm:space-x-3 pointer-events-auto">
           {/* SOUND TOGGLE BUTTON */}
+          <BlurFlicker>
           <button
             onClick={onToggleSound}
             aria-label={isMuted ? "Unmute audio" : "Mute audio"}
@@ -191,11 +193,15 @@ function Navigation({ isMuted = true, onToggleSound }) {
               </>
             )}
           </button>
+          </BlurFlicker>
 
           {/* CHECK AVAILABILITY BUTTON */}
+          <BlurFlicker>
+
           <button className="hidden md:flex bg-carbon-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(155px,12vw+70px,224px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.3rem,0.63rem+0.3vw,1.25rem)] text-center items-center justify-center text-ghost-white cursor-pointer">
             Check availability
           </button>
+          </BlurFlicker>
 
           {/* MOBILE MENU BUTTON */}
           <button

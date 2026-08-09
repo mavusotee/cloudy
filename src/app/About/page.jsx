@@ -390,7 +390,7 @@ export default function Page() {
 
         {/* INTRO SECTION */}
         <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-12 lg:gap-0">
-          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.65rem,1.1vw,0.875rem)]">
+          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.65rem,1.1vw,0.875rem)] ">
             IT ALL STARTS WITH AN IDEA.
           </h1>
 
@@ -431,7 +431,7 @@ export default function Page() {
           </div>
 
           {/* WORKS GRID */}
-          <div className="flex flex-col space-y-8 lg:space-y-28 pt-6">
+          <div className="flex flex-col space-y-8 lg:space-y-58 pt-6">
             
             {/* ROW 1 */}
             <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-0 text-lavender">
