@@ -94,7 +94,7 @@ function ServiceItem({ service }) {
           {/* DESCRIPTION */}
           <div className="w-full md:translate-x-40 pt-4 md:pt-20">
             <Split duration="1.8">
-              <p className="text-zinc-100 font-sans  w-[clamp(350px,50vw,500px)] max-w-full pt-4 pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed">
+              <p className="text-zinc-500 font-geist-mono uppercase  w-[clamp(350px,50vw,500px)] max-w-full pt-4 pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed">
                 {service.description}
               </p>
             </Split>

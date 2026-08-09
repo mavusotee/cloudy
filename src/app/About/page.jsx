@@ -417,7 +417,7 @@ export default function Page() {
           {/* WORKS HEADER ROW */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-4 sm:gap-0">
             <div className="flex flex-row items-start gap-4 sm:gap-6 font-monot">
-              <h1 className="text-[clamp(5rem,20vw,22.875rem)] tracking-[-8%] font-light leading-none uppercase">
+              <h1 className="text-[clamp(5rem,20vw,18.875rem)] tracking-[-8%] font-light leading-none uppercase">
                 Works
               </h1>
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
