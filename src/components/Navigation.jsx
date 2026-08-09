@@ -212,7 +212,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         ref={menuOverlayRef}
         className="fixed inset-0 z-50 bg-carbon-black flex  flex-col justify-between  text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
       >
-        <div className="flex items-center justify-between w-full p-2">
+        <div className="flex items-center justify-between w-full p-4">
           <Link href="/" onClick={toggleMobileMenu}>
             <Image 
               src={Logo} 
@@ -256,7 +256,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </div>
         </div>
 
-        <div className="pt-6 flex flex-row items-start space-y-4">
+        <div className="pt-6 flex flex-row items-start space-y-4 p-4">
           <div className="flex flex-col gap-1">
             <h1 className="text-eclipse font-mono font-medium tracking-tight text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]">SOCIALS</h1>
             <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.65rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
