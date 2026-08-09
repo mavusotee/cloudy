@@ -32,7 +32,6 @@ const SmudgeTransitionShader = {
     uniform vec2 uVideoResB;
     varying vec2 vUv;
 
-    // Cover UV ratio calculator
     vec2 getCoverUv(vec2 uv, vec2 screenRes, vec2 mediaRes) {
       float screenAspect = screenRes.x / screenRes.y;
       float mediaAspect = mediaRes.x / mediaRes.y;
@@ -46,7 +45,6 @@ const SmudgeTransitionShader = {
       );
     }
 
-    // Fast GLSL Simplex 2D Noise algorithm for liquid warping
     vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
     float snoise(vec2 v){
       const vec4 C = vec4(0.211324865405187, 0.366025403784439,
@@ -78,49 +76,39 @@ const SmudgeTransitionShader = {
       vec2 uvA = getCoverUv(vUv, uResolution, uVideoResA);
       vec2 uvB = getCoverUv(vUv, uResolution, uVideoResB);
 
-      // Bell curve velocity (peaks at mid-transition)
       float transitionVelocity = sin(uProgress * 3.14159265);
 
-      // Multi-layered organic liquid distortion field
       float noiseVal = snoise(vUv * 3.5 + vec2(uProgress * 1.8, uProgress * 0.8));
       float secondaryNoise = snoise(vUv * 8.0 - vec2(uProgress * 2.5));
       
-      // Compute organic directional smudge offset
       vec2 smudgeOffset = vec2(
         noiseVal * 0.18 + secondaryNoise * 0.06,
         snoise(vUv * 4.5) * 0.12
       ) * transitionVelocity * uDirection;
 
-      // Distorted UVs for incoming and outgoing frames
       vec2 distortedUvA = uvA + smudgeOffset;
       vec2 distortedUvB = uvB - smudgeOffset * (1.0 - uProgress);
 
-      // Lens chromatic aberration / RGB split during the peak smudge
       float rgbSplit = transitionVelocity * 0.04 * uDirection;
 
-      // Sample Outgoing Texture (Texture A) with chromatic smear
       vec4 colA = vec4(0.0);
       colA.r = texture2D(uTextureA, distortedUvA + vec2(rgbSplit, rgbSplit * 0.5)).r;
       colA.g = texture2D(uTextureA, distortedUvA).g;
       colA.b = texture2D(uTextureA, distortedUvA - vec2(rgbSplit, rgbSplit * 0.5)).b;
       colA.a = 1.0;
 
-      // Sample Incoming Texture (Texture B) with chromatic smear
       vec4 colB = vec4(0.0);
       colB.r = texture2D(uTextureB, distortedUvB - vec2(rgbSplit * 0.8, rgbSplit * 0.4)).r;
       colB.g = texture2D(uTextureB, distortedUvB).g;
       colB.b = texture2D(uTextureB, distortedUvB + vec2(rgbSplit * 0.8, rgbSplit * 0.4)).b;
       colB.a = 1.0;
 
-      // Mask with organic liquid wave edge instead of linear sweep
       float maskX = uDirection > 0.0 ? vUv.x : (1.0 - vUv.x);
       float organicEdge = maskX + noiseVal * 0.25;
       float mask = smoothstep(0.0, 1.0, (uProgress * 1.5 - organicEdge * 0.5));
 
-      // Final mix
       vec4 finalColor = mix(colA, colB, mask);
 
-      // Subtle atmospheric glow highlight along the liquid edge
       float edgeHighlight = smoothstep(0.0, 0.1, 1.0 - abs(mask - 0.5) * 2.0) * transitionVelocity;
       finalColor.rgb += vec3(0.85, 0.9, 1.0) * edgeHighlight * 0.15;
 
@@ -137,6 +125,30 @@ function createOptimizedVideoElement() {
   v.crossOrigin = 'anonymous'
   v.preload = 'auto'
   return v
+}
+
+// Safe async video player that catches AbortError and handles browser audio autoplay policy
+async function safePlayVideo(video, unmute = false) {
+  if (!video) return
+  if (unmute) {
+    video.muted = false
+    video.volume = 1.0
+  }
+  try {
+    await video.play()
+  } catch (err) {
+    if (err.name === 'NotAllowedError' || err.message?.includes('user didn\'t interact')) {
+      // Browser blocked unmuted autoplay -> fall back to muted safely
+      video.muted = true
+      try {
+        await video.play()
+      } catch (e) {
+        // Silently swallow AbortError from interrupted requests
+      }
+    } else if (err.name !== 'AbortError') {
+      console.warn('Video playback warning:', err)
+    }
+  }
 }
 
 function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete, onVideoInit }) {
@@ -227,7 +239,7 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
           materialRef.current.uniforms.uVideoResA.value.set(currentVideo.videoWidth || 16, currentVideo.videoHeight || 9)
         }
       }
-      currentVideo.play().catch(() => {})
+      safePlayVideo(currentVideo, false)
     }
 
     if (onVideoInit) onVideoInit(currentVideo)
@@ -250,10 +262,9 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
 
       if (!incomingVideo || !materialRef.current) return
 
+      // Load new video source
       incomingVideo.src = nextSrc
       incomingVideo.currentTime = 0
-      incomingVideo.muted = false
-      incomingVideo.volume = 1.0
 
       incomingVideo.onloadedmetadata = () => {
         if (materialRef.current) {
@@ -265,11 +276,8 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
         }
       }
 
-      incomingVideo.play().catch((err) => {
-        console.warn("Autoplay with audio blocked by browser, falling back to muted:", err)
-        incomingVideo.muted = true
-        incomingVideo.play()
-      })
+      // Safely start play with audio
+      safePlayVideo(incomingVideo, true)
 
       if (outgoingVideo) {
         gsap.to(outgoingVideo, { volume: 0, duration: 1.0 })
@@ -281,7 +289,6 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
 
       if (tweenRef.current) tweenRef.current.kill()
 
-      // Adjust GSAP duration & easing to complement liquid movement
       tweenRef.current = gsap.fromTo(
         materialRef.current.uniforms.uProgress,
         { value: 0 },
@@ -299,7 +306,9 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
             activeSlotRef.current = isSlotZero ? 1 : 0
             dirRef.current *= -1.0
 
-            outgoingVideo.pause()
+            if (outgoingVideo) {
+              outgoingVideo.pause()
+            }
 
             onTransitionComplete()
             if (onVideoInit) onVideoInit(incomingVideo)

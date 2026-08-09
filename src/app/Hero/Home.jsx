@@ -3,24 +3,27 @@
 import Controls from '@/components/Controls'
 import Navigation from '@/components/Navigation'
 import HeroCanvas from '@/components/HeroCanvas'
-import React, { useState, useCallback, useRef, useEffect } from 'react'
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 
 const PROJECTS = [
-  { 
-    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4', 
-    title: 'HAZELWOOD RESIDENCE' 
-  },
-  { 
+    { 
     src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4', 
     title: 'THE BUILDING COMPANY' 
   },
   { 
     src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4', 
     title: 'THE BUILDING COMPANY' 
-  }
+  },
+  { 
+    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4', 
+    title: 'HAZELWOOD RESIDENCE' 
+  },
+
 ]
+
+const BOTTOM_TEXT = "VISUAL STUDIO FOR HIGH-END ARCHITECTURE AND CONSTRUCTION BASED IN ADELAIDE"
 
 function Home() {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -30,7 +33,7 @@ function Home() {
 
   // Preloader Tracking States
   const [progress, setProgress] = useState(0)
-  const [isLoaded, setIsLoaded] = useState(false) // Driven when loader completes
+  const [isLoaded, setIsLoaded] = useState(false)
   const [preloaderUnmounted, setPreloaderUnmounted] = useState(false)
 
   // Audio & DOM Refs
@@ -41,6 +44,16 @@ function Home() {
   const progressBarRef = useRef(null)
   const counterRef = useRef(null)
   const targetProgress = useRef(0)
+
+  // Canvas Wrapper Ref for Scale & Skew Reveal
+  const heroCanvasWrapperRef = useRef(null)
+
+  // Bottom UI Animation Refs
+  const bottomTextRef = useRef(null)
+  const scrollTextRef = useRef(null)
+
+  // Split sentence into words for staggered blur reveal
+  const words = useMemo(() => BOTTOM_TEXT.split(' '), [])
 
   const formatTime = (seconds) => {
     if (!seconds || isNaN(seconds)) return '00:00'
@@ -90,7 +103,6 @@ function Home() {
 
     const tl = gsap.timeline({
       onComplete: () => {
-        // Completely remove preloader from React DOM after animation finishes
         setPreloaderUnmounted(true)
       }
     })
@@ -101,17 +113,95 @@ function Home() {
       duration: 0.5,
       ease: "power2.in"
     })
-    // Start wipe curtain animation AND flip isLoaded state so Hero components animate
+    // Wipe curtain animation AND trigger canvas / UI entrance
     .to(preloaderRef.current, {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
       duration: 1.5,
       ease: "power4.inOut",
       onStart: () => {
-        setIsLoaded(true) // <--- CRITICAL: Triggers child animations right as curtain wipes!
+        setIsLoaded(true)
       }
     }, "-=0.1")
 
   }, [progress])
+
+  // Canvas Scale-Down + Skew Reveal & Word Split Blur Animations
+  useGSAP(() => {
+    if (!isLoaded) return
+
+    const masterTl = gsap.timeline()
+
+    // 1. Scale down and un-skew background video canvas into resting position
+    if (heroCanvasWrapperRef.current) {
+      masterTl.fromTo(
+        heroCanvasWrapperRef.current,
+        {
+          scale: 1.2,
+          skewY: 3,
+          skewX: -1.5,
+          rotation: 1.5,
+          filter: 'blur(12px)',
+          opacity: 0.7
+        },
+        {
+          scale: 1.0,
+          skewY: 0,
+          skewX: 0,
+          rotation: 0,
+          filter: 'blur(0px)',
+          opacity: 1,
+          duration: 2.0,
+          ease: 'power3.out'
+        },
+        0 // Starts immediately with preloader curtain reveal
+      )
+    }
+
+    // 2. Animate bottom text words with blur, opacity, and lift
+    if (bottomTextRef.current) {
+      const wordElements = bottomTextRef.current.querySelectorAll('.word-span')
+
+      masterTl.fromTo(
+        wordElements,
+        {
+          opacity: 0,
+          filter: 'blur(12px)',
+          y: 20,
+          scale: 1.1
+        },
+        {
+          opacity: 1,
+          filter: 'blur(0px)',
+          y: 0,
+          scale: 1,
+          duration: 0.9,
+          stagger: 0.04,
+          ease: 'power3.out'
+        },
+        0.35 // Slightly offset from the video reveal start
+      )
+    }
+
+    // 3. Fade in "(scroll down)" hint
+    if (scrollTextRef.current) {
+      masterTl.fromTo(
+        scrollTextRef.current,
+        {
+          opacity: 0,
+          filter: 'blur(8px)',
+          y: 10
+        },
+        {
+          opacity: 1,
+          filter: 'blur(0px)',
+          y: 0,
+          duration: 0.8,
+          ease: 'power2.out'
+        },
+        "-=0.4"
+      )
+    }
+  }, [isLoaded])
 
   const handleVideoInit = useCallback((videoEl) => {
     if (!videoEl) return
@@ -183,7 +273,7 @@ function Home() {
   }
 
   return (
-    <main className="relative w-full h-dvh overflow-hidden bg-zinc-900">
+    <main className="relative w-full h-dvh overflow-hidden bg-zinc-900 [perspective:1200px]">
 
       {/* PRELOADER OVERLAY */}
       {!preloaderUnmounted && (
@@ -220,16 +310,21 @@ function Home() {
         />
       </header>
 
-      {/* THREE.JS CANVAS SHADER BACKGROUND */}
-      <HeroCanvas
-        activeSrc={PROJECTS[currentIndex].src}
-        nextSrc={nextIndex !== null ? PROJECTS[nextIndex].src : null}
-        isTransitioning={isTransitioning}
-        isMuted={isMuted}
-        onTransitionComplete={handleTransitionComplete}
-        onVideoInit={handleVideoInit}
-        isLoaded={isLoaded}
-      />
+      {/* THREE.JS CANVAS WRAPPER (SKEWS AND SCALES DOWN) */}
+      <div 
+        ref={heroCanvasWrapperRef} 
+        className="absolute inset-0 w-full h-full origin-top center will-change-[transform,filter,opacity]"
+      >
+        <HeroCanvas
+          activeSrc={PROJECTS[currentIndex].src}
+          nextSrc={nextIndex !== null ? PROJECTS[nextIndex].src : null}
+          isTransitioning={isTransitioning}
+          isMuted={isMuted}
+          onTransitionComplete={handleTransitionComplete}
+          onVideoInit={handleVideoInit}
+          isLoaded={isLoaded}
+        />
+      </div>
 
       {/* OVERLAY */}
       <div className="absolute inset-0 bg-black/30 z-0 pointer-events-none" />
@@ -238,7 +333,7 @@ function Home() {
       <div className="relative z-10 w-full h-full p-4 pt-20 flex flex-col justify-between box-border pointer-events-none">
         <div aria-hidden="true" />
 
-        {/* CONTROLS (isLoaded is now explicitly passed) */}
+        {/* CONTROLS */}
         <div className="pointer-events-auto">
           <Controls 
             onNext={handleNext} 
@@ -246,16 +341,34 @@ function Home() {
             totalVideos={PROJECTS.length}
             title={PROJECTS[currentIndex].title}
             duration={duration}
-            isLoaded={isLoaded} // <--- PROPERLY PASSED NOW
+            isLoaded={isLoaded}
           />
         </div>
 
-        {/* BOTTOM UI */}
+        {/* BOTTOM UI WITH WORD SPLIT BLUR REVEAL */}
         <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal pointer-events-auto">
-          <p className="w-[clamp(320px,25vw,925px)] text-[clamp(1rem,0.55rem+0.6vw,4.5rem)]">
-            VISUAL STUDIO FOR HIGH-END ARCHITECTURE AND CONSTRUCTION BASED IN ADELAIDE
+          <p 
+            ref={bottomTextRef}
+            className="w-[clamp(320px,25vw,925px)] text-[clamp(1rem,0.55rem+0.6vw,4.5rem)] flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]"
+          >
+            {words.map((word, index) => (
+              <span 
+                key={index} 
+                className="word-span inline-block will-change-[transform,opacity,filter]"
+                style={{ opacity: 0 }}
+              >
+                {word}
+              </span>
+            ))}
           </p>
-          <p className="text-zinc-200 md:text-ghost-white text-[clamp(0.45rem,0.55rem+0.5vw,2rem)]">(scroll down)</p>
+
+          <p 
+            ref={scrollTextRef}
+            className="text-zinc-200 md:text-ghost-white text-[clamp(0.45rem,0.55rem+0.5vw,2rem)] will-change-[transform,opacity,filter]"
+            style={{ opacity: 0 }}
+          >
+            (scroll down)
+          </p>
         </div>
       </div>
 

@@ -40,20 +40,20 @@ function Controls({
 
     const tl = gsap.timeline({ delay: 0.1 })
 
-    // 3. Reveal Text Elements (emerge from hidden mask wrapper)
+    // 3. Reveal Text Elements
     tl.to(".mask-text", {
       yPercent: 0,
       skewY: 0,
       opacity: 1,
       filter: "blur(0px)",
-      duration: 1.2,
+      duration: 1,
       ease: "power4.out",
       stagger: 0.05
     })
-    // 4. Reveal Underlines from the center outward
+    // 4. Reveal Underlines
     .to(".control-underline", {
       scaleX: 1,
-      duration: 1.2,
+      duration: 1,
       ease: "power3.inOut",
       stagger: 0.1
     }, "-=0.8")
@@ -62,7 +62,7 @@ function Controls({
       opacity: 1,
       y: 0,
       scale: 1,
-      duration: 1.5,
+      duration: 1,
       ease: "power3.out",
       filter: "blur(0px)"
     }, "-=0.9")
@@ -103,16 +103,16 @@ function Controls({
   return (
     <div ref={containerRef} className="flex items-center justify-between text-ghost-white w-full select-none">
 
-      {/* LEFT-CONTROLS (Hidden on Mobile) */}
+      {/* LEFT-CONTROLS */}
       <div className="hidden md:flex flex-col items-start justify-start space-y-1 w-[clamp(140px,30vw,360px)]">
         
         <div className="overflow-hidden pb-0.5">
-          <h1 className="mask-text font-sans font-semibold text-[clamp(0.5rem,0.45rem+0.2vw,0.625rem)] block origin-left">
+          <h1 className="mask-text font-sans font-semibold text-[clamp(0.5rem,0.45rem+0.2vw,0.925rem)] block origin-left">
             FEATURED WORKS
           </h1>
         </div>
 
-        <div className="flex items-center justify-between w-full text-[clamp(0.65rem,0.5rem+0.5vw,1.25rem)] font-geist-mono">
+        <div className="flex items-center justify-between w-full text-[clamp(0.65rem,0.5rem+0.55vw,1.85rem)] font-geist-mono">
           <div className="overflow-hidden pb-0.5">
             <h1 className="mask-text truncate block origin-left">{title}</h1>
           </div>
@@ -121,24 +121,24 @@ function Controls({
           </div>
         </div>
 
-        <div className="control-underline bg-zinc-400 w-full h-[0.25px]" />
+        <div className="control-underline bg-ghost-white w-full h-[0.25px]" />
       </div>
 
-      {/* PLAY BUTTON (Hidden on Mobile) */}
+      {/* PLAY BUTTON */}
       <div className="hidden md:block PB">
         <button 
           ref={buttonRef}
           aria-label="Play video"
-          className="font-geist-mono cursor-pointer mix-blend-difference text-xl hover:font-semibold transition-all duration-300 inline-block p-2"
+          className="font-geist-mono cursor-pointer mix-blend-difference text-2xl hover:font-bold transition-all duration-300 inline-block p-2"
         >
           [ PLAY ]
         </button>
       </div>
 
-      {/* RIGHT-CONTROLS (Full Width on Mobile, Fixed Clamp on Desktop) */}
+      {/* RIGHT-CONTROLS */}
       <div className="flex flex-col items-end justify-start space-y-1 w-full md:w-[clamp(110px,30vw,300px)]">
         
-        <div className="flex items-center justify-between w-full text-[clamp(0.75rem,0.55rem+0.3vw,0.95rem)] font-geist-mono">
+        <div className="flex items-center justify-between w-full text-[clamp(0.75rem,0.55rem+0.3vw,0.975rem)] font-geist-mono">
           <div className="overflow-hidden pb-0.5">
             <h1 className="mask-text font-geist-mono font-bold block origin-left">
               {formattedIndex} / {formattedTotal}
@@ -151,7 +151,7 @@ function Controls({
           >
             <div className="mask-text flex items-center gap-2 origin-left">
               <div className="text-white bg-white w-[clamp(3px,0.25vw+2px,12px)] h-[clamp(3px,0.25vw+2px,15px)]" />
-              <h1 className="text-sm md:text-sm">NEXT</h1>
+              <h1 className="text-[clamp(0.75rem,0.65rem+0.3vw,0.975rem)]">NEXT</h1>
             </div>
           </button>
         </div>
