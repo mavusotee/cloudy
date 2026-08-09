@@ -210,9 +210,9 @@ function Navigation({ isMuted = true, onToggleSound }) {
       {/* MOBILE OVERLAY */}
       <div
         ref={menuOverlayRef}
-        className="fixed inset-0 z-50 bg-carbon-black flex flex-col justify-between  text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
+        className="fixed inset-0 z-50 bg-carbon-black flex  flex-col justify-between  text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
       >
-        <div className="flex items-center justify-between w-full">
+        <div className="flex items-center justify-between w-full p-2">
           <Link href="/" onClick={toggleMobileMenu}>
             <Image 
               src={Logo} 
@@ -233,7 +233,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         </div>
 
         {/* MENU LINKS CONTAINER WITH OVERFLOW-HIDDEN WRAPPERS */}
-        <div ref={menuContentRef} className="flex flex-col space-y-2 font-sans text-6xl uppercase font-medium my-auto tracking-[-6%]">
+        <div ref={menuContentRef} className="flex flex-col space-y-2 font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6">
           <div className="overflow-hidden">
             <Link href="/" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
               ABOUT
