@@ -210,7 +210,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
       {/* MOBILE OVERLAY */}
       <div
         ref={menuOverlayRef}
-        className="fixed inset-0 z-50 bg-carbon-black flex flex-col justify-between p-6 text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
+        className="fixed inset-0 z-50 bg-carbon-black flex flex-col justify-between  text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
       >
         <div className="flex items-center justify-between w-full">
           <Link href="/" onClick={toggleMobileMenu}>
