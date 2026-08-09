@@ -14,7 +14,7 @@ const PROJECTS = [
   },
   { 
     src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4', 
-    title: 'THE BUILDING COMPANY' 
+    title: 'MORGAN BUILD' 
   },
   { 
     src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4', 

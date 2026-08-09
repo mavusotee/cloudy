@@ -4,6 +4,7 @@ import { PlayIcon, StepForward } from 'lucide-react'
 import gsap from 'gsap'
 import { useGSAP } from "@gsap/react"
 import React, { useRef } from 'react'
+import BlurFlicker from "./BlurFlicker"
 
 function Controls({ 
   duration = '00:00', 
@@ -144,7 +145,7 @@ function Controls({
               {formattedIndex} / {formattedTotal}
             </h1>
           </div>
-          
+          <BlurFlicker>
           <button 
             onClick={onNext}
             className="flex items-center justify-center gap-2 cursor-pointer hover:opacity-75 transition-opacity overflow-hidden p-1"
@@ -154,6 +155,7 @@ function Controls({
               <h1 className="text-[clamp(0.75rem,0.65rem+0.3vw,0.975rem)]">NEXT</h1>
             </div>
           </button>
+          </BlurFlicker>
         </div>
 
         <div className="control-underline bg-ghost-white w-full h-[0.25px]" />
