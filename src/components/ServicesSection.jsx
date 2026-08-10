@@ -78,7 +78,7 @@ function ServiceItem({ service }) {
           <div className="flex flex-row items-start justify-between w-full">
             {/* TITLE */}
             <div className="flex items-start w-full md:translate-x-40">
-              <Split duration="1.5" skew="5" start="top 75%">
+              <Split duration="1">
                 <h1 className="text-[clamp(2.05rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tighter transition-colors duration-300 group-hover:text-ghost-white font-medium leading-[1.05]">
                   {service.title}
                 </h1>
@@ -93,7 +93,7 @@ function ServiceItem({ service }) {
 
           {/* DESCRIPTION */}
           <div className="w-full md:translate-x-40 pt-4 md:pt-20">
-            <Split duration="1.8">
+            <Split duration="1.2">
               <p className="text-zinc-500 font-geist-mono uppercase  w-[clamp(350px,50vw,500px)] max-w-full pt-4 pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed">
                 {service.description}
               </p>

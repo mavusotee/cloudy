@@ -1,5 +1,11 @@
 "use client";
-import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import Button from "@/components/Button";
 import Footer from "@/components/Footer";
 import SmudgyTextReveal from "@/components/SmudgyTextReveal";
@@ -10,6 +16,7 @@ import ClientsSection from "@/components/ClientsSection";
 import { ArrowLeft } from "lucide-react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import Testimonials from "@/components/Testimonials";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -91,7 +98,8 @@ const R3FTVNoise = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     triggerNoise: () => {
       gsap.killTweensOf(opacityRef.current);
-      gsap.timeline()
+      gsap
+        .timeline()
         .set(opacityRef.current, { value: 0.85 })
         .to(opacityRef.current, {
           value: 0,
@@ -141,7 +149,7 @@ const SmallButton = forwardRef(({ isOpen }, ref) => {
           opacity: 1,
           duration: 0.45,
           ease: "back.out(1.7)",
-        }
+        },
       );
     },
   }));
@@ -343,10 +351,38 @@ export default function Page() {
     const botL = containerEl.querySelector(".corner-bl");
     const botR = containerEl.querySelector(".corner-br");
 
-    gsap.to(topL, { opacity: 0, scale: 0.9, x: -12, y: -12, duration: 0.25, ease: "power2.in" });
-    gsap.to(topR, { opacity: 0, scale: 0.9, x: 12, y: -12, duration: 0.25, ease: "power2.in" });
-    gsap.to(botL, { opacity: 0, scale: 0.9, x: -12, y: 12, duration: 0.25, ease: "power2.in" });
-    gsap.to(botR, { opacity: 0, scale: 0.9, x: 12, y: 12, duration: 0.25, ease: "power2.in" });
+    gsap.to(topL, {
+      opacity: 0,
+      scale: 0.9,
+      x: -12,
+      y: -12,
+      duration: 0.25,
+      ease: "power2.in",
+    });
+    gsap.to(topR, {
+      opacity: 0,
+      scale: 0.9,
+      x: 12,
+      y: -12,
+      duration: 0.25,
+      ease: "power2.in",
+    });
+    gsap.to(botL, {
+      opacity: 0,
+      scale: 0.9,
+      x: -12,
+      y: 12,
+      duration: 0.25,
+      ease: "power2.in",
+    });
+    gsap.to(botR, {
+      opacity: 0,
+      scale: 0.9,
+      x: 12,
+      y: 12,
+      duration: 0.25,
+      ease: "power2.in",
+    });
 
     // 2. Resume video playback
     const video = containerEl.querySelector("video");
@@ -394,18 +430,20 @@ export default function Page() {
             IT ALL STARTS WITH AN IDEA.
           </h1>
 
-          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full lg:w-1/2 lg:translate-x-0 xl:translate-x-80 font-medium">
+          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full lg:w-1/2 lg:translate-x-[clamp(0rem,15vw,25rem)] font-medium">
             <SmudgyTextReveal text="A hidden visual story costs more than missed contracts, it steals the authority your work has already earned." />
             <Button text="ABOUT CLOUDHAUS" href="/About" />
           </div>
 
-          <div className="hidden md:flex ">( <ArrowLeft /> )</div>
+          <div className="hidden md:flex ">
+            ( <ArrowLeft /> )
+          </div>
         </div>
 
         {/* HEADER & WORKS SECTION */}
-        <div className="flex flex-col space-y-6 pt-14 lg:pt-20">
+        <div className="flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
           <div className="flex flex-row items-center justify-between w-full text-zinc-300">
-            <div className="opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
+            <div className=" font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
               <div className="w-2 h-2 bg-zinc-300" />
               <h1>SELECTED WORKS</h1>
             </div>
@@ -417,11 +455,15 @@ export default function Page() {
           {/* WORKS HEADER ROW */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-4 sm:gap-0">
             <div className="flex flex-row items-start gap-4 sm:gap-6 font-monot">
-              <h1 className="text-[clamp(5rem,20vw,18.875rem)] tracking-[-8%] font-light leading-none uppercase">
+              <h1 className="text-[clamp(5rem,15vw,18.875rem)] tracking-[-8%] font-light leading-none uppercase">
                 Works
               </h1>
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
-                ({initialVideos.length < 10 ? `0${initialVideos.length}` : initialVideos.length})
+                [
+                {initialVideos.length < 10
+                  ? `0${initialVideos.length}`
+                  : initialVideos.length}
+                ]
               </sup>
             </div>
 
@@ -432,10 +474,8 @@ export default function Page() {
 
           {/* WORKS GRID */}
           <div className="flex flex-col space-y-8 lg:space-y-58 pt-6">
-            
             {/* ROW 1 */}
             <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-0 text-lavender">
-              
               {/* VIDEO 0 */}
               <div className="flex flex-col space-y-2 w-full">
                 <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
@@ -448,8 +488,12 @@ export default function Page() {
                 </div>
                 <div
                   ref={(el) => (videoContainersRef.current[0] = el)}
-                  onMouseEnter={() => handleContainerMouseEnter(0, videoContainersRef.current[0])}
-                  onMouseLeave={() => handleContainerMouseLeave(0, videoContainersRef.current[0])}
+                  onMouseEnter={() =>
+                    handleContainerMouseEnter(0, videoContainersRef.current[0])
+                  }
+                  onMouseLeave={() =>
+                    handleContainerMouseLeave(0, videoContainersRef.current[0])
+                  }
                   className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
                 >
                   <video
@@ -491,8 +535,12 @@ export default function Page() {
                 </div>
                 <div
                   ref={(el) => (videoContainersRef.current[1] = el)}
-                  onMouseEnter={() => handleContainerMouseEnter(1, videoContainersRef.current[1])}
-                  onMouseLeave={() => handleContainerMouseLeave(1, videoContainersRef.current[1])}
+                  onMouseEnter={() =>
+                    handleContainerMouseEnter(1, videoContainersRef.current[1])
+                  }
+                  onMouseLeave={() =>
+                    handleContainerMouseLeave(1, videoContainersRef.current[1])
+                  }
                   className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
                 >
                   <video
@@ -521,7 +569,6 @@ export default function Page() {
                   <SmallButton ref={(el) => (buttonRefs.current[1] = el)} />
                 </div>
               </div>
-
             </div>
 
             {/* ROW 2 - FEATURED (FULL WIDTH) */}
@@ -536,8 +583,12 @@ export default function Page() {
               </div>
               <div
                 ref={(el) => (videoContainersRef.current[2] = el)}
-                onMouseEnter={() => handleContainerMouseEnter(2, videoContainersRef.current[2])}
-                onMouseLeave={() => handleContainerMouseLeave(2, videoContainersRef.current[2])}
+                onMouseEnter={() =>
+                  handleContainerMouseEnter(2, videoContainersRef.current[2])
+                }
+                onMouseLeave={() =>
+                  handleContainerMouseLeave(2, videoContainersRef.current[2])
+                }
                 className="relative w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen overflow-hidden cursor-none"
               >
                 <video
@@ -569,7 +620,6 @@ export default function Page() {
 
             {/* ROW 3 (ASYMMETRIC GRID) */}
             <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
-              
               {/* VIDEO 3 */}
               <div className="flex flex-col space-y-2 w-full">
                 <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
@@ -582,8 +632,12 @@ export default function Page() {
                 </div>
                 <div
                   ref={(el) => (videoContainersRef.current[3] = el)}
-                  onMouseEnter={() => handleContainerMouseEnter(3, videoContainersRef.current[3])}
-                  onMouseLeave={() => handleContainerMouseLeave(3, videoContainersRef.current[3])}
+                  onMouseEnter={() =>
+                    handleContainerMouseEnter(3, videoContainersRef.current[3])
+                  }
+                  onMouseLeave={() =>
+                    handleContainerMouseLeave(3, videoContainersRef.current[3])
+                  }
                   className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem] overflow-hidden cursor-none"
                 >
                   <video
@@ -625,8 +679,12 @@ export default function Page() {
                 </div>
                 <div
                   ref={(el) => (videoContainersRef.current[4] = el)}
-                  onMouseEnter={() => handleContainerMouseEnter(4, videoContainersRef.current[4])}
-                  onMouseLeave={() => handleContainerMouseLeave(4, videoContainersRef.current[4])}
+                  onMouseEnter={() =>
+                    handleContainerMouseEnter(4, videoContainersRef.current[4])
+                  }
+                  onMouseLeave={() =>
+                    handleContainerMouseLeave(4, videoContainersRef.current[4])
+                  }
                   className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem] overflow-hidden cursor-none"
                 >
                   <video
@@ -655,7 +713,6 @@ export default function Page() {
                   <SmallButton ref={(el) => (buttonRefs.current[4] = el)} />
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -663,6 +720,7 @@ export default function Page() {
 
       <ServicesSection />
       <ClientsSection />
+      <Testimonials />
       <Footer />
     </div>
   );

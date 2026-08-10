@@ -141,7 +141,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
 
   return (
     <>
-      <nav className="flex flex-row items-center justify-between w-full text-ghost-white md:px-2 md:py-4 relative z-40">
+      <nav className="flex fixed flex-row items-center justify-between w-full text-ghost-white md:px-2 md:py-4 relative z-40">
         
         {/* ONLY THE LOGO HAS MIX-BLEND-DIFFERENCE */}
         <div ref={logoRef} className="mix-blend-difference pointer-events-auto [isolation:auto]">

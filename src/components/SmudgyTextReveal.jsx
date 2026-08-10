@@ -75,7 +75,7 @@ export default function SmudgyTextReveal({ text = "" }) {
 
   return (
     <div ref={containerRef} className="relative w-full lg:max-w-[715.9px]">
-      <p className="w-full leading-[100%] font-regular text-[clamp(1.85rem,3.5vw,3.125rem)] tracking-tight uppercase flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]">
+      <p className="w-full leading-[100%] font-regular text-[clamp(1.85rem,5vw,3.125rem)] tracking-tight uppercase flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]">
         {words.map((word, wordIdx) => (
           <span key={wordIdx} className="inline-block whitespace-nowrap">
             {word.split("").map((char, charIdx) => (
