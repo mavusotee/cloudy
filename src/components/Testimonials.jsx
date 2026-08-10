@@ -113,7 +113,7 @@ function Testimonials() {
           infoRef.current,
           { opacity: 0, y: 20, x: -10, filter: "blur(6px)" },
           { opacity: 1, y: 0, x: 0, filter: "blur(0px)", duration: 1.4, ease: "power4.out" },
-          0.05 // Triggers almost instantly with the first few words
+          0.08 // Triggers almost instantly with the first few words
         );
       }
 
