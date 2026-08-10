@@ -4,7 +4,8 @@ import Button from './Button'
 
 function Footer() {
   return (
-    <div className="w-full min-h-[90vh] flex flex-col items-start justify-between pt-[clamp(2.5rem,8vw,7.5rem)] ">
+    <div className="w-full min-h-[90vh] md:min-h-[80vh] flex flex-col items-start justify-between pt-[clamp(2.5rem,8vw,7.5rem)]">
+      
       {/*TOP DIV HOUSING CLIENT INFO*/}
       <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(5rem,5vw,5rem)]">
         {/*LEFT DIV*/}
