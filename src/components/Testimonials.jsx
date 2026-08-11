@@ -106,6 +106,7 @@ function Testimonials() {
           y: 0,
           filter: "blur(0px)",
           duration: 0.28,
+          ease: "power4.inOut",
           stagger: 0.008, // Rapid fire stagger so the text flows in fast
         },
         0 // Start instantly alongside the icon
@@ -132,7 +133,7 @@ function Testimonials() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col items-start justify-between w-full min-h-screen md:h-[85vh] font-mono text-ghost-white tracking-tight uppercase px-[clamp(0.1rem,4vw,0.2rem)] py-[clamp(1.25rem,3vw,2rem)]"
+      className="flex flex-col items-start justify-between w-full min-h-screen md:h-[85vh] font-mono text-ghost-white tracking-tight uppercase px-[clamp(0.1rem,4vw,0.2rem)] py-[clamp(0.35rem,1vw,0.1rem)]"
     >
       {/* TOP UI - Header */}
       <div className="flex flex-row items-center justify-between w-full text-lavender font-medium">
@@ -147,7 +148,7 @@ function Testimonials() {
       </div>
 
       {/* MID SECTION - Quote Icon and Text */}
-      <div className="flex flex-col flex-grow items-start justify-center max-w-[1200px] w-full pl-[clamp(0.25rem,1vw,0.5rem)] my-[clamp(2rem,6vw,4rem)]">
+      <div className="flex flex-col flex-grow items-start justify-center max-w-[1200px] w-full pl-[clamp(0.1rem,1vw,0.5rem)] my-[clamp(2rem,6vw,4rem)]">
         {/* Large Quote Icon */}
         
         {/* Target Paragraph for GSAP SplitText */}
@@ -156,12 +157,12 @@ function Testimonials() {
           ref={quoteRef}
           className="text-[clamp(0.95rem,2.2vw,1.8rem)] text-lavender leading-[150%] text-left font-sans font-medium will-change-[transform,opacity,filter]"
         >
-          <h1 className="font-bold text-2xl">''</h1>{currentTestimonial.quote}
+          &quot; {currentTestimonial.quote} &quot;
         </p>
       </div>
 
       {/* BOTTOM UI - Client Info and Controls */}
-      <div className="flex flex-col space-y-[clamp(1.25rem,4vw,2rem)] md:flex-row-reverse w-full items-start justify-between">
+      <div className="flex flex-col space-y-[clamp(1.25rem,4vw,2rem)] md:flex-row w-full items-start justify-between">
         {/* CLIENT INFO - LEFT */}
         <div
           key={`info-${currentIndex}`}
@@ -196,7 +197,7 @@ function Testimonials() {
         {/* CONTROLS - RIGHT */}
         <div className="flex flex-col space-y-[clamp(1rem,2.5vw,1.5rem)] text-ghost-white items-start w-full md:w-auto">
           {/* Counter (e.g., 01 / 03) */}
-          <div className="flex flex-row items-center justify-between md:w-full gap-[clamp(0.5rem,1.5vw,0.75rem)] text-[clamp(0.8rem,1.4vw,1rem)] font-bold">
+          <div className="flex flex-row items-center justify-between md:w-full gap-[clamp(0.5rem,1.5vw,0.75rem)] text-[clamp(0.8rem,1.4vw,1rem)] font-bold w-full">
             <span>{formatIndex(currentIndex)}</span>
             <span className="opacity-90 text-[0.9em]">/</span>
             <span>{formatIndex(totalTestimonials - 1)}</span>
@@ -207,22 +208,22 @@ function Testimonials() {
             <BlurFlicker>
 
             <button
-              onClick={handleNext}
-              aria-label="Next testimonial"
-              className="rounded-tl-2xl rounded-br-2xl rounded-tr-2xl rounded-bl-2xl border border-eclipse p-[clamp(0.875rem,2.2vw,1.25rem)] flex items-center justify-center text-center text-ghost-white cursor-pointer select-none"
+              onClick={handlePrev}
+              aria-label="Prev testimonial"
+              className="rounded-tl-2xl rounded-br-2xl rounded-tr-2xl rounded-bl-2xl border border-eclipse p-[clamp(1.375rem,2.2vw,1.25rem)] flex items-center justify-center text-center text-ghost-white cursor-pointer select-none"
             >
-              <ArrowRight className="w-[clamp(1.1rem,2.2vw,1.5rem)] h-[clamp(1.1rem,2.2vw,1.5rem)]" />
+              <ArrowLeft className="w-[clamp(1.1rem,2.2vw,1.8rem)] h-[clamp(1.1rem,2.2vw,1.5rem)]" />
             </button>
             </BlurFlicker>
 
             <BlurFlicker>
 
             <button
-              onClick={handlePrev}
-              aria-label="Previous testimonial"
-              className="rounded-tl-2xl rounded-br-2xl rounded-tr-2xl rounded-bl-2xl border border-eclipse p-[clamp(0.875rem,2.2vw,1.25rem)] flex items-center justify-center text-center text-ghost-white cursor-pointer select-none"
+              onClick={handleNext}
+              aria-label="Next testimonial"
+              className="rounded-tl-2xl rounded-br-2xl rounded-tr-2xl rounded-bl-2xl border border-eclipse p-[clamp(1.375rem,2.2vw,1.25rem)] flex items-center justify-center text-center text-ghost-white cursor-pointer select-none"
             >
-              <ArrowLeft className="w-[clamp(1.1rem,2.2vw,1.5rem)] h-[clamp(1.1rem,2.2vw,1.5rem)]" />
+              <ArrowRight className="w-[clamp(1.1rem,2.2vw,1.5rem)] h-[clamp(1.1rem,2.2vw,1.5rem)]" />
             </button>
             </BlurFlicker>
           </div>
