@@ -717,7 +717,7 @@ export default function Page() {
                 </div>
                 <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
                   <div className="flex flex-col">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-eclipse tracking-tight">
                       {initialVideos[4].title}
                     </p>
                     <SmudgyTitleReveal text={initialVideos[4].subtitle} />
