@@ -1,6 +1,5 @@
-// components/HeroCanvas.jsx
 'use client'
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useMemo } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import gsap from 'gsap'
@@ -122,12 +121,13 @@ function createOptimizedVideoElement() {
   v.muted = true
   v.loop = true
   v.playsInline = true
+  v.setAttribute('playsinline', 'true')
+  v.setAttribute('webkit-playsinline', 'true')
   v.crossOrigin = 'anonymous'
-  v.preload = 'auto'
+  v.preload = 'metadata' // Use metadata to prevent eager buffering on mobile
   return v
 }
 
-// Safe async video player that catches AbortError and handles browser audio autoplay policy
 async function safePlayVideo(video, unmute = false) {
   if (!video) return
   if (unmute) {
@@ -138,12 +138,11 @@ async function safePlayVideo(video, unmute = false) {
     await video.play()
   } catch (err) {
     if (err.name === 'NotAllowedError' || err.message?.includes('user didn\'t interact')) {
-      // Browser blocked unmuted autoplay -> fall back to muted safely
       video.muted = true
       try {
         await video.play()
       } catch (e) {
-        // Silently swallow AbortError from interrupted requests
+        // Silently swallow abort errors
       }
     } else if (err.name !== 'AbortError') {
       console.warn('Video playback warning:', err)
@@ -154,7 +153,7 @@ async function safePlayVideo(video, unmute = false) {
 function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete, onVideoInit }) {
   const materialRef = useRef()
   const dirRef = useRef(1.0)
-  const { size } = useThree()
+  const { size, gl } = useThree()
 
   const videoARef = useRef(null)
   const videoBRef = useRef(null)
@@ -164,6 +163,16 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
 
   const activeSlotRef = useRef(0)
 
+  // Isolated Material Uniforms to prevent global state leaks
+  const shaderArgs = useMemo(() => {
+    return {
+      uniforms: THREE.UniformsUtils.clone(SmudgeTransitionShader.uniforms),
+      vertexShader: SmudgeTransitionShader.vertexShader,
+      fragmentShader: SmudgeTransitionShader.fragmentShader
+    }
+  }, [])
+
+  // 1. Safe Initialization & Proper GPU VRAM Teardown
   useEffect(() => {
     if (!videoARef.current) {
       videoARef.current = createOptimizedVideoElement()
@@ -173,6 +182,7 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
       texA.generateMipmaps = false
       texARef.current = texA
     }
+
     if (!videoBRef.current) {
       videoBRef.current = createOptimizedVideoElement()
       const texB = new THREE.VideoTexture(videoBRef.current)
@@ -181,52 +191,69 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
       texB.generateMipmaps = false
       texBRef.current = texB
     }
-  }, [])
-
-  useEffect(() => {
-    let animIdA, animIdB
-
-    const syncVideoA = () => {
-      if (videoARef.current && texARef.current) texARef.current.needsUpdate = true
-      if (videoARef.current && 'requestVideoFrameCallback' in videoARef.current) {
-        animIdA = videoARef.current.requestVideoFrameCallback(syncVideoA)
-      } else {
-        animIdA = requestAnimationFrame(syncVideoA)
-      }
-    }
-
-    const syncVideoB = () => {
-      if (videoBRef.current && texBRef.current) texBRef.current.needsUpdate = true
-      if (videoBRef.current && 'requestVideoFrameCallback' in videoBRef.current) {
-        animIdB = videoBRef.current.requestVideoFrameCallback(syncVideoB)
-      } else {
-        animIdB = requestAnimationFrame(syncVideoB)
-      }
-    }
-
-    syncVideoA()
-    syncVideoB()
 
     return () => {
-      if (videoARef.current && 'cancelVideoFrameCallback' in videoARef.current) {
-        videoARef.current.cancelVideoFrameCallback(animIdA)
-      } else {
-        cancelAnimationFrame(animIdA)
+      // Kill GSAP animations
+      if (tweenRef.current) tweenRef.current.kill()
+
+      // Clean Video A
+      if (videoARef.current) {
+        videoARef.current.pause()
+        videoARef.current.removeAttribute('src')
+        videoARef.current.load()
+        videoARef.current = null
       }
-      if (videoBRef.current && 'cancelVideoFrameCallback' in videoBRef.current) {
-        videoBRef.current.cancelVideoFrameCallback(animIdB)
-      } else {
-        cancelAnimationFrame(animIdB)
+      if (texARef.current) {
+        texARef.current.dispose()
+        texARef.current = null
+      }
+
+      // Clean Video B
+      if (videoBRef.current) {
+        videoBRef.current.pause()
+        videoBRef.current.removeAttribute('src')
+        videoBRef.current.load()
+        videoBRef.current = null
+      }
+      if (texBRef.current) {
+        texBRef.current.dispose()
+        texBRef.current = null
       }
     }
   }, [])
 
+  // 2. WebGL Context Loss Recovery Listener
+  useEffect(() => {
+    const canvasEl = gl.domElement
+
+    const handleContextLost = (event) => {
+      event.preventDefault()
+      if (tweenRef.current) tweenRef.current.pause()
+    }
+
+    const handleContextRestored = () => {
+      gl.resetState()
+      if (texARef.current) texARef.current.needsUpdate = true
+      if (texBRef.current) texBRef.current.needsUpdate = true
+    }
+
+    canvasEl.addEventListener('webglcontextlost', handleContextLost, false)
+    canvasEl.addEventListener('webglcontextrestored', handleContextRestored, false)
+
+    return () => {
+      canvasEl.removeEventListener('webglcontextlost', handleContextLost)
+      canvasEl.removeEventListener('webglcontextrestored', handleContextRestored)
+    }
+  }, [gl])
+
+  // Update viewport uniforms on resize
   useEffect(() => {
     if (materialRef.current) {
       materialRef.current.uniforms.uResolution.value.set(size.width, size.height)
     }
   }, [size])
 
+  // Active video source switcher
   useEffect(() => {
     const currentVideo = activeSlotRef.current === 0 ? videoARef.current : videoBRef.current
     if (!currentVideo || !activeSrc) return
@@ -251,6 +278,7 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
     }
   }, [activeSrc, onVideoInit])
 
+  // Transition handler
   useEffect(() => {
     if (isTransitioning && nextSrc) {
       const isSlotZero = activeSlotRef.current === 0
@@ -262,7 +290,6 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
 
       if (!incomingVideo || !materialRef.current) return
 
-      // Load new video source
       incomingVideo.src = nextSrc
       incomingVideo.currentTime = 0
 
@@ -276,7 +303,6 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
         }
       }
 
-      // Safely start play with audio
       safePlayVideo(incomingVideo, true)
 
       if (outgoingVideo) {
@@ -323,7 +349,7 @@ function ShaderPlane({ activeSrc, nextSrc, isTransitioning, onTransitionComplete
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
         ref={materialRef}
-        args={[SmudgeTransitionShader]}
+        args={[shaderArgs]}
         depthTest={false}
         depthWrite={false}
       />
@@ -336,9 +362,18 @@ export default function HeroCanvas({ activeSrc, nextSrc, isTransitioning, onTran
     <div className="absolute inset-0 w-full h-full z-0 pointer-events-none opacity-90 bg-zinc-900">
       <Canvas 
         camera={{ position: [0, 0, 1] }}
-        gl={{ powerPreference: 'high-performance', antialias: false }}
+        gl={{ 
+          powerPreference: 'high-performance', 
+          antialias: false,
+          preserveDrawingBuffer: false,
+          failIfMajorPerformanceCaveat: false
+        }}
         dpr={[1, 1.5]}
         frameloop="always"
+        onCreated={({ gl }) => {
+          // Dispose gl renderer resources when canvas dies
+          gl.domElement.addEventListener('webglcontextlost', (e) => e.preventDefault(), false)
+        }}
       >
         <ShaderPlane
           activeSrc={activeSrc}

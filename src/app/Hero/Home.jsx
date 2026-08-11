@@ -7,8 +7,18 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 
-const PROJECTS = [
-    { 
+// Helper to optimize Cloudinary URLs specifically for mobile devices
+const getMobileOptimizedUrl = (url) => {
+  if (!url) return url
+  if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+    // Inject Cloudinary auto-format, auto-quality, and 720p max width
+    return url.replace('/upload/', '/upload/q_auto,f_auto,w_720,vc_h264/')
+  }
+  return url
+}
+
+const RAW_PROJECTS = [
+  { 
     src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4', 
     title: 'THE BUILDING COMPANY' 
   },
@@ -20,7 +30,6 @@ const PROJECTS = [
     src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4', 
     title: 'HAZELWOOD RESIDENCE' 
   },
-
 ]
 
 const BOTTOM_TEXT = "VISUAL STUDIO FOR HIGH-END ARCHITECTURE AND CONSTRUCTION BASED IN ADELAIDE"
@@ -51,6 +60,14 @@ function Home() {
   // Bottom UI Animation Refs
   const bottomTextRef = useRef(null)
   const scrollTextRef = useRef(null)
+
+  // Process project video URLs based on client screen size
+  const PROJECTS = useMemo(() => {
+    return RAW_PROJECTS.map((project) => ({
+      ...project,
+      src: getMobileOptimizedUrl(project.src)
+    }))
+  }, [])
 
   // Split sentence into words for staggered blur reveal
   const words = useMemo(() => BOTTOM_TEXT.split(' '), [])
@@ -90,9 +107,9 @@ function Home() {
           clearInterval(interval)
           return 100
         }
-        return Math.min(100, Math.round(prev + Math.max(0.5, diff * 0.08)))
+        return Math.min(100, Math.round(prev + Math.max(1, diff * 0.12)))
       })
-    }, 16)
+    }, 32)
 
     return () => clearInterval(interval)
   }, [isLoaded])
@@ -107,16 +124,14 @@ function Home() {
       }
     })
 
-    // Fade out elements inside preloader
     tl.to([counterRef.current, progressBarRef.current], {
       opacity: 0,
-      duration: 0.5,
+      duration: 0.4,
       ease: "power2.in"
     })
-    // Wipe curtain animation AND trigger canvas / UI entrance
     .to(preloaderRef.current, {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-      duration: 1.5,
+      duration: 1.2,
       ease: "power4.inOut",
       onStart: () => {
         setIsLoaded(true)
@@ -125,39 +140,36 @@ function Home() {
 
   }, [progress])
 
-  // Canvas Scale-Down + Skew Reveal & Word Split Blur Animations
+  // Canvas Scale-Down & Entrance Animations (Mobile-Optimized)
   useGSAP(() => {
     if (!isLoaded) return
 
+    const isMobile = window.innerWidth <= 768
     const masterTl = gsap.timeline()
 
-    // 1. Scale down and un-skew background video canvas into resting position
     if (heroCanvasWrapperRef.current) {
       masterTl.fromTo(
         heroCanvasWrapperRef.current,
         {
-          scale: 1.2,
-          skewY: 3,
-          skewX: -1.5,
-          rotation: 1.5,
-          filter: 'blur(12px)',
+          scale: 1.15,
+          skewY: isMobile ? 0 : 3,
+          skewX: isMobile ? 0 : -1.5,
+          filter: isMobile ? 'none' : 'blur(12px)',
           opacity: 0.7
         },
         {
           scale: 1.0,
           skewY: 0,
           skewX: 0,
-          rotation: 0,
-          filter: 'blur(0px)',
+          filter: 'none',
           opacity: 1,
-          duration: 2.0,
+          duration: 1.6,
           ease: 'power3.out'
         },
-        0 // Starts immediately with preloader curtain reveal
+        0
       )
     }
 
-    // 2. Animate bottom text words with blur, opacity, and lift
     if (bottomTextRef.current) {
       const wordElements = bottomTextRef.current.querySelectorAll('.word-span')
 
@@ -165,40 +177,35 @@ function Home() {
         wordElements,
         {
           opacity: 0,
-          filter: 'blur(12px)',
-          y: 20,
-          scale: 1.1
+          filter: isMobile ? 'none' : 'blur(8px)',
+          y: 15,
         },
         {
           opacity: 1,
-          filter: 'blur(0px)',
+          filter: 'none',
           y: 0,
-          scale: 1,
-          duration: 0.9,
-          stagger: 0.04,
+          duration: 0.8,
+          stagger: 0.03,
           ease: 'power3.out'
         },
-        0.35 // Slightly offset from the video reveal start
+        0.2
       )
     }
 
-    // 3. Fade in "(scroll down)" hint
     if (scrollTextRef.current) {
       masterTl.fromTo(
         scrollTextRef.current,
         {
           opacity: 0,
-          filter: 'blur(8px)',
           y: 10
         },
         {
           opacity: 1,
-          filter: 'blur(0px)',
           y: 0,
-          duration: 0.8,
+          duration: 0.6,
           ease: 'power2.out'
         },
-        "-=0.4"
+        "-=0.3"
       )
     }
   }, [isLoaded])
@@ -208,6 +215,9 @@ function Home() {
 
     activeVideoRef.current = videoEl
     videoEl.muted = isMuted
+
+    videoEl.setAttribute('playsinline', 'true')
+    videoEl.setAttribute('webkit-playsinline', 'true')
 
     const updateDuration = () => {
       if (videoEl.duration && !isNaN(videoEl.duration)) {
@@ -239,6 +249,13 @@ function Home() {
       targetProgress.current = 100
     })
 
+    const playPromise = videoEl.play()
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => {
+        console.warn("Autoplay restricted or deferred:", err)
+      })
+    }
+
     return () => {
       videoEl.removeEventListener('loadedmetadata', updateDuration)
       videoEl.removeEventListener('durationchange', updateDuration)
@@ -260,15 +277,17 @@ function Home() {
   }
 
   const handleNext = () => {
-    if (isTransitioning) return
+    if (isTransitioning || nextIndex !== null) return
     const upcoming = (currentIndex + 1) % PROJECTS.length
     setNextIndex(upcoming)
     setIsTransitioning(true)
   }
 
   const handleTransitionComplete = () => {
-    setCurrentIndex(nextIndex)
-    setNextIndex(null)
+    if (nextIndex !== null) {
+      setCurrentIndex(nextIndex)
+      setNextIndex(null)
+    }
     setIsTransitioning(false)
   }
 
@@ -281,7 +300,6 @@ function Home() {
           ref={preloaderRef} 
           className="fixed inset-0 w-full h-dvh bg-carbon-black z-[100] pointer-events-auto text-ghost-white flex flex-col items-center justify-between tracking-tight"
         >
-          {/* Animated Progress Bar */}
           <div className="w-full bg-zinc-900 h-[4px] relative overflow-hidden">
             <div 
               ref={progressBarRef}
@@ -290,7 +308,6 @@ function Home() {
             />
           </div>
 
-          {/* Animated Counter */}
           <h1 ref={counterRef} className="tracking-tight font-geist-mono text-[clamp(0.8rem,4vw,2rem)]">
             [ {String(progress).padStart(3, '0')}% ]
           </h1>
@@ -310,10 +327,10 @@ function Home() {
         />
       </header>
 
-      {/* THREE.JS CANVAS WRAPPER (SKEWS AND SCALES DOWN) */}
+      {/* THREE.JS CANVAS WRAPPER */}
       <div 
         ref={heroCanvasWrapperRef} 
-        className="absolute inset-0 w-full h-full origin-top center will-change-[transform,filter,opacity]"
+        className="absolute inset-0 w-full h-full origin-top center will-change-[transform,opacity]"
       >
         <HeroCanvas
           activeSrc={PROJECTS[currentIndex].src}
@@ -345,7 +362,7 @@ function Home() {
           />
         </div>
 
-        {/* BOTTOM UI WITH WORD SPLIT BLUR REVEAL */}
+        {/* BOTTOM UI WITH WORD SPLIT REVEAL */}
         <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal pointer-events-auto">
           <p 
             ref={bottomTextRef}
@@ -354,7 +371,7 @@ function Home() {
             {words.map((word, index) => (
               <span 
                 key={index} 
-                className="word-span inline-block will-change-[transform,opacity,filter]"
+                className="word-span inline-block will-change-[transform,opacity]"
                 style={{ opacity: 0 }}
               >
                 {word}
@@ -364,7 +381,7 @@ function Home() {
 
           <p 
             ref={scrollTextRef}
-            className="text-zinc-200 md:text-ghost-white text-[clamp(0.45rem,0.55rem+0.5vw,2rem)] will-change-[transform,opacity,filter]"
+            className="text-zinc-200 md:text-ghost-white text-[clamp(0.45rem,0.55rem+0.5vw,2rem)] will-change-[transform,opacity]"
             style={{ opacity: 0 }}
           >
             (scroll down)

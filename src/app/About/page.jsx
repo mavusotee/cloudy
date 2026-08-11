@@ -14,118 +14,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ServicesSection from "@/components/ServicesSection";
 import ClientsSection from "@/components/ClientsSection";
 import { ArrowLeft } from "lucide-react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import * as THREE from "three";
 import Testimonials from "@/components/Testimonials";
 
 gsap.registerPlugin(ScrollTrigger);
 
 // ----------------------------------------------------------------------
-// 1. REACT THREE FIBER - ANALOG TV NOISE SHADER MESH
-// ----------------------------------------------------------------------
-const NoiseShaderMaterial = {
-  uniforms: {
-    uTime: { value: 0 },
-    uOpacity: { value: 0 },
-  },
-  vertexShader: `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: `
-    uniform float uTime;
-    uniform float uOpacity;
-    varying vec2 vUv;
-
-    // Pseudo-random noise function
-    float random(vec2 st) {
-      return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
-    }
-
-    void main() {
-      vec2 st = vUv;
-      
-      // Fine granularity TV static noise
-      float grain = random(st * 400.0 + vec2(uTime * 15.0, uTime * 25.0));
-      
-      // CRT TV Scanlines
-      float scanline = sin(st.y * 800.0) * 0.08;
-      
-      // Analog Chromatic Aberration (RGB Shift)
-      float r = random(st * 400.0 + vec2(uTime * 15.0 + 0.02, uTime * 25.0));
-      float b = random(st * 400.0 + vec2(uTime * 15.0 - 0.02, uTime * 25.0));
-      
-      vec3 color = vec3(r, grain, b) - scanline;
-      
-      gl_FragColor = vec4(color, uOpacity);
-    }
-  `,
-};
-
-function TVNoisePlane({ opacityRef }) {
-  const meshRef = useRef();
-  const materialRef = useRef();
-
-  useFrame((state, delta) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value += delta;
-      if (opacityRef.current !== undefined) {
-        materialRef.current.uniforms.uOpacity.value = opacityRef.current.value;
-      }
-    }
-  });
-
-  return (
-    <mesh ref={meshRef}>
-      <planeGeometry args={[2, 2]} />
-      <shaderMaterial
-        ref={materialRef}
-        args={[NoiseShaderMaterial]}
-        transparent
-        depthTest={false}
-        depthWrite={false}
-      />
-    </mesh>
-  );
-}
-
-const R3FTVNoise = forwardRef((props, ref) => {
-  const opacityRef = useRef({ value: 0 });
-
-  useImperativeHandle(ref, () => ({
-    triggerNoise: () => {
-      gsap.killTweensOf(opacityRef.current);
-      gsap
-        .timeline()
-        .set(opacityRef.current, { value: 0.85 })
-        .to(opacityRef.current, {
-          value: 0,
-          duration: 0.32,
-          ease: "power3.out",
-        });
-    },
-  }));
-
-  return (
-    <div className="absolute inset-0 pointer-events-none mix-blend-screen z-20 overflow-hidden">
-      <Canvas
-        camera={{ position: [0, 0, 1] }}
-        gl={{ preserveDrawingBuffer: true, alpha: true, antialias: false }}
-        className="w-full h-full pointer-events-none"
-      >
-        <TVNoisePlane opacityRef={opacityRef} />
-      </Canvas>
-    </div>
-  );
-});
-
-R3FTVNoise.displayName = "R3FTVNoise";
-
-// ----------------------------------------------------------------------
-// 2. SMALL BUTTON COMPONENT WITH GSAP BLUR PULSE
+// 1. SMALL BUTTON COMPONENT WITH GSAP BLUR PULSE
 // ----------------------------------------------------------------------
 const SmallButton = forwardRef(({ isOpen }, ref) => {
   const buttonRef = useRef(null);
@@ -149,7 +43,7 @@ const SmallButton = forwardRef(({ isOpen }, ref) => {
           opacity: 1,
           duration: 0.45,
           ease: "back.out(1.7)",
-        },
+        }
       );
     },
   }));
@@ -171,7 +65,7 @@ const SmallButton = forwardRef(({ isOpen }, ref) => {
 SmallButton.displayName = "SmallButton";
 
 // ----------------------------------------------------------------------
-// 3. VIDEO DATA & HELPERS
+// 2. VIDEO DATA & HELPERS
 // ----------------------------------------------------------------------
 const initialVideos = [
   {
@@ -219,7 +113,7 @@ const formatTime = (seconds) => {
 };
 
 // ----------------------------------------------------------------------
-// 4. MAIN PAGE COMPONENT
+// 3. MAIN PAGE COMPONENT
 // ----------------------------------------------------------------------
 export default function Page() {
   const cursorRef = useRef(null);
@@ -227,7 +121,6 @@ export default function Page() {
 
   const videoContainersRef = useRef([]);
   const buttonRefs = useRef([]);
-  const noiseRefs = useRef([]);
 
   const [timeState, setTimeState] = useState({
     1: "00:00",
@@ -309,12 +202,7 @@ export default function Page() {
 
     if (!containerEl) return;
 
-    // 1. Trigger R3F WebGL Noise Shader Burst
-    if (noiseRefs.current[index]?.triggerNoise) {
-      noiseRefs.current[index].triggerNoise();
-    }
-
-    // 2. Corner Bracket Frame Animation
+    // 1. Corner Bracket Frame Animation
     const topL = containerEl.querySelector(".corner-tl");
     const topR = containerEl.querySelector(".corner-tr");
     const botL = containerEl.querySelector(".corner-bl");
@@ -330,11 +218,11 @@ export default function Page() {
       overwrite: "auto",
     });
 
-    // 3. Pause video playback
+    // 2. Pause video playback
     const video = containerEl.querySelector("video");
     if (video) video.pause();
 
-    // 4. Trigger dramatic blur pulse on SmallButton
+    // 3. Trigger blur pulse on SmallButton
     if (buttonRefs.current[index]?.triggerBlur) {
       buttonRefs.current[index].triggerBlur();
     }
@@ -400,7 +288,7 @@ export default function Page() {
   );
 
   return (
-    <div className="bg-black w-full min-h-screen py-6 px-4 md:px-6 flex flex-col space-y-16 lg:space-y-32 relative overflow-x-hidden">
+    <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:px-6 flex flex-col space-y-16 lg:space-y-32 relative overflow-x-hidden">
       {/* CUSTOM CURSOR OVERLAY */}
       <div
         ref={cursorRef}
@@ -494,7 +382,7 @@ export default function Page() {
                   onMouseLeave={() =>
                     handleContainerMouseLeave(0, videoContainersRef.current[0])
                   }
-                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
+                  className="group relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
                 >
                   <video
                     src={initialVideos[0].url}
@@ -506,8 +394,10 @@ export default function Page() {
                     onTimeUpdate={(e) => handleTimeUpdate(1, e)}
                     className="w-full h-full object-cover brightness-90 contrast-105"
                   />
-                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                  <R3FTVNoise ref={(el) => (noiseRefs.current[0] = el)} />
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-20" />
+                  <div className="absolute inset-0 flex items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                    <SmudgyTextReveal text={initialVideos[0].subtitle} />
+                  </div>
                   {renderBrackets()}
                 </div>
                 <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
@@ -541,7 +431,7 @@ export default function Page() {
                   onMouseLeave={() =>
                     handleContainerMouseLeave(1, videoContainersRef.current[1])
                   }
-                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
+                  className="group relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
                 >
                   <video
                     src={initialVideos[1].url}
@@ -553,8 +443,10 @@ export default function Page() {
                     onTimeUpdate={(e) => handleTimeUpdate(2, e)}
                     className="w-full h-full object-cover brightness-90 contrast-105"
                   />
-                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                  <R3FTVNoise ref={(el) => (noiseRefs.current[1] = el)} />
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-20" />
+                  <div className="absolute inset-0 flex items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                    <SmudgyTextReveal text={initialVideos[1].subtitle} />
+                  </div>
                   {renderBrackets()}
                 </div>
                 <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
@@ -589,7 +481,7 @@ export default function Page() {
                 onMouseLeave={() =>
                   handleContainerMouseLeave(2, videoContainersRef.current[2])
                 }
-                className="relative w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen overflow-hidden cursor-none"
+                className="group relative w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen overflow-hidden cursor-none"
               >
                 <video
                   src={initialVideos[2].url}
@@ -601,8 +493,10 @@ export default function Page() {
                   onTimeUpdate={(e) => handleTimeUpdate(3, e)}
                   className="w-full h-full object-cover brightness-90 contrast-105"
                 />
-                <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                <R3FTVNoise ref={(el) => (noiseRefs.current[2] = el)} />
+                <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-20" />
+                <div className="absolute inset-0 flex items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                  <SmudgyTextReveal text={initialVideos[2].subtitle} />
+                </div>
                 {renderBrackets()}
               </div>
               <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
@@ -638,7 +532,7 @@ export default function Page() {
                   onMouseLeave={() =>
                     handleContainerMouseLeave(3, videoContainersRef.current[3])
                   }
-                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem] overflow-hidden cursor-none"
+                  className="group relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem] overflow-hidden cursor-none"
                 >
                   <video
                     src={initialVideos[3].url}
@@ -650,8 +544,10 @@ export default function Page() {
                     onTimeUpdate={(e) => handleTimeUpdate(4, e)}
                     className="w-full h-full object-cover brightness-90 contrast-105"
                   />
-                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                  <R3FTVNoise ref={(el) => (noiseRefs.current[3] = el)} />
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-20" />
+                  <div className="absolute inset-0 flex items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                    <SmudgyTextReveal text={initialVideos[3].subtitle} />
+                  </div>
                   {renderBrackets()}
                 </div>
                 <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
@@ -685,7 +581,7 @@ export default function Page() {
                   onMouseLeave={() =>
                     handleContainerMouseLeave(4, videoContainersRef.current[4])
                   }
-                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem] overflow-hidden cursor-none"
+                  className="group relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem] overflow-hidden cursor-none"
                 >
                   <video
                     src={initialVideos[4].url}
@@ -697,8 +593,10 @@ export default function Page() {
                     onTimeUpdate={(e) => handleTimeUpdate(5, e)}
                     className="w-full h-full object-cover brightness-90 contrast-105"
                   />
-                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                  <R3FTVNoise ref={(el) => (noiseRefs.current[4] = el)} />
+                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-20" />
+                  <div className="absolute inset-0 flex items-center justify-center p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                    <SmudgyTextReveal text={initialVideos[4].subtitle} />
+                  </div>
                   {renderBrackets()}
                 </div>
                 <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">

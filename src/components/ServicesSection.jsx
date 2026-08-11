@@ -113,7 +113,7 @@ function ServiceItem({ service }) {
 
 export default function ServicesSection() {
   return (
-    <div className="w-full h-auto bg-black text-ghost-white mt-[clamp(3rem,8vw,7.5rem)]">
+    <div className="w-full h-auto bg-carbon-black text-ghost-white mt-[clamp(3rem,8vw,7.5rem)]">
       {/* HEADER */}
       <div className="flex flex-row items-center justify-between w-full">
         <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
