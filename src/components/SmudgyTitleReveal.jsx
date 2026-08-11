@@ -86,7 +86,7 @@ export default function SmudgyTitleReveal({
                 ref={(el) => {
                   if (el) charsRef.current.push(el);
                 }}
-                className="inline-block text-zinc-300 will-change-[color]"
+                className="inline-block text-zinc-700 will-change-[color]"
               >
                 {char}
               </span>
