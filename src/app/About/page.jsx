@@ -400,7 +400,7 @@ export default function Page() {
   );
 
   return (
-    <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:px-6 flex flex-col space-y-16 lg:space-y-32 relative overflow-x-hidden">
+    <div className="bg-black w-full min-h-screen py-6 px-4 md:px-6 flex flex-col space-y-16 lg:space-y-32 relative overflow-x-hidden">
       {/* CUSTOM CURSOR OVERLAY */}
       <div
         ref={cursorRef}
