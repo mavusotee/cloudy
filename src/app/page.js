@@ -33,6 +33,7 @@ export default function Page() {
     <div>
       <Hero />
       <About />
+      
     </div>
   )
 }

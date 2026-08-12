@@ -136,7 +136,7 @@ function Testimonials() {
       className="flex flex-col items-start justify-between w-full min-h-screen md:h-[85vh] font-mono text-ghost-white tracking-tight uppercase px-[clamp(0.1rem,4vw,0.2rem)] py-[clamp(0.35rem,1vw,0.1rem)]"
     >
       {/* TOP UI - Header */}
-      <div className="flex flex-row items-center justify-between w-full text-lavender font-medium">
+      <div className="flex flex-row items-center justify-between w-full text-ghost-white font-medium">
         <div className="text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-[clamp(0.375rem,1vw,0.5rem)]">
           {/* Square marker next to label */}
           <div className="w-[clamp(0.25rem,0.6vw,0.375rem)] h-[clamp(0.25rem,0.6vw,0.375rem)] bg-lavender" />
