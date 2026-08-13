@@ -120,7 +120,7 @@ export default function SmudgyTextReveal({ text = "" }) {
     <div ref={containerRef} className="relative w-full lg:max-w-[765.9px]">
       <p
         ref={textRef}
-        className="w-full leading-[120%] font-regular text-[clamp(2.25rem,5vw,2.925rem)] tracking-tight uppercase "
+        className="w-full leading-[120%] font-regular text-[clamp(1.95rem,5vw,2.925rem)] tracking-tight uppercase "
       >
         {text}
       </p>
