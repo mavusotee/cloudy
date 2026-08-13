@@ -40,8 +40,9 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${fragmentMono.variable} antialiased`}
     >
-      
+      <TransitionOverlay />
       <body className="min-h-full flex flex-col"><ClientFogWrapper />{children}</body>
+      
     </html>
   );
 }

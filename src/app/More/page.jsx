@@ -19,6 +19,7 @@ import { ArrowLeft } from "lucide-react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Testimonials from "@/components/Testimonials";
+import BlurFlicker from "@/components/BlurFlicker";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -438,8 +439,10 @@ export default function Page() {
           </h1>
 
           <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full lg:w-[50%] lg:translate-x-[clamp(0rem,15vw,3rem)] font-medium">
-            <SmudgyTextReveal text="The work is already high-end. The story shouldn't sit at ground level. We get behind the build to uncover the thinking, craft and people that made it happen, then bring the story higher where the work deserves to be seen." />
+            <SmudgyTextReveal text="The work is already high-end. The story should rise to it. We uncover the thinking, craft and details that make it worth seeing." />
+            <BlurFlicker>
             <Button text="Meet Cloudhaus" href="/About" />
+            </BlurFlicker>
           </div>
         </div>
 
@@ -470,9 +473,11 @@ export default function Page() {
               </sup>
             </div>
 
+
             <div className="flex flex-col items-start sm:items-end justify-end sm:self-end w-full sm:w-auto">
               <Button text="VIEW ALL WORKS" href="/Works" />
             </div>
+         
           </div>
 
           {/* WORKS GRID */}

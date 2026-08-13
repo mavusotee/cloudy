@@ -1,96 +1,128 @@
-// components/SmudgyTextReveal.jsx
 "use client";
-import React, { useRef, useLayoutEffect, useMemo } from "react";
+import React, { useRef, useLayoutEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText);
 
 export default function SmudgyTextReveal({ text = "" }) {
   const containerRef = useRef(null);
-  const charsRef = useRef([]);
-
-  // Safely split text into words with empty string fallback
-  const words = useMemo(() => (text || "").split(" "), [text]);
+  const textRef = useRef(null);
+  const hasSettledRef = useRef(false);
 
   useLayoutEffect(() => {
+    if (!textRef.current) return;
+
     const ctx = gsap.context(() => {
-      // Filter out null/undefined refs
-      const validChars = charsRef.current.filter(Boolean);
-      if (!validChars.length) return;
+      // Set perspective on container to activate 3D space rendering
+      gsap.set(containerRef.current, { perspective: 1000 });
 
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const centerX = containerRect.width / 2;
-      const centerY = containerRect.height / 2;
-
-      // 1. Calculate each character's exact radial distance from paragraph center
-      const charData = validChars.map((charEl) => {
-        const rect = charEl.getBoundingClientRect();
-        const charX = rect.left - containerRect.left + rect.width / 2;
-        const charY = rect.top - containerRect.top + rect.height / 2;
-
-        // Euclidean circular distance formula
-        const dist = Math.hypot(charX - centerX, charY - centerY);
-        return { el: charEl, dist };
+      // Split text into words automatically
+      const split = new SplitText(textRef.current, {
+        type: "words",
+        wordsClass: "inline-block will-change-[filter,opacity,transform,color]",
       });
 
-      // Sort characters by their radial distance (center outwards)
-      const sortedChars = charData
-        .sort((a, b) => a.dist - b.dist)
-        .map((item) => item.el);
+      const mm = gsap.matchMedia();
 
-      // 2. GSAP scrub timeline: Pure radial color shift (Gray -> White)
-      gsap.fromTo(
-        sortedChars,
-        {
-          color: "rgb(43, 43, 45)", // Base muted zinc gray
-        },
-        {
-          color: "rgb(255, 255, 255)", // Full white target
-          stagger: {
-            each: 0.025,
-            from: "start", // Color ripple grows outward from the center
+      // -------------------------------------------------------------
+      // DESKTOP (Width > 768px)
+      // -------------------------------------------------------------
+      mm.add("(min-width: 769px)", () => {
+        gsap.fromTo(
+          split.words,
+          {
+            color: "rgb(65, 65, 70)",
+            opacity: 0,
+            filter: "blur(10px)",
+            y: 38,
+            x: 35,
+            z: -150,
+            rotationY: 50,
+            rotationX: -32,
+            transformOrigin: "50% 50% -100px",
           },
-          ease: "power1.inOut",
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top 80%",
-            end: "top 28%",
-            scrub: 0.9,
-            pin: false,
-            preventOverlaps: true,
-            fastScrollEnd: true,
+          {
+            color: "rgb(255, 255, 255)",
+            opacity: 1,
+            filter: "blur(0px)",
+            y: 0,
+            x: 0,
+            z: 0,
+            rotationX: 0,
+            rotationY: 0,
+            stagger: 0.05,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top 72%",
+              end: "top 22%",
+              scrub: 1.8,
+              markers: true,
+              onEnterBack: () => {
+                hasSettledRef.current = false;
+              },
+            },
+          }
+        );
+      });
+
+      // -------------------------------------------------------------
+      // MOBILE (Width <= 768px) - Tweak values specifically for touch screens
+      // -------------------------------------------------------------
+      mm.add("(max-width: 768px)", () => {
+        gsap.fromTo(
+          split.words,
+          {
+            color: "rgb(65, 65, 70)",
+            opacity: 0,
+            filter: "blur(8px)", // Slightly lighter blur for mobile performance
+            y: 24,               // Tighter Y displacement to fit smaller viewports
+            x: 20,               // Reduced horizontal shift to avoid accidental horizontal scroll
+            z: -80,              // Reduced depth so text stays legible on small screens
+            rotationY: 30,       // Gentler rotation
+            rotationX: -20,
+            transformOrigin: "50% 50% -50px",
           },
-        }
-      );
+          {
+            color: "rgb(255, 255, 255)",
+            opacity: 1,
+            filter: "blur(0px)",
+            y: 0,
+            x: 0,
+            z: 0,
+            rotationX: 0,
+            rotationY: 0,
+            stagger: 0.04,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top 85%", // Triggers earlier on mobile for smoother reveal
+              end: "top 35%",
+              scrub: 1.2,      // Faster catch-up for touch scrolling inertia
+              markers: true,
+              onEnterBack: () => {
+                hasSettledRef.current = false;
+              },
+            },
+          }
+        );
+      });
     }, containerRef);
 
     return () => ctx.revert();
   }, [text]);
 
-  // Reset character refs array on re-render
-  charsRef.current = [];
-
   if (!text) return null;
 
   return (
-    <div ref={containerRef} className="relative w-full lg:max-w-[755.9px]">
-      <p className="w-full leading-[110%] font-regular text-[clamp(0.85rem,5vw,2.525rem)] tracking-tight uppercase flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]">
-        {words.map((word, wordIdx) => (
-          <span key={wordIdx} className="inline-block whitespace-nowrap">
-            {word.split("").map((char, charIdx) => (
-              <span
-                key={charIdx}
-                ref={(el) => {
-                  if (el) charsRef.current.push(el);
-                }}
-                className="inline-block text-zinc-300 will-change-[color]"
-              >
-                {char}
-              </span>
-            ))}
-          </span>
-        ))}
+    <div ref={containerRef} className="relative w-full lg:max-w-[765.9px]">
+      <p
+        ref={textRef}
+        className="w-full leading-[120%] font-regular text-[clamp(1.55rem,5vw,2.925rem)] tracking-tight uppercase"
+      >
+        {text}
       </p>
     </div>
   );
