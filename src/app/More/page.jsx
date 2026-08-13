@@ -438,7 +438,7 @@ export default function Page() {
             YOU BUILT FROM THE GROUND UP. WE SHOW THE STORY FROM ABOVE.
           </h1>
 
-          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full lg:w-[50%] lg:translate-x-[clamp(0rem,15vw,3rem)] font-medium">
+          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full md:w-[50%] lg:translate-x-[clamp(0rem,15vw,3rem)] font-medium">
             <SmudgyTextReveal text="The work is already high-end. The story should rise to it. We uncover the thinking, craft and details that make it worth seeing." />
             <BlurFlicker>
             <Button text="Meet Cloudhaus" href="/About" />
