@@ -11,8 +11,8 @@ function Footer() {
         {/*LEFT DIV*/}
         <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,3vw,3rem)]">
            <div className="flex flex-col space-y-[clamp(1.2rem,2vw,1.5rem)]">
-            <h1 className="w-full max-w-[clamp(35rem,50vw,42.8125rem)] tracking-tight text-[clamp(1.75rem,3.5vw,3.6375rem)] font-sans font-medium text-ghost-white leading-[110%]">YOU BUILT THE SPACE NOW SECURE THE LEGACY</h1>
-            <p className="w-full max-w-[clamp(20rem,40vw,36.875rem)] text-[clamp(0.8rem,1.2vw,1rem)] text-zinc-600 leading-[130%] font-geist-mono uppercase">You’ve put everything into building something incredible. Now, let’s make sure the rest of the world sees it that way.</p>
+            <h1 className="w-full max-w-[clamp(35rem,50vw,48.9125rem)] tracking-tight text-[clamp(1.75rem,3.5vw,3.6375rem)] font-sans font-medium text-ghost-white leading-[110%] uppercase">BUILT SOMETHING WORTH LOOKING UP TO? Let’s give it a story that rises to the occasion.</h1>
+            <p className="hidden w-full max-w-[clamp(20rem,40vw,36.875rem)] text-[clamp(0.8rem,1.2vw,1rem)] text-zinc-600 leading-[130%] font-geist-mono uppercase">You’ve put everything into building something incredible. Now, let’s make sure the rest of the world sees it that way.</p>
            </div>
 
            <Button text='CHECK AVAILABILITY' link="/contact" className=""/>

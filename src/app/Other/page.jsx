@@ -6,7 +6,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import TransitionLink from "@/components/TransitionLink";
+import Link from "next/link";
 import Button from "@/components/Button";
 import Footer from "@/components/Footer";
 import SmudgyTextReveal from "@/components/SmudgyTextReveal";
@@ -441,6 +441,8 @@ export default function Page() {
             <SmudgyTextReveal text="The work is already high-end. The story shouldn't sit at ground level. We get behind the build to uncover the thinking, craft and people that made it happen, then bring the story higher where the work deserves to be seen." />
             <Button text="Meet Cloudhaus" href="/About" />
           </div>
+
+          
         </div>
 
         {/* HEADER & WORKS SECTION */}
@@ -480,7 +482,7 @@ export default function Page() {
             {/* ROW 1 */}
             <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-0 text-lavender">
               {/* VIDEO 0 */}
-              <TransitionLink
+              <Link
                 href={`/Works/${initialVideos[0].slug}`}
                 className="flex flex-col space-y-2 w-full block"
               >
@@ -525,10 +527,10 @@ export default function Page() {
                   </div>
                   <SmallButton ref={(el) => (buttonRefs.current[0] = el)} />
                 </div>
-              </TransitionLink>
+              </Link>
 
               {/* VIDEO 1 */}
-              <TransitionLink
+              <Link
                 href={`/Works/${initialVideos[1].slug}`}
                 className="flex flex-col space-y-2 w-full block"
               >
@@ -573,11 +575,11 @@ export default function Page() {
                   </div>
                   <SmallButton ref={(el) => (buttonRefs.current[1] = el)} />
                 </div>
-              </TransitionLink>
+              </Link>
             </div>
 
             {/* ROW 2 - FEATURED (FULL WIDTH) */}
-            <TransitionLink
+            <Link
               href={`/Works/${initialVideos[2].slug}`}
               className="flex flex-col space-y-2 w-full block"
             >
@@ -622,12 +624,12 @@ export default function Page() {
                 </div>
                 <SmallButton ref={(el) => (buttonRefs.current[2] = el)} />
               </div>
-            </TransitionLink>
+            </Link>
 
             {/* ROW 3 (ASYMMETRIC GRID) */}
             <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
               {/* VIDEO 3 */}
-              <TransitionLink
+              <Link
                 href={`/Works/${initialVideos[3].slug}`}
                 className="flex flex-col space-y-2 w-full block"
               >
@@ -672,10 +674,10 @@ export default function Page() {
                   </div>
                   <SmallButton ref={(el) => (buttonRefs.current[3] = el)} />
                 </div>
-              </TransitionLink>
+              </Link>
 
               {/* VIDEO 4 */}
-              <TransitionLink
+              <Link
                 href={`/Works/${initialVideos[4].slug}`}
                 className="w-full lg:translate-y-24 flex flex-col space-y-2 block"
               >
@@ -720,7 +722,7 @@ export default function Page() {
                   </div>
                   <SmallButton ref={(el) => (buttonRefs.current[4] = el)} />
                 </div>
-              </TransitionLink>
+              </Link>
             </div>
           </div>
         </div>

@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react'
 import Lenis from 'lenis'
 import Hero from './Hero/Home'
-import About from './About/page.jsx'
+import More from './More/page'
 
 export default function Page() {
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function Page() {
   return (
     <div>
       <Hero />
-      <About />
+      <More />
       
     </div>
   )

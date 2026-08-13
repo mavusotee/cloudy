@@ -3,6 +3,7 @@ import "./globals.css";
 import GlobalCinematicFog from "@/components/CinematicFog";
 import dynamic from 'next/dynamic'
 import ClientFogWrapper from "@/components/ClientFogWrapper";
+import TransitionOverlay from "@/components/TransitionOverlay";
 
 
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${fragmentMono.variable} antialiased`}
     >
+      
       <body className="min-h-full flex flex-col"><ClientFogWrapper />{children}</body>
     </html>
   );

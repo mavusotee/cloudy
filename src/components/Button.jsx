@@ -72,21 +72,10 @@ export default function Button({
   return (
     <Link href={href} className="inline-block">
       <button 
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+      
         className={`relative overflow-hidden bg-carbon-black px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(165px,12vw+70px,196px)] h-[clamp(42px,2.5vw+20px,49px)] rounded-full border border-eclipse font-geist-mono tracking-tight font-light uppercase text-[clamp(0.15rem,0.65rem+0.3vw,0.95rem)] text-center flex items-center justify-center cursor-pointer ${className}`}
       >
-        {/* R3F WebGL Fill Layer */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none rounded-full overflow-hidden">
-          <Canvas
-            camera={{ position: [0, 0, 1] }}
-            gl={{ preserveDrawingBuffer: true, antialias: true }}
-            className="w-full h-full"
-          >
-            <ColorFillPlane isHovered={isHovered} />
-          </Canvas>
-        </div>
-
+      
         {/* Text Layer: Dynamic color shift via CSS transition */}
         <span 
           className={`relative z-10 transition-colors duration-200 ease-out ${
