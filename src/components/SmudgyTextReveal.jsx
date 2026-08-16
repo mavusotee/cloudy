@@ -59,7 +59,7 @@ export default function SmudgyTextReveal({ text = "" }) {
               start: "top 72%",
               end: "top 22%",
               scrub: 1.8,
-              markers: true,
+           
               onEnterBack: () => {
                 hasSettledRef.current = false;
               },
