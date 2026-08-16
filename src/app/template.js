@@ -9,17 +9,20 @@ export default function Template({ children }) {
     const overlay = document.querySelector(".page-transition-overlay");
     if (!overlay) return;
 
-    // Smooth emotional fade out as the new page lands
-    gsap.to(overlay, {
-      opacity: 0,
-      "--wipe": "130%",
-      duration: 0.7,
-      ease: "power2.out",
-      onComplete: () => {
-        // Reset starting variables for the next transition
-        gsap.set(overlay, { "--wipe": "0%", opacity: 0 });
-      },
-    });
+    // Lock to solid black instantly, then fade opacity on GPU layer
+    gsap.timeline()
+      .set(overlay, { 
+        "--wipe": "150%", // Ensures 100% solid coverage across the entire viewport
+        opacity: 1 
+      })
+      .to(overlay, {
+        opacity: 0,
+        duration: 0.65,
+        ease: "power2.out",
+        onComplete: () => {
+          gsap.set(overlay, { "--wipe": "0%", opacity: 0 });
+        },
+      });
   }, []);
 
   return <div>{children}</div>;

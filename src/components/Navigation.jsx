@@ -162,10 +162,10 @@ function Navigation({ isMuted = true, onToggleSound }) {
           ref={linksRef}
           className="hidden md:flex items-center justify-center space-x-4 font-mono uppercase text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)] translate-x-[clamp(0px,12vw,190px)] pointer-events-auto"
         >
-          <Link href="/">ABOUT</Link>
-          <Link href="/#">WORK</Link>
-          <Link href="/#">MORE</Link>
-          <Link href="/#">CONTACT</Link>
+          <Link href="/About">ABOUT</Link>
+          <Link href="/All-Works">WORK</Link>
+          <Link href="/#More">MORE</Link>
+          <Link href="/#footer">CONTACT</Link>
         </div>
 
         {/* RIGHT ACTION BUTTONS - NO BLEND MODE */}
@@ -246,17 +246,17 @@ function Navigation({ isMuted = true, onToggleSound }) {
             </Link>
           </div>
           <div className="overflow-hidden">
-            <Link href="/#" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
+            <Link href="/All-Works" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
               WORK
             </Link>
           </div>
           <div className="overflow-hidden">
-            <Link href="/#" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
+            <Link href="/Weddings" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
               MORE
             </Link>
           </div>
           <div className="overflow-hidden">
-            <Link href="/#" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
+            <Link href="/#footer" onClick={toggleMobileMenu} className="block hover:text-zinc-400 transition-colors">
               CONTACT
             </Link>
           </div>

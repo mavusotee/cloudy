@@ -292,10 +292,10 @@ function WorkCard({ video, containerClassName, heightClassName, onHoverChange })
     const botL = containerRef.current.querySelector(".corner-bl");
     const botR = containerRef.current.querySelector(".corner-br");
 
-    gsap.to(topL, { opacity: 0, scale: 0.9, x: -12, y: -12, duration: 0.25, ease: "power4.inOut" });
-    gsap.to(topR, { opacity: 0, scale: 0.9, x: 12, y: -12, duration: 0.25, ease: "power4.inOut" });
-    gsap.to(botL, { opacity: 0, scale: 0.9, x: -12, y: 12, duration: 0.25, ease: "power4.inOut" });
-    gsap.to(botR, { opacity: 0, scale: 0.9, x: 12, y: 12, duration: 0.25, ease: "power4.inOut" });
+    gsap.to(topL, { opacity: 0, scale: 0.9, x: -12, y: -12, duration: 0.75, ease: "power4.inOut" });
+    gsap.to(topR, { opacity: 0, scale: 0.9, x: 12, y: -12, duration: 0.75, ease: "power4.inOut" });
+    gsap.to(botL, { opacity: 0, scale: 0.9, x: -12, y: 12, duration: 0.75, ease: "power4.inOut" });
+    gsap.to(botR, { opacity: 0, scale: 0.9, x: 12, y: 12, duration: 0.75, ease: "power4.inOut" });
 
     if (videoRef.current) videoRef.current.play();
   };
@@ -481,7 +481,7 @@ export default function Page() {
             </div>
 
             <div className="flex flex-col items-start sm:items-end justify-end sm:self-end w-full sm:w-auto">
-              <Button text="VIEW ALL WORKS" href="/Works" />
+              <Button text="VIEW ALL WORKS" href="/All-Works" />
             </div>
           </div>
 

@@ -19,18 +19,18 @@ export default function TransitionLink({ href, children, className }) {
 
     const tl = gsap.timeline();
 
-    // Reset overlay state
+    // Reset overlay state at the left edge
     gsap.set(overlay, { "--wipe": "0%", opacity: 0 });
 
-    // 1. Soft sweep in from left + fade opacity in
+    // 1. Sweep across to 125% to ensure 100% solid black coverage
     tl.to(overlay, {
       opacity: 1,
-      "--wipe": "100%",
+      "--wipe": "125%",
       duration: 0.55,
       ease: "power2.inOut",
     });
 
-    // 2. Trigger route push once screen is covered
+    // 2. Trigger route push once screen is completely blacked out
     tl.call(() => {
       router.push(href);
 

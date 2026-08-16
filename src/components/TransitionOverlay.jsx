@@ -11,6 +11,7 @@ export default function TransitionOverlay() {
         height: "100vh",
         opacity: 0,
         "--wipe": "0%",
+        willChange: "opacity",
         maskImage:
           "linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) calc(var(--wipe) - 20%), rgba(0,0,0,0) var(--wipe))",
         WebkitMaskImage:
