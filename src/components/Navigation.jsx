@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Logo from '@/Assets/Logo/cloud.svg'
 import gsap from 'gsap'
 import BlurFlicker from './BlurFlicker'
+import TransitionLink from './TransitionLink'
 
 function Navigation({ isMuted = true, onToggleSound }) {
   const logoRef = useRef(null)
@@ -162,10 +163,10 @@ function Navigation({ isMuted = true, onToggleSound }) {
           ref={linksRef}
           className="hidden md:flex items-center justify-center space-x-4 font-mono uppercase text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)] translate-x-[clamp(0px,12vw,190px)] pointer-events-auto"
         >
-          <Link href="/About">ABOUT</Link>
-          <Link href="/All-Works">WORK</Link>
-          <Link href="/#More">MORE</Link>
-          <Link href="/#footer">CONTACT</Link>
+          <TransitionLink href="/About">ABOUT</TransitionLink>
+          <TransitionLink href="/All-Works">WORK</TransitionLink>
+          <TransitionLink href="/#More">MORE</TransitionLink>
+          <TransitionLink href="/#footer">CONTACT</TransitionLink>
         </div>
 
         {/* RIGHT ACTION BUTTONS - NO BLEND MODE */}
