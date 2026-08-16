@@ -148,14 +148,14 @@ function Testimonials() {
       </div>
 
       {/* MID SECTION - Quote Icon and Text */}
-      <div className="flex flex-col flex-grow items-start justify-center max-w-[1200px] w-full pl-[clamp(0.1rem,1vw,0.5rem)] my-[clamp(2rem,6vw,4rem)]">
+      <div className="flex flex-col flex-grow items-start justify-center max-w-[1500px] w-full pl-[clamp(0.1rem,1vw,0.5rem)] my-[clamp(2rem,6vw,4rem)]">
         {/* Large Quote Icon */}
         
         {/* Target Paragraph for GSAP SplitText */}
         <p
           key={currentIndex}
           ref={quoteRef}
-          className="text-[clamp(0.95rem,2.2vw,1.8rem)] text-lavender leading-[150%] text-left font-sans font-medium will-change-[transform,opacity,filter]"
+          className="text-[clamp(0.95rem,2.2vw,2.3rem)] text-ghost-white leading-[150%] text-left font-sans font-medium will-change-[transform,opacity,filter]"
         >
           &quot; {currentTestimonial.quote} &quot;
         </p>

@@ -3,6 +3,7 @@ import React, { useEffect } from 'react'
 import Navigation from '@/components/Navigation'
 import Image from 'next/image'
 import Lenis from 'lenis'
+import Split from '@/components/Split'
 
 function page() {
 
@@ -47,10 +48,12 @@ function page() {
               <div className="w-2 h-2 bg-ghost-white text-ghost-white" />
               <h1>ABOUT CLOUDHAUS</h1>
             </div>
-            
+            <Split>
+
             <p className="text-ghost-white w-full text-[clamp(1.25rem,2.8vw,2.5rem)] tracking-tight leading-[130%] uppercase">
               Since 2019, Cloudhaus has created cinematic films and photography for high-end architecture and construction. Led by Jake McIntosh, the studio operates on the belief that exceptional work deserves to be documented with the same care and craftsmanship that brought it into being.
             </p>
+            </Split>
           </div> 
 
           {/*LINKS AND MORE INFO*/}

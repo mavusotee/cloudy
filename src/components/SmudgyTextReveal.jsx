@@ -18,10 +18,10 @@ export default function SmudgyTextReveal({ text = "" }) {
       // Set perspective on container to activate 3D space rendering
       gsap.set(containerRef.current, { perspective: 1000 });
 
-      // Split text into words automatically
+      // Split text into lines instead of words
       const split = new SplitText(textRef.current, {
-        type: "words",
-        wordsClass: "inline-block will-change-[filter,opacity,transform,color]",
+        type: "lines",
+        linesClass: "block will-change-[filter,opacity,transform,color]",
       });
 
       const mm = gsap.matchMedia();
@@ -31,17 +31,17 @@ export default function SmudgyTextReveal({ text = "" }) {
       // -------------------------------------------------------------
       mm.add("(min-width: 769px)", () => {
         gsap.fromTo(
-          split.words,
+          split.lines,
           {
             color: "rgb(65, 65, 70)",
             opacity: 0,
-            filter: "blur(10px)",
-            y: 38,
-            x: 35,
-            z: -150,
-            rotationY: 50,
-            rotationX: -32,
-            transformOrigin: "50% 50% -100px",
+            filter: "blur(12px)",
+            y: 48,
+            x: 20,
+            z: -300,
+            rotationY: 35,
+            rotationX: -25,
+            transformOrigin: "0% 50% -100px",
           },
           {
             color: "rgb(255, 255, 255)",
@@ -52,7 +52,7 @@ export default function SmudgyTextReveal({ text = "" }) {
             z: 0,
             rotationX: 0,
             rotationY: 0,
-            stagger: 0.05,
+            stagger: 0.12, // Increased stagger for distinct line sequence
             ease: "power2.out",
             scrollTrigger: {
               trigger: containerRef.current,
@@ -69,21 +69,21 @@ export default function SmudgyTextReveal({ text = "" }) {
       });
 
       // -------------------------------------------------------------
-      // MOBILE (Width <= 768px) - Tweak values specifically for touch screens
+      // MOBILE (Width <= 768px)
       // -------------------------------------------------------------
       mm.add("(max-width: 768px)", () => {
         gsap.fromTo(
-          split.words,
+          split.lines,
           {
             color: "rgb(65, 65, 70)",
             opacity: 0,
-            filter: "blur(8px)", // Slightly lighter blur for mobile performance
-            y: 24,               // Tighter Y displacement to fit smaller viewports
-            x: 20,               // Reduced horizontal shift to avoid accidental horizontal scroll
-            z: -80,              // Reduced depth so text stays legible on small screens
-            rotationY: 30,       // Gentler rotation
-            rotationX: -20,
-            transformOrigin: "50% 50% -50px",
+            filter: "blur(8px)",
+            y: 30,
+            x: 10,
+            z: -50,
+            rotationY: 20,
+            rotationX: -15,
+            transformOrigin: "0% 50% -50px",
           },
           {
             color: "rgb(255, 255, 255)",
@@ -94,14 +94,13 @@ export default function SmudgyTextReveal({ text = "" }) {
             z: 0,
             rotationX: 0,
             rotationY: 0,
-            stagger: 0.04,
+            stagger: 0.1,
             ease: "power2.out",
             scrollTrigger: {
               trigger: containerRef.current,
-              start: "top 85%", // Triggers earlier on mobile for smoother reveal
+              start: "top 85%",
               end: "top 35%",
-              scrub: 1.2,      // Faster catch-up for touch scrolling inertia
-             
+              scrub: 1.2,
               onEnterBack: () => {
                 hasSettledRef.current = false;
               },
@@ -120,7 +119,7 @@ export default function SmudgyTextReveal({ text = "" }) {
     <div ref={containerRef} className="relative w-full lg:max-w-[765.9px]">
       <p
         ref={textRef}
-        className="w-full leading-[120%] font-regular text-[clamp(1.45rem,5vw,2.925rem)] tracking-tight uppercase "
+        className="w-full leading-[120%] font-regular text-[clamp(1.45rem,5vw,3.125rem)] tracking-tight uppercase"
       >
         {text}
       </p>

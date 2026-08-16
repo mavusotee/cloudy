@@ -1,32 +1,35 @@
 "use client";
+
 import React, {
   useEffect,
   useRef,
   useState,
+  useMemo,
   forwardRef,
   useImperativeHandle,
+  useCallback,
 } from "react";
 import TransitionLink from "@/components/TransitionLink";
 import Button from "@/components/Button";
 import Footer from "@/components/Footer";
 import SmudgyTextReveal from "@/components/SmudgyTextReveal";
 import SmudgyTitleReveal from "@/components/SmudgyTitleReveal";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ServicesSection from "@/components/ServicesSection";
 import ClientsSection from "@/components/ClientsSection";
-import { ArrowLeft } from "lucide-react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import * as THREE from "three";
 import Testimonials from "@/components/Testimonials";
 import BlurFlicker from "@/components/BlurFlicker";
+
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Canvas, useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 
 gsap.registerPlugin(ScrollTrigger);
 
 // ----------------------------------------------------------------------
-// 1. REACT THREE FIBER - ANALOG TV NOISE SHADER MESH
+// 1. ANALOG TV NOISE SHADER MATERIAL & R3F MESH
 // ----------------------------------------------------------------------
-const NoiseShaderMaterial = {
+const noiseShaderDefinition = {
   uniforms: {
     uTime: { value: 0 },
     uOpacity: { value: 0 },
@@ -43,36 +46,44 @@ const NoiseShaderMaterial = {
     uniform float uOpacity;
     varying vec2 vUv;
 
-    // Pseudo-random noise function
     float random(vec2 st) {
       return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
     }
 
     void main() {
       vec2 st = vUv;
-      
-      // Fine granularity TV static noise
       float grain = random(st * 400.0 + vec2(uTime * 15.0, uTime * 25.0));
-      
-      // CRT TV Scanlines
       float scanline = sin(st.y * 800.0) * 0.08;
       
-      // Analog Chromatic Aberration (RGB Shift)
       float r = random(st * 400.0 + vec2(uTime * 15.0 + 0.02, uTime * 25.0));
       float b = random(st * 400.0 + vec2(uTime * 15.0 - 0.02, uTime * 25.0));
       
       vec3 color = vec3(r, grain, b) - scanline;
-      
       gl_FragColor = vec4(color, uOpacity);
     }
   `,
 };
 
 function TVNoisePlane({ opacityRef }) {
-  const meshRef = useRef();
-  const materialRef = useRef();
+  const materialRef = useRef(null);
 
-  useFrame((state, delta) => {
+  const material = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        uniforms: {
+          uTime: { value: 0 },
+          uOpacity: { value: 0 },
+        },
+        vertexShader: noiseShaderDefinition.vertexShader,
+        fragmentShader: noiseShaderDefinition.fragmentShader,
+        transparent: true,
+        depthTest: false,
+        depthWrite: false,
+      }),
+    []
+  );
+
+  useFrame((_, delta) => {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value += delta;
       if (opacityRef.current !== undefined) {
@@ -82,15 +93,9 @@ function TVNoisePlane({ opacityRef }) {
   });
 
   return (
-    <mesh ref={meshRef}>
+    <mesh>
       <planeGeometry args={[2, 2]} />
-      <shaderMaterial
-        ref={materialRef}
-        args={[NoiseShaderMaterial]}
-        transparent
-        depthTest={false}
-        depthWrite={false}
-      />
+      <primitive object={material} ref={materialRef} attach="material" />
     </mesh>
   );
 }
@@ -116,7 +121,12 @@ const R3FTVNoise = forwardRef((props, ref) => {
     <div className="absolute inset-0 pointer-events-none mix-blend-screen z-20 overflow-hidden">
       <Canvas
         camera={{ position: [0, 0, 1] }}
-        gl={{ preserveDrawingBuffer: true, alpha: true, antialias: false }}
+        gl={{
+          preserveDrawingBuffer: true,
+          alpha: true,
+          antialias: false,
+          powerPreference: "low-power",
+        }}
         className="w-full h-full pointer-events-none"
       >
         <TVNoisePlane opacityRef={opacityRef} />
@@ -136,9 +146,7 @@ const SmallButton = forwardRef(({ isOpen }, ref) => {
   useImperativeHandle(ref, () => ({
     triggerBlur: () => {
       if (!buttonRef.current) return;
-
       gsap.killTweensOf(buttonRef.current);
-
       gsap.fromTo(
         buttonRef.current,
         {
@@ -227,40 +235,133 @@ const formatTime = (seconds) => {
 };
 
 // ----------------------------------------------------------------------
-// 4. MAIN PAGE COMPONENT
+// 4. WORK CARD COMPONENT
+// ----------------------------------------------------------------------
+function WorkCard({ video, containerClassName, heightClassName, onHoverChange }) {
+  const [currentTime, setCurrentTime] = useState("00:00");
+  const containerRef = useRef(null);
+  const buttonRef = useRef(null);
+  const noiseRef = useRef(null);
+  const videoRef = useRef(null);
+
+  const handleLoadedMetadata = (e) => {
+    const videoEl = e.currentTarget;
+    if (videoEl && videoEl.duration) {
+      videoEl.currentTime = Math.random() * videoEl.duration;
+    }
+  };
+
+  const handleTimeUpdate = (e) => {
+    const videoEl = e.currentTarget;
+    if (videoEl) {
+      setCurrentTime(formatTime(videoEl.currentTime));
+    }
+  };
+
+  const handleMouseEnter = () => {
+    onHoverChange(true);
+    if (!containerRef.current) return;
+
+    if (noiseRef.current?.triggerNoise) {
+      noiseRef.current.triggerNoise();
+    }
+
+    const brackets = containerRef.current.querySelectorAll(
+      ".corner-tl, .corner-tr, .corner-bl, .corner-br"
+    );
+    gsap.to(brackets, {
+      opacity: 1,
+      scale: 1,
+      x: 0,
+      y: 0,
+      duration: 0.35,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
+
+    if (videoRef.current) videoRef.current.pause();
+    if (buttonRef.current?.triggerBlur) buttonRef.current.triggerBlur();
+  };
+
+  const handleMouseLeave = () => {
+    onHoverChange(false);
+    if (!containerRef.current) return;
+
+    const topL = containerRef.current.querySelector(".corner-tl");
+    const topR = containerRef.current.querySelector(".corner-tr");
+    const botL = containerRef.current.querySelector(".corner-bl");
+    const botR = containerRef.current.querySelector(".corner-br");
+
+    gsap.to(topL, { opacity: 0, scale: 0.9, x: -12, y: -12, duration: 0.25, ease: "power4.inOut" });
+    gsap.to(topR, { opacity: 0, scale: 0.9, x: 12, y: -12, duration: 0.25, ease: "power4.inOut" });
+    gsap.to(botL, { opacity: 0, scale: 0.9, x: -12, y: 12, duration: 0.25, ease: "power4.inOut" });
+    gsap.to(botR, { opacity: 0, scale: 0.9, x: 12, y: 12, duration: 0.25, ease: "power4.inOut" });
+
+    if (videoRef.current) videoRef.current.play();
+  };
+
+  return (
+    <TransitionLink
+      href={`/Works/${video.slug}`}
+      className={`flex flex-col space-y-2 w-full block group ${containerClassName || ""}`}
+    >
+      <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
+        <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
+          {video.date}
+        </h1>
+        <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
+          {currentTime}
+        </h2>
+      </div>
+
+      <div
+        ref={containerRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`relative overflow-hidden cursor-none ${heightClassName}`}
+      >
+        <video
+          ref={videoRef}
+          src={video.url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          onLoadedMetadata={handleLoadedMetadata}
+          onTimeUpdate={handleTimeUpdate}
+          className="w-full h-full object-cover brightness-90 contrast-105 transition-[filter] duration-500 ease-out group-hover:brightness-90"
+        />
+        <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-10" />
+        <R3FTVNoise ref={noiseRef} />
+        
+        {/* Corner Brackets Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
+          <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t-1 border-l-1 border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
+          <div className="corner-tr absolute top-4 right-4 w-8 h-8 border-t-1 border-r-1 border-white opacity-0 scale-90 translate-x-3 -translate-y-3 mix-blend-difference" />
+          <div className="corner-bl absolute bottom-4 left-4 w-8 h-8 border-b-1 border-l-1 border-white opacity-0 scale-90 -translate-x-3 translate-y-3 mix-blend-difference" />
+          <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b-1 border-r-1 border-white opacity-0 scale-90 translate-x-3 translate-y-3 mix-blend-difference" />
+        </div>
+      </div>
+
+      <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
+        <div className="flex flex-col">
+          <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+            {video.title}
+          </p>
+          <SmudgyTitleReveal text={video.subtitle} />
+        </div>
+        <SmallButton ref={buttonRef} />
+      </div>
+    </TransitionLink>
+  );
+}
+
+// ----------------------------------------------------------------------
+// 5. MAIN PAGE COMPONENT
 // ----------------------------------------------------------------------
 export default function Page() {
   const cursorRef = useRef(null);
   const [isHoveringVideo, setIsHoveringVideo] = useState(false);
-
-  const videoContainersRef = useRef([]);
-  const buttonRefs = useRef([]);
-  const noiseRefs = useRef([]);
-
-  const [timeState, setTimeState] = useState({
-    1: "00:00",
-    2: "00:00",
-    3: "00:00",
-    4: "00:00",
-    5: "00:00",
-  });
-
-  const handleLoadedMetadata = (e) => {
-    const video = e.currentTarget;
-    if (video && video.duration) {
-      video.currentTime = Math.random() * video.duration;
-    }
-  };
-
-  const handleTimeUpdate = (id, e) => {
-    const video = e.currentTarget;
-    if (video) {
-      setTimeState((prev) => ({
-        ...prev,
-        [id]: formatTime(video.currentTime),
-      }));
-    }
-  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -275,137 +376,43 @@ export default function Page() {
     const cursor = cursorRef.current;
     if (!cursor) return;
 
-    gsap.set(cursor, { xPercent: -50, yPercent: -50 });
+    const ctx = gsap.context(() => {
+      gsap.set(cursor, { xPercent: -50, yPercent: -50 });
 
-    const xTo = gsap.quickTo(cursor, "x", { duration: 0.2, ease: "power3" });
-    const yTo = gsap.quickTo(cursor, "y", { duration: 0.2, ease: "power3" });
+      const xTo = gsap.quickTo(cursor, "x", { duration: 0.2, ease: "power3" });
+      const yTo = gsap.quickTo(cursor, "y", { duration: 0.2, ease: "power3" });
 
-    const moveCursor = (e) => {
-      xTo(e.clientX);
-      yTo(e.clientY);
-    };
+      const moveCursor = (e) => {
+        xTo(e.clientX);
+        yTo(e.clientY);
+      };
 
-    window.addEventListener("mousemove", moveCursor);
-    return () => window.removeEventListener("mousemove", moveCursor);
+      window.addEventListener("mousemove", moveCursor);
+
+      return () => {
+        window.removeEventListener("mousemove", moveCursor);
+      };
+    });
+
+    return () => ctx.revert();
   }, []);
 
-  // GSAP Cursor Hover Scale
+  // GSAP Cursor Scale State Trigger
   useEffect(() => {
     const cursor = cursorRef.current;
     if (!cursor) return;
 
-    if (isHoveringVideo) {
-      gsap.to(cursor, {
-        scale: 1,
-        opacity: 1,
-        duration: 0.25,
-        ease: "power2.out",
-      });
-    } else {
-      gsap.to(cursor, {
-        scale: 0,
-        opacity: 0,
-        duration: 0.2,
-        ease: "power2.in",
-      });
-    }
+    gsap.to(cursor, {
+      scale: isHoveringVideo ? 1 : 0,
+      opacity: isHoveringVideo ? 1 : 0,
+      duration: isHoveringVideo ? 0.25 : 0.2,
+      ease: isHoveringVideo ? "power2.out" : "power2.in",
+    });
   }, [isHoveringVideo]);
 
-  // Combined Master Hover Handler
-  const handleContainerMouseEnter = (index, containerEl) => {
-    setIsHoveringVideo(true);
-
-    if (!containerEl) return;
-
-    // 1. Trigger R3F WebGL Noise Shader Burst
-    if (noiseRefs.current[index]?.triggerNoise) {
-      noiseRefs.current[index].triggerNoise();
-    }
-
-    // 2. Corner Bracket Frame Animation
-    const topL = containerEl.querySelector(".corner-tl");
-    const topR = containerEl.querySelector(".corner-tr");
-    const botL = containerEl.querySelector(".corner-bl");
-    const botR = containerEl.querySelector(".corner-br");
-
-    gsap.to([topL, topR, botL, botR], {
-      opacity: 1,
-      scale: 1,
-      x: 0,
-      y: 0,
-      duration: 0.35,
-      ease: "power2.out",
-      overwrite: "auto",
-    });
-
-    // 3. Pause video playback
-    const video = containerEl.querySelector("video");
-    if (video) video.pause();
-
-    // 4. Trigger dramatic blur pulse on SmallButton
-    if (buttonRefs.current[index]?.triggerBlur) {
-      buttonRefs.current[index].triggerBlur();
-    }
-  };
-
-  const handleContainerMouseLeave = (index, containerEl) => {
-    setIsHoveringVideo(false);
-
-    if (!containerEl) return;
-
-    // 1. Reverse Corner Bracket Frame
-    const topL = containerEl.querySelector(".corner-tl");
-    const topR = containerEl.querySelector(".corner-tr");
-    const botL = containerEl.querySelector(".corner-bl");
-    const botR = containerEl.querySelector(".corner-br");
-
-    gsap.to(topL, {
-      opacity: 0,
-      scale: 0.9,
-      x: -12,
-      y: -12,
-      duration: 0.25,
-      ease: "power2.in",
-    });
-    gsap.to(topR, {
-      opacity: 0,
-      scale: 0.9,
-      x: 12,
-      y: -12,
-      duration: 0.25,
-      ease: "power2.in",
-    });
-    gsap.to(botL, {
-      opacity: 0,
-      scale: 0.9,
-      x: -12,
-      y: 12,
-      duration: 0.25,
-      ease: "power2.in",
-    });
-    gsap.to(botR, {
-      opacity: 0,
-      scale: 0.9,
-      x: 12,
-      y: 12,
-      duration: 0.25,
-      ease: "power2.in",
-    });
-
-    // 2. Resume video playback
-    const video = containerEl.querySelector("video");
-    if (video) video.play();
-  };
-
-  // Helper Renderer for Bracket Overlay
-  const renderBrackets = () => (
-    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
-      <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
-      <div className="corner-tr absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white opacity-0 scale-90 translate-x-3 -translate-y-3 mix-blend-difference" />
-      <div className="corner-bl absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-white opacity-0 scale-90 -translate-x-3 translate-y-3 mix-blend-difference" />
-      <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-white opacity-0 scale-90 translate-x-3 translate-y-3 mix-blend-difference" />
-    </div>
-  );
+  const handleHoverChange = useCallback((isHovered) => {
+    setIsHoveringVideo(isHovered);
+  }, []);
 
   return (
     <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:px-6 flex flex-col space-y-16 lg:space-y-32 relative overflow-x-hidden">
@@ -434,14 +441,14 @@ export default function Page() {
 
         {/* INTRO SECTION */}
         <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-12 lg:gap-8">
-          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.65rem,1.1vw,0.875rem)] w-[43%] md:w-[13%] ">
+          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1.1vw,0.875rem)] w-[43%] md:w-[13%]">
             YOU BUILT FROM THE GROUND UP. WE SHOW THE STORY FROM ABOVE.
           </h1>
 
-          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full md:w-[50%] lg:translate-x-[clamp(0rem,15vw,3rem)] font-medium">
+          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full md:w-[50%] lg:translate-x-[clamp(0rem,15vw,3.5rem)] font-medium">
             <SmudgyTextReveal text="The work is already high-end. The story should rise to it. We uncover the thinking, craft and details that make it worth seeing." />
             <BlurFlicker>
-            <Button text="Meet Cloudhaus" href="/About" />
+              <Button text="Meet Cloudhaus" href="/About" />
             </BlurFlicker>
           </div>
         </div>
@@ -449,7 +456,7 @@ export default function Page() {
         {/* HEADER & WORKS SECTION */}
         <div className="flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
           <div className="flex flex-row items-center justify-between w-full text-zinc-300">
-            <div className=" font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
+            <div className="font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
               <div className="w-2 h-2 bg-zinc-300" />
               <h1>SELECTED WORKS</h1>
             </div>
@@ -473,259 +480,47 @@ export default function Page() {
               </sup>
             </div>
 
-
             <div className="flex flex-col items-start sm:items-end justify-end sm:self-end w-full sm:w-auto">
               <Button text="VIEW ALL WORKS" href="/Works" />
             </div>
-         
           </div>
 
           {/* WORKS GRID */}
           <div className="flex flex-col space-y-8 lg:space-y-58 pt-6">
             {/* ROW 1 */}
             <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-0 text-lavender">
-              {/* VIDEO 0 */}
-              <TransitionLink
-                href={`/Works/${initialVideos[0].slug}`}
-                className="flex flex-col space-y-2 w-full block"
-              >
-                <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
-                    {initialVideos[0].date}
-                  </h1>
-                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
-                    {timeState[1]}
-                  </h2>
-                </div>
-                <div
-                  ref={(el) => (videoContainersRef.current[0] = el)}
-                  onMouseEnter={() =>
-                    handleContainerMouseEnter(0, videoContainersRef.current[0])
-                  }
-                  onMouseLeave={() =>
-                    handleContainerMouseLeave(0, videoContainersRef.current[0])
-                  }
-                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
-                >
-                  <video
-                    src={initialVideos[0].url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    onLoadedMetadata={handleLoadedMetadata}
-                    onTimeUpdate={(e) => handleTimeUpdate(1, e)}
-                    className="w-full h-full object-cover brightness-90 contrast-105"
-                  />
-                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                  <R3FTVNoise ref={(el) => (noiseRefs.current[0] = el)} />
-                  {renderBrackets()}
-                </div>
-                <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
-                  <div className="flex flex-col">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                      {initialVideos[0].title}
-                    </p>
-                    <SmudgyTitleReveal text={initialVideos[0].subtitle} />
-                  </div>
-                  <SmallButton ref={(el) => (buttonRefs.current[0] = el)} />
-                </div>
-              </TransitionLink>
-
-              {/* VIDEO 1 */}
-              <TransitionLink
-                href={`/Works/${initialVideos[1].slug}`}
-                className="flex flex-col space-y-2 w-full block"
-              >
-                <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
-                    {initialVideos[1].date}
-                  </h1>
-                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
-                    {timeState[2]}
-                  </h2>
-                </div>
-                <div
-                  ref={(el) => (videoContainersRef.current[1] = el)}
-                  onMouseEnter={() =>
-                    handleContainerMouseEnter(1, videoContainersRef.current[1])
-                  }
-                  onMouseLeave={() =>
-                    handleContainerMouseLeave(1, videoContainersRef.current[1])
-                  }
-                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem] overflow-hidden cursor-none"
-                >
-                  <video
-                    src={initialVideos[1].url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    onLoadedMetadata={handleLoadedMetadata}
-                    onTimeUpdate={(e) => handleTimeUpdate(2, e)}
-                    className="w-full h-full object-cover brightness-90 contrast-105"
-                  />
-                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                  <R3FTVNoise ref={(el) => (noiseRefs.current[1] = el)} />
-                  {renderBrackets()}
-                </div>
-                <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
-                  <div className="flex flex-col">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                      {initialVideos[1].title}
-                    </p>
-                    <SmudgyTitleReveal text={initialVideos[1].subtitle} />
-                  </div>
-                  <SmallButton ref={(el) => (buttonRefs.current[1] = el)} />
-                </div>
-              </TransitionLink>
+              <WorkCard
+                video={initialVideos[0]}
+                heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
+                onHoverChange={handleHoverChange}
+              />
+              <WorkCard
+                video={initialVideos[1]}
+                heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
+                onHoverChange={handleHoverChange}
+              />
             </div>
 
             {/* ROW 2 - FEATURED (FULL WIDTH) */}
-            <TransitionLink
-              href={`/Works/${initialVideos[2].slug}`}
-              className="flex flex-col space-y-2 w-full block"
-            >
-              <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
-                <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
-                  {initialVideos[2].date}
-                </h1>
-                <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
-                  {timeState[3]}
-                </h2>
-              </div>
-              <div
-                ref={(el) => (videoContainersRef.current[2] = el)}
-                onMouseEnter={() =>
-                  handleContainerMouseEnter(2, videoContainersRef.current[2])
-                }
-                onMouseLeave={() =>
-                  handleContainerMouseLeave(2, videoContainersRef.current[2])
-                }
-                className="relative w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen overflow-hidden cursor-none"
-              >
-                <video
-                  src={initialVideos[2].url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  onLoadedMetadata={handleLoadedMetadata}
-                  onTimeUpdate={(e) => handleTimeUpdate(3, e)}
-                  className="w-full h-full object-cover brightness-90 contrast-105"
-                />
-                <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                <R3FTVNoise ref={(el) => (noiseRefs.current[2] = el)} />
-                {renderBrackets()}
-              </div>
-              <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
-                <div className="flex flex-col">
-                  <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                    {initialVideos[2].title}
-                  </p>
-                  <SmudgyTitleReveal text={initialVideos[2].subtitle} />
-                </div>
-                <SmallButton ref={(el) => (buttonRefs.current[2] = el)} />
-              </div>
-            </TransitionLink>
+            <WorkCard
+              video={initialVideos[2]}
+              heightClassName="w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen"
+              onHoverChange={handleHoverChange}
+            />
 
             {/* ROW 3 (ASYMMETRIC GRID) */}
             <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
-              {/* VIDEO 3 */}
-              <TransitionLink
-                href={`/Works/${initialVideos[3].slug}`}
-                className="flex flex-col space-y-2 w-full block"
-              >
-                <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
-                    {initialVideos[3].date}
-                  </h1>
-                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
-                    {timeState[4]}
-                  </h2>
-                </div>
-                <div
-                  ref={(el) => (videoContainersRef.current[3] = el)}
-                  onMouseEnter={() =>
-                    handleContainerMouseEnter(3, videoContainersRef.current[3])
-                  }
-                  onMouseLeave={() =>
-                    handleContainerMouseLeave(3, videoContainersRef.current[3])
-                  }
-                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem] overflow-hidden cursor-none"
-                >
-                  <video
-                    src={initialVideos[3].url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    onLoadedMetadata={handleLoadedMetadata}
-                    onTimeUpdate={(e) => handleTimeUpdate(4, e)}
-                    className="w-full h-full object-cover brightness-90 contrast-105"
-                  />
-                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                  <R3FTVNoise ref={(el) => (noiseRefs.current[3] = el)} />
-                  {renderBrackets()}
-                </div>
-                <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
-                  <div className="flex flex-col">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
-                      {initialVideos[3].title}
-                    </p>
-                    <SmudgyTitleReveal text={initialVideos[3].subtitle} />
-                  </div>
-                  <SmallButton ref={(el) => (buttonRefs.current[3] = el)} />
-                </div>
-              </TransitionLink>
-
-              {/* VIDEO 4 */}
-              <TransitionLink
-                href={`/Works/${initialVideos[4].slug}`}
-                className="w-full lg:translate-y-24 flex flex-col space-y-2 block"
-              >
-                <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
-                  <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
-                    {initialVideos[4].date}
-                  </h1>
-                  <h2 className="font-geist-mono font-medium tracking-tight text-[clamp(0.8125rem,1.2vw,1rem)] text-zinc-500">
-                    {timeState[5]}
-                  </h2>
-                </div>
-                <div
-                  ref={(el) => (videoContainersRef.current[4] = el)}
-                  onMouseEnter={() =>
-                    handleContainerMouseEnter(4, videoContainersRef.current[4])
-                  }
-                  onMouseLeave={() =>
-                    handleContainerMouseLeave(4, videoContainersRef.current[4])
-                  }
-                  className="relative w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem] overflow-hidden cursor-none"
-                >
-                  <video
-                    src={initialVideos[4].url}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    onLoadedMetadata={handleLoadedMetadata}
-                    onTimeUpdate={(e) => handleTimeUpdate(5, e)}
-                    className="w-full h-full object-cover brightness-90 contrast-105"
-                  />
-                  <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 hover:opacity-20" />
-                  <R3FTVNoise ref={(el) => (noiseRefs.current[4] = el)} />
-                  {renderBrackets()}
-                </div>
-                <div className="flex flex-row items-baseline justify-between w-full px-0 md:px-2 pt-2 text-ghost-white">
-                  <div className="flex flex-col">
-                    <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-eclipse tracking-tight">
-                      {initialVideos[4].title}
-                    </p>
-                    <SmudgyTitleReveal text={initialVideos[4].subtitle} />
-                  </div>
-                  <SmallButton ref={(el) => (buttonRefs.current[4] = el)} />
-                </div>
-              </TransitionLink>
+              <WorkCard
+                video={initialVideos[3]}
+                heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem]"
+                onHoverChange={handleHoverChange}
+              />
+              <WorkCard
+                video={initialVideos[4]}
+                containerClassName="lg:translate-y-24"
+                heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem]"
+                onHoverChange={handleHoverChange}
+              />
             </div>
           </div>
         </div>

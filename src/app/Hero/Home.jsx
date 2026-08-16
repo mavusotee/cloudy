@@ -19,17 +19,10 @@ const getMobileOptimizedUrl = (url) => {
 
 const RAW_PROJECTS = [
   { 
-    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4', 
+    src: 'https://ik.imagekit.io/sivo7t3nqf/cloudhaus_landing_video%20(1440p).mp4', 
     title: 'THE BUILDING COMPANY' 
   },
-  { 
-    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4', 
-    title: 'MORGAN BUILD' 
-  },
-  { 
-    src: 'https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4', 
-    title: 'HAZELWOOD RESIDENCE' 
-  },
+  
 ]
 
 const BOTTOM_TEXT = "VISUAL STUDIO FOR HIGH-END ARCHITECTURE AND CONSTRUCTION BASED IN ADELAIDE"
@@ -366,7 +359,7 @@ function Home() {
         <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal pointer-events-auto">
           <p 
             ref={bottomTextRef}
-            className="w-[clamp(320px,25vw,925px)] text-[clamp(1rem,0.55rem+0.6vw,4.5rem)] flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]"
+            className="w-[clamp(320px,25vw,925px)] text-[clamp(1rem,0.55rem+0.6vw,4.8rem)] flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]"
           >
             {words.map((word, index) => (
               <span 

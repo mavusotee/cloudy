@@ -1,4 +1,6 @@
 "use client";
+
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -9,49 +11,38 @@ export default function TransitionLink({ href, children, className }) {
   const handleTransition = (e) => {
     e.preventDefault();
 
-    const transTL = gsap.timeline();
+    const overlay = document.querySelector(".page-transition-overlay");
+    if (!overlay) {
+      router.push(href);
+      return;
+    }
 
-    // 1. Overlay fade in
-    transTL.to(".page-transition-overlay", {
+    const tl = gsap.timeline();
+
+    // Reset overlay state
+    gsap.set(overlay, { "--wipe": "0%", opacity: 0 });
+
+    // 1. Soft sweep in from left + fade opacity in
+    tl.to(overlay, {
       opacity: 1,
-      duration: 0.3,
-      ease: "power4.inOut",
+      "--wipe": "100%",
+      duration: 0.55,
+      ease: "power2.inOut",
     });
 
-    // 2. PNG reveal
-    transTL.fromTo(
-      ".centerPNG",
-      {
-        opacity: 0,
-        scale: 1.2,
-        filter: "blur(6px)",
-      },
-      {
-        opacity: 1,
-        scale: 1.4,
-        filter: "blur(0px)",
-        duration: 0.2,
-        ease: "power4.out",
-      }
-    );
-
-    // 3. Hold
-    transTL.to({}, { duration: 0.8 });
-
-    // 4. Navigate + refresh
-    transTL.call(() => {
+    // 2. Trigger route push once screen is covered
+    tl.call(() => {
       router.push(href);
 
-      // ⬇️ THIS IS THE IMPORTANT PART
       setTimeout(() => {
         ScrollTrigger.refresh();
-      }, 100); // small delay for DOM to mount
+      }, 100);
     });
   };
 
   return (
-    <a href={href} onClick={handleTransition} className={className}>
+    <Link href={href} onClick={handleTransition} className={className}>
       {children}
-    </a>
+    </Link>
   );
 }
