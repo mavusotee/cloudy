@@ -75,14 +75,14 @@ export default function SmudgyTextReveal({ text = "" }) {
         gsap.fromTo(
           split.lines,
           {
-            color: "rgb(65, 65, 70)",
+            color: "rgb(44, 44, 47)",
             opacity: 0,
             filter: "blur(8px)",
-            y: 30,
-            x: 10,
-            z: -50,
+            y: 20,
+            x: 5,
+            z: -80,
             rotationY: 20,
-            rotationX: -15,
+            rotationX: -25,
             transformOrigin: "0% 50% -50px",
           },
           {
