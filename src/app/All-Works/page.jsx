@@ -261,6 +261,30 @@ const allProjects = [
     subtitle: "HARBOR HOUSE",
     slug: "ap-dh",
   },
+  {
+    id: 11,
+    date: "11 . 2022",
+    url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4",
+    title: "KINETIC STUDIO",
+    subtitle: "GLASS PAVILION",
+    slug: "glass-pavilion",
+  },
+  {
+    id: 12,
+    date: "12 . 2022",
+    url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4",
+    title: "MODERN ARCH",
+    subtitle: "DESERT RETREAT",
+    slug: "desert-retreat",
+  },
+  {
+    id: 13,
+    date: "13 . 2022",
+    url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4",
+    title: "LUMEN HOMES",
+    subtitle: "COASTAL COMPLEX",
+    slug: "coastal-complex",
+  },
 ];
 
 const formatTime = (seconds) => {
@@ -341,7 +365,7 @@ function WorkCard({ video, containerClassName, heightClassName, onHoverChange })
       href={`/Works/${video.slug}`}
       className={`flex flex-col space-y-2 w-full block group ${containerClassName || ""}`}
     >
-      <div className="flex flex-row items-center justify-between w-full px-4 md:px-6">
+      <div className="flex flex-row items-center justify-between w-full px-1">
         <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
           {video.date}
         </h1>
@@ -378,7 +402,7 @@ function WorkCard({ video, containerClassName, heightClassName, onHoverChange })
         </div>
       </div>
 
-      <div className="flex flex-row items-baseline justify-between w-full px-4 md:px-6 pt-2 text-ghost-white">
+      <div className="flex flex-row items-baseline justify-between w-full px-1 pt-2 text-ghost-white">
         <div className="flex flex-col">
           <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
             {video.title}
@@ -392,18 +416,145 @@ function WorkCard({ video, containerClassName, heightClassName, onHoverChange })
 }
 
 // ----------------------------------------------------------------------
-// 5. MAIN WORKS CONTAINER COMPONENT
+// 5. LIST ROW ITEM COMPONENT (DESKTOP HOVER + MOBILE SCROLLTRIGGER)
+// ----------------------------------------------------------------------
+function ListItemRow({ project, onHoverStart, onHoverEnd }) {
+  const rowRef = useRef(null);
+  const titleRef = useRef(null);
+  const subtitleRef = useRef(null);
+  const dateRef = useRef(null);
+
+  const activateRow = useCallback(() => {
+    onHoverStart(project);
+
+    gsap.to(rowRef.current, {
+      backgroundColor: "#ffffff",
+      duration: 0.3,
+      ease: "power2.out",
+    });
+
+    gsap.to(titleRef.current, {
+      x: 12,
+      color: "#000000",
+      duration: 0.35,
+      ease: "power3.out",
+    });
+
+    gsap.to(subtitleRef.current, {
+      x: 8,
+      color: "#000000",
+      duration: 0.35,
+      ease: "power3.out",
+    });
+
+    gsap.to(dateRef.current, {
+      x: -8,
+      color: "#000000",
+      duration: 0.35,
+      ease: "power3.out",
+    });
+  }, [onHoverStart, project]);
+
+  const deactivateRow = useCallback(() => {
+    onHoverEnd();
+
+    gsap.to(rowRef.current, {
+      backgroundColor: "transparent",
+      duration: 0.3,
+      ease: "power2.out",
+    });
+
+    gsap.to(titleRef.current, {
+      x: 0,
+      color: "#f8f8f8",
+      duration: 0.35,
+      ease: "power3.out",
+    });
+
+    gsap.to(subtitleRef.current, {
+      x: 0,
+      color: "#a1a1aa",
+      duration: 0.35,
+      ease: "power3.out",
+    });
+
+    gsap.to(dateRef.current, {
+      x: 0,
+      color: "#71717a",
+      duration: 0.35,
+      ease: "power3.out",
+    });
+  }, [onHoverEnd]);
+
+  // Dynamic ScrollTrigger Activation on Mobile
+  useEffect(() => {
+    const mm = gsap.matchMedia();
+
+    mm.add("(max-width: 767px)", () => {
+      const st = ScrollTrigger.create({
+        trigger: rowRef.current,
+        start: "top 55%",
+        end: "bottom 45%",
+        onEnter: activateRow,
+        onEnterBack: activateRow,
+        onLeave: deactivateRow,
+        onLeaveBack: deactivateRow,
+      });
+
+      return () => st.kill();
+    });
+
+    return () => mm.revert();
+  }, [activateRow, deactivateRow]);
+
+  return (
+    <div
+      ref={rowRef}
+      onMouseEnter={activateRow}
+      onMouseLeave={deactivateRow}
+      className="list-item-row"
+    >
+      <TransitionLink
+        href={`/Works/${project.slug}`}
+        className="relative grid grid-cols-3 items-center py-4 px-2"
+      >
+        <span
+          ref={titleRef}
+          className="font-sans text-sm md:text-xl font-light uppercase text-ghost-white inline-block"
+        >
+          {project.title}
+        </span>
+        <span
+          ref={subtitleRef}
+          className="font-geist-mono text-xs md:text-sm text-start uppercase tracking-wider text-zinc-400 inline-block"
+        >
+          {project.subtitle}
+        </span>
+        <span
+          ref={dateRef}
+          className="font-geist-mono text-sm md:text-base text-right text-zinc-500 inline-block"
+        >
+          {project.date}
+        </span>
+      </TransitionLink>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------
+// 6. MAIN WORKS CONTAINER COMPONENT
 // ----------------------------------------------------------------------
 export default function AllWorksSection() {
   const cursorRef = useRef(null);
   const containerRef = useRef(null);
   const listPreviewRef = useRef(null);
   const listContainerRef = useRef(null);
-  const hoverVideoRef = useRef(null);
+  const bgVideoRef = useRef(null);
 
   const [viewMode, setViewMode] = useState("grid");
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [visibleCount, setVisibleCount] = useState(13);
   const [hoveredProject, setHoveredProject] = useState(null);
+  const [displayProject, setDisplayProject] = useState(null);
   const [isHoveringVideo, setIsHoveringVideo] = useState(false);
 
   const activeProjects = useMemo(() => {
@@ -446,16 +597,20 @@ export default function AllWorksSection() {
     return () => clearTimeout(timer);
   }, [viewMode, visibleCount]);
 
-  // Ensure Hover Video Plays Reliably in List View
   useEffect(() => {
-    if (hoveredProject && hoverVideoRef.current) {
-      hoverVideoRef.current.load();
-      const playPromise = hoverVideoRef.current.play();
+    if (hoveredProject) {
+      setDisplayProject(hoveredProject);
+    }
+  }, [hoveredProject]);
+
+  useEffect(() => {
+    if (hoveredProject && bgVideoRef.current) {
+      const playPromise = bgVideoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {});
       }
     }
-  }, [hoveredProject]);
+  }, [displayProject, hoveredProject]);
 
   // Downward Stagger Animation for List Items
   useEffect(() => {
@@ -543,7 +698,7 @@ export default function AllWorksSection() {
     });
   }, [isHoveringVideo]);
 
-  // GSAP List Preview Scale & Opacity Trigger
+  // GSAP "PLAY VIDEO" Tag Scale & Opacity Trigger
   useEffect(() => {
     const preview = listPreviewRef.current;
     if (!preview) return;
@@ -593,8 +748,30 @@ export default function AllWorksSection() {
   }, []);
 
   return (
-    <div className="bg-carbon-black w-full min-h-screen py-6 px-4 relative overflow-x-hidden">
+    <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:py-2 md:px-4 relative overflow-x-hidden">
+      {/* FULL-BLEED HOVER VIDEO BACKGROUND (LIST VIEW) */}
+      <div
+        className={`fixed inset-0 z-0 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out ${
+          hoveredProject ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        {displayProject && (
+          <video
+            key={displayProject.id}
+            ref={bgVideoRef}
+            src={displayProject.url}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-black/60" />
+      </div>
+
       <Navigation />
+      
       {/* CUSTOM CURSOR OVERLAY */}
       <div
         ref={cursorRef}
@@ -605,39 +782,33 @@ export default function AllWorksSection() {
         </span>
       </div>
 
-      {/* FLOATING HOVER VIDEO PREVIEW FOR LIST VIEW */}
+      {/* FLOATING "PLAY VIDEO" CURSOR TAG FOR LIST VIEW */}
       <div
         ref={listPreviewRef}
-        className="fixed top-0 left-0 pointer-events-none z-[100] hidden md:block scale-85 opacity-0 w-[clamp(280px,36vw,520px)] aspect-video overflow-hidden border border-zinc-800 shadow-2xl bg-black"
+        className="fixed top-0 left-0 pointer-events-none z-[100] hidden md:block scale-85 opacity-0"
       >
-        <video
-          ref={hoverVideoRef}
-          src={hoveredProject?.url || ""}
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="w-full h-full object-cover"
-        />
+        <span className="font-geist-mono text-[0.65rem] tracking-widest uppercase bg-ghost-white text-carbon-black px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+          Play Video
+        </span>
       </div>
 
       {/* HEADER SECTION */}
-      <div className="flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
+      <div className="relative z-10 flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
         <div className="flex flex-row items-center justify-between w-full text-zinc-300">
-          <div className="font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
+          <div className=" opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
             <div className="w-2 h-2 bg-zinc-300" />
             <h1>SELECTED WORKS</h1>
           </div>
-          <h1 className="font-geist-mono font-medium tracking-tight text-ghost-white text-[clamp(0.5rem,0.8vw,0.725rem)]">
-            [CLOUD_2]
+          <h1 className="font-geist-mono font-semibold tracking-tight text-ghost-white text-[clamp(0.5rem,0.8vw,0.825rem)]">
+            [CLOUD_9]
           </h1>
         </div>
 
         {/* WORKS HEADER ROW & VIEW TOGGLE */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-6 sm:gap-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-6 sm:gap-0 pb-6">
           <div className="flex flex-row items-start gap-4 sm:gap-6 font-monot">
-            <h1 className="text-[clamp(5rem,15vw,18.875rem)] tracking-[-8%] font-light leading-none uppercase">
-              WORK
+            <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%] font-light leading-none uppercase">
+               Works
             </h1>
             <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
               [
@@ -650,7 +821,7 @@ export default function AllWorksSection() {
 
           <div className="flex flex-col items-start sm:items-end justify-end space-y-4 w-full sm:w-auto">
             {/* GRID / LIST TOGGLE BAR */}
-            <div className="flex items-center space-x-3 font-geist-mono text-xs tracking-widest uppercase">
+            <div className="flex items-center space-x-3 font-geist-mono text-sm md:text-lg tracking-widest uppercase">
               <button
                 onClick={() => handleToggleView("grid")}
                 className={`transition-colors cursor-pointer ${
@@ -677,61 +848,110 @@ export default function AllWorksSection() {
         {/* DYNAMIC VIEW CONTENT CONTAINER */}
         <div ref={containerRef} className="w-full transition-all duration-300">
           {viewMode === "grid" ? (
-            /* GRID VIEW */
-            <div className="flex flex-col space-y-8 lg:space-y-58 pt-6">
-              {/* ROW 1 */}
+            /* GRID LAYOUT */
+            <div className="flex flex-col space-y-8 lg:space-y-14 pt-4">
               {activeProjects.length >= 3 && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-8 lg:gap-12 text-lavender">
+                <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-4 text-lavender">
                   <WorkCard
                     video={activeProjects[0]}
-                    heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[28rem]"
+                    heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
                     onHoverChange={handleHoverChange}
                   />
                   <WorkCard
                     video={activeProjects[1]}
-                    heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[38rem]"
+                    heightClassName="w-full aspect-video h-[18rem] lg:h-[28rem]"
                     onHoverChange={handleHoverChange}
                   />
                   <WorkCard
                     video={activeProjects[2]}
-                    heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[24rem]"
+                    heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
                     onHoverChange={handleHoverChange}
                   />
                 </div>
               )}
 
-              {/* ROW 2 - FEATURED (FULL WIDTH) */}
               {activeProjects.length >= 4 && (
-                <WorkCard
-                  video={activeProjects[3]}
-                  heightClassName="w-screen relative left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen"
-                  onHoverChange={handleHoverChange}
-                />
-              )}
-
-              {/* ROW 3 (ASYMMETRIC GRID) */}
-              {activeProjects.length >= 5 && (
-                <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
+                <div className="-mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]">
                   <WorkCard
-                    video={activeProjects[4]}
-                    heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem]"
+                    video={activeProjects[3]}
+                    heightClassName="w-full h-[55vh] lg:h-[97vh]"
                     onHoverChange={handleHoverChange}
                   />
-                  {activeProjects[5] && (
+                </div>
+              )}
+
+              {activeProjects.length >= 6 && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 w-full gap-8 items-start py-2">
+                  <div className="lg:col-span-5">
                     <WorkCard
-                      video={activeProjects[5]}
-                      containerClassName="lg:translate-y-24"
-                      heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem]"
+                      video={activeProjects[4]}
+                      heightClassName="w-full aspect-video h-[18rem] lg:h-[26rem]"
                       onHoverChange={handleHoverChange}
                     />
-                  )}
+                  </div>
+                  <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-12 md:translate-x-18">
+                    <WorkCard
+                      video={activeProjects[5]}
+                      heightClassName="w-full aspect-video h-[20rem] lg:h-[32rem]"
+                      onHoverChange={handleHoverChange}
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* ADDITIONAL PAGINATED ITEMS GRID */}
-              {activeProjects.length > 6 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-8">
-                  {activeProjects.slice(6).map((project) => (
+              {activeProjects.length >= 8 && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 text-lavender md:pt-30">
+                  <WorkCard
+                    video={activeProjects[6]}
+                    heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
+                    onHoverChange={handleHoverChange}
+                  />
+                  <WorkCard
+                    video={activeProjects[7]}
+                    heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
+                    onHoverChange={handleHoverChange}
+                  />
+                </div>
+              )}
+
+              {activeProjects.length >= 11 && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-2 text-lavender md:pt-30">
+                  <WorkCard
+                    video={activeProjects[8]}
+                    heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
+                    onHoverChange={handleHoverChange}
+                  />
+                  <WorkCard
+                    video={activeProjects[9]}
+                    heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
+                    onHoverChange={handleHoverChange}
+                  />
+                  <WorkCard
+                    video={activeProjects[10]}
+                    heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
+                    onHoverChange={handleHoverChange}
+                  />
+                </div>
+              )}
+
+              {activeProjects.length >= 13 && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 md:gap-3 text-lavender md:pt-30">
+                  <WorkCard
+                    video={activeProjects[11]}
+                    heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
+                    onHoverChange={handleHoverChange}
+                  />
+                  <WorkCard
+                    video={activeProjects[12]}
+                    heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
+                    onHoverChange={handleHoverChange}
+                  />
+                </div>
+              )}
+
+              {activeProjects.length > 13 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+                  {activeProjects.slice(13).map((project) => (
                     <WorkCard
                       key={project.id}
                       video={project}
@@ -743,39 +963,24 @@ export default function AllWorksSection() {
               )}
             </div>
           ) : (
-            /* LIST VIEW */
-            <div ref={listContainerRef} className="relative w-full pt-12 pb-24">
+            /* LIST VIEW WITH DYNAMIC SCROLLTRIGGER HOVER ON MOBILE */
+            <div ref={listContainerRef} className="relative w-full pt-8 pb-16">
               {/* TABLE HEADER */}
-              <div className="flex justify-between items-center text-zinc-500 font-geist-mono text-xs uppercase tracking-wider pb-4 border-b border-zinc-800">
-                <span>CLIENT</span>
-                <span>YEAR</span>
+              <div className="grid grid-cols-3 items-center text-zinc-500 font-geist-mono text-xs uppercase tracking-wider pb-4 border-b border-zinc-800">
+                <span className="text-left">CLIENT</span>
+                <span className="text-start">PROJECT</span>
+                <span className="text-right">YEAR</span>
               </div>
 
               {/* LIST ROWS */}
               <div className="flex flex-col divide-y divide-zinc-800/60">
                 {activeProjects.map((project) => (
-                  <TransitionLink
+                  <ListItemRow
                     key={project.id}
-                    href={`/Works/${project.slug}`}
-                    onMouseEnter={(e) => {
-                      setHoveredProject(project);
-                      if (listPreviewRef.current) {
-                        gsap.set(listPreviewRef.current, {
-                          x: e.clientX,
-                          y: e.clientY,
-                        });
-                      }
-                    }}
-                    onMouseLeave={() => setHoveredProject(null)}
-                    className="list-item-row group relative flex justify-between items-center py-6 px-4 hover:bg-white transition-colors duration-200"
-                  >
-                    <span className="font-geist-mono text-lg md:text-2xl font-light uppercase text-ghost-white group-hover:text-black transition-colors duration-200">
-                      {project.title}
-                    </span>
-                    <span className="font-geist-mono text-sm md:text-base text-zinc-500 group-hover:text-black transition-colors duration-200">
-                      {project.date}
-                    </span>
-                  </TransitionLink>
+                    project={project}
+                    onHoverStart={setHoveredProject}
+                    onHoverEnd={() => setHoveredProject(null)}
+                  />
                 ))}
               </div>
             </div>
@@ -784,7 +989,7 @@ export default function AllWorksSection() {
 
         {/* VIEW MORE PROJECTS BUTTON */}
         {visibleCount < allProjects.length && (
-          <div className="flex justify-between items-center pt-12 pb-24 border-t border-zinc-800 text-ghost-white">
+          <div className="flex justify-between items-center pt-8 pb-16 border-t border-zinc-800 text-ghost-white">
             <span className="text-2xl font-light">+</span>
             <button
               onClick={handleLoadMore}
