@@ -352,10 +352,10 @@ function WorkCard({ video, containerClassName, heightClassName, onHoverChange })
     const botL = containerRef.current.querySelector(".corner-bl");
     const botR = containerRef.current.querySelector(".corner-br");
 
-    gsap.to(topL, { opacity: 0, scale: 0.9, x: -12, y: -12, duration: 0.75, ease: "power4.inOut" });
-    gsap.to(topR, { opacity: 0, scale: 0.9, x: 12, y: -12, duration: 0.75, ease: "power4.inOut" });
-    gsap.to(botL, { opacity: 0, scale: 0.9, x: -12, y: 12, duration: 0.75, ease: "power4.inOut" });
-    gsap.to(botR, { opacity: 0, scale: 0.9, x: 12, y: 12, duration: 0.75, ease: "power4.inOut" });
+    gsap.to(topL, { opacity: 0, scale: 0.9, x: -12, y: -12, duration: 0.75, ease: "power4.inOut", overwrite: "auto" });
+    gsap.to(topR, { opacity: 0, scale: 0.9, x: 12, y: -12, duration: 0.75, ease: "power4.inOut", overwrite: "auto" });
+    gsap.to(botL, { opacity: 0, scale: 0.9, x: -12, y: 12, duration: 0.75, ease: "power4.inOut", overwrite: "auto" });
+    gsap.to(botR, { opacity: 0, scale: 0.9, x: 12, y: 12, duration: 0.75, ease: "power4.inOut", overwrite: "auto" });
 
     if (videoRef.current) videoRef.current.play();
   };
@@ -431,6 +431,7 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       backgroundColor: "#ffffff",
       duration: 0.3,
       ease: "power2.out",
+      overwrite: "auto",
     });
 
     gsap.to(titleRef.current, {
@@ -438,6 +439,7 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       color: "#000000",
       duration: 0.35,
       ease: "power3.out",
+      overwrite: "auto",
     });
 
     gsap.to(subtitleRef.current, {
@@ -445,6 +447,7 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       color: "#000000",
       duration: 0.35,
       ease: "power3.out",
+      overwrite: "auto",
     });
 
     gsap.to(dateRef.current, {
@@ -452,6 +455,7 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       color: "#000000",
       duration: 0.35,
       ease: "power3.out",
+      overwrite: "auto",
     });
   }, [onHoverStart, project]);
 
@@ -462,6 +466,7 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       backgroundColor: "transparent",
       duration: 0.3,
       ease: "power2.out",
+      overwrite: "auto",
     });
 
     gsap.to(titleRef.current, {
@@ -469,6 +474,7 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       color: "#f8f8f8",
       duration: 0.35,
       ease: "power3.out",
+      overwrite: "auto",
     });
 
     gsap.to(subtitleRef.current, {
@@ -476,6 +482,7 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       color: "#a1a1aa",
       duration: 0.35,
       ease: "power3.out",
+      overwrite: "auto",
     });
 
     gsap.to(dateRef.current, {
@@ -483,18 +490,19 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       color: "#71717a",
       duration: 0.35,
       ease: "power3.out",
+      overwrite: "auto",
     });
   }, [onHoverEnd]);
 
-  // Dynamic ScrollTrigger Activation on Mobile
+  // Precise Dynamic ScrollTrigger Activation on Mobile
   useEffect(() => {
     const mm = gsap.matchMedia();
 
     mm.add("(max-width: 767px)", () => {
       const st = ScrollTrigger.create({
         trigger: rowRef.current,
-        start: "top 55%",
-        end: "bottom 45%",
+        start: "top 50%",
+        end: "bottom 50%",
         onEnter: activateRow,
         onEnterBack: activateRow,
         onLeave: deactivateRow,
@@ -808,7 +816,7 @@ export default function AllWorksSection() {
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-6 sm:gap-0 pb-6">
           <div className="flex flex-row items-start gap-4 sm:gap-6 font-monot">
             <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%] font-light leading-none uppercase">
-               Works
+                Works
             </h1>
             <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
               [
@@ -983,23 +991,20 @@ export default function AllWorksSection() {
                   />
                 ))}
               </div>
+
+              {visibleCount < allProjects.length && (
+                <div className="flex justify-center pt-12">
+                  <button
+                    onClick={handleLoadMore}
+                    className="font-geist-mono text-xs tracking-widest uppercase border border-zinc-700 text-ghost-white hover:bg-ghost-white hover:text-carbon-black px-6 py-3 rounded-full transition-colors duration-300"
+                  >
+                    LOAD MORE
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
-
-        {/* VIEW MORE PROJECTS BUTTON */}
-        {visibleCount < allProjects.length && (
-          <div className="flex justify-between items-center pt-8 pb-16 border-t border-zinc-800 text-ghost-white">
-            <span className="text-2xl font-light">+</span>
-            <button
-              onClick={handleLoadMore}
-              className="font-geist-mono text-sm tracking-widest uppercase hover:text-zinc-400 transition-colors cursor-pointer"
-            >
-              VIEW MORE PROJECTS
-            </button>
-            <span className="text-2xl font-light">+</span>
-          </div>
-        )}
       </div>
     </div>
   );
