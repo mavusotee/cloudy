@@ -707,7 +707,7 @@ export default function CloudhausWorkDetail() {
         className="
           relative
           w-full
-          h-screen
+          h-dvh
           overflow-hidden
           flex
           flex-col
