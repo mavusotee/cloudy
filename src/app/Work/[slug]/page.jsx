@@ -691,7 +691,7 @@ export default function CloudhausWorkDetail() {
   return (
     <main
       className="
-        min-h-screen
+        min-h-dvh
         bg-black
         text-zinc-300
         font-geist-mono
