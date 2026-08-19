@@ -9,15 +9,15 @@ import React, {
   useImperativeHandle,
   useCallback,
 } from "react";
-import TransitionLink from "@/components/TransitionLink";
-import Button from "@/components/Button";
-import Footer from "@/components/Footer";
-import SmudgyTextReveal from "@/components/SmudgyTextReveal";
-import SmudgyTitleReveal from "@/components/SmudgyTitleReveal";
-import ServicesSection from "@/components/ServicesSection";
-import ClientsSection from "@/components/ClientsSection";
-import Testimonials from "@/components/Testimonials";
-import BlurFlicker from "@/components/BlurFlicker";
+import TransitionLink from "@/components/PageTransitions/TransitionLink";
+import Button from "@/components/UI/Button";
+import Footer from "@/components/Sections/Footer";
+import SmudgyTextReveal from "@/components/Animations/SmudgyTextReveal";
+import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
+import ServicesSection from "@/components/Sections/ServicesSection";
+import ClientsSection from "@/components/Sections/ClientsSection";
+import Testimonials from "@/components/Sections/Testimonials";
+import BlurFlicker from "@/components/Animations/BlurFlicker";
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";

@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react'
-import TransitionLink from '@/components/TransitionLink'
+import TransitionLink from '@/components/PageTransitions/TransitionLink'
 
 export default function Button({ 
   text = 'Check availability', 

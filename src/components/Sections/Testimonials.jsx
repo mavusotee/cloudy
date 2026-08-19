@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight } from 'lucide-react';
 import React, { useState, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
-import BlurFlicker from "./BlurFlicker";
+import BlurFlicker from "../Animations/BlurFlicker";
 import { SplitText } from 'gsap/SplitText';
 
 gsap.registerPlugin(SplitText);

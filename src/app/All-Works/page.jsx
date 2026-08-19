@@ -9,16 +9,16 @@ import React, {
   useImperativeHandle,
   useCallback,
 } from "react";
-import TransitionLink from "@/components/TransitionLink";
-import Button from "@/components/Button";
-import SmudgyTitleReveal from "@/components/SmudgyTitleReveal";
+import TransitionLink from "@/components/PageTransitions/TransitionLink";
+import Button from "@/components/UI/Button";
+import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
 import Lenis from "lenis";
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/UI/Navigation";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -362,7 +362,7 @@ function WorkCard({ video, containerClassName, heightClassName, onHoverChange })
 
   return (
     <TransitionLink
-      href={`/Works/${video.slug}`}
+      href={`/Work/${video.slug}`}
       className={`flex flex-col space-y-2 w-full block group ${containerClassName || ""}`}
     >
       <div className="flex flex-row items-center justify-between w-full px-1">
@@ -523,7 +523,7 @@ function ListItemRow({ project, onHoverStart, onHoverEnd }) {
       className="list-item-row"
     >
       <TransitionLink
-        href={`/Works/${project.slug}`}
+        href={`/Work/${project.slug}`}
         className="relative grid grid-cols-3 items-center py-4 px-2"
       >
         <span

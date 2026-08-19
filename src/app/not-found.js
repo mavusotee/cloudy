@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
-import Navigation from '../components/Navigation';
+import Navigation from '../components/UI/Navigation';
 import gsap from "gsap";
 
 function Error() {
@@ -74,13 +74,13 @@ function Error() {
   const textStyles = "text-[10rem] md:text-[38rem] font-bold tracking-tighter leading-none select-none uppercase";
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white overflow-hidden font-news-cycle">
-      <Navigation />
+    <div className="flex flex-col items-center justify-center min-h-dvh bg-black text-white overflow-hidden font-news-cycle">
+ 
 
       <div ref={containerRef} className="error-text-container relative flex flex-col items-center justify-center cursor-crosshair text-center">
         
         {/* BASE LAYER (Dark gray shadow) */}
-        <h1 className={`${textStyles} text-black`}>404</h1>
+        <h1 className={`${textStyles} text-white rotate-90 text-5xl`}>404</h1>
 
         {/* LAYER 1: BLACK & WHITE STROBE */}
         <div 

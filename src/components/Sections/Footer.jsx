@@ -1,6 +1,6 @@
 import React from "react";
-import SmallButton from "./SmallButton";
-import Button from "./Button";
+import SmallButton from "../UI/SmallButton";
+import Button from "../UI/Button";
 
 function Footer() {
   return (

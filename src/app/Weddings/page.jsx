@@ -9,16 +9,16 @@ import React, {
   useImperativeHandle,
   useCallback,
 } from "react";
-import TransitionLink from "@/components/TransitionLink";
-import Button from "@/components/Button";
-import SmudgyTitleReveal from "@/components/SmudgyTitleReveal";
+import TransitionLink from "@/components/PageTransitions/TransitionLink";
+import Button from "@/components/UI/Button";
+import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
 import Lenis from "lenis";
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/UI/Navigation";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -757,6 +757,7 @@ export default function AllWorksSection() {
 
   return (
     <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:py-2 md:px-4 relative overflow-x-hidden">
+    
       {/* FULL-BLEED HOVER VIDEO BACKGROUND (LIST VIEW) */}
       <div
         className={`fixed inset-0 z-0 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out ${
@@ -779,6 +780,9 @@ export default function AllWorksSection() {
       </div>
 
       <Navigation />
+      <div className="flex w-full h-[45vh] items-center px-2">
+      <h1 className="font-sans tracking-tight md:text-5xl w-[590px] text-ghost-white">LEGACY CAPTURED </h1>
+    </div>
       
       {/* CUSTOM CURSOR OVERLAY */}
       <div

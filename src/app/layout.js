@@ -1,9 +1,9 @@
 import { Geist, Geist_Mono, Plus_Jakarta_Sans, Fragment_Mono } from "next/font/google";
 import "./globals.css";
-import GlobalCinematicFog from "@/components/CinematicFog";
+
 import dynamic from 'next/dynamic'
-import ClientFogWrapper from "@/components/ClientFogWrapper";
-import TransitionOverlay from "@/components/TransitionOverlay";
+import ClientFogWrapper from "@/components/react-three/ClientFogWrapper";
+import TransitionOverlay from "@/components/PageTransitions/TransitionOverlay";
 
 
 

@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 
 // ssr: false is fully supported inside Client Components
-const CinematicFog = dynamic(() => import('@/components/CinematicFog'), {
+const CinematicFog = dynamic(() => import('@/components/react-three/CinematicFog'), {
   ssr: false,
 })
 

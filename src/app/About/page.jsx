@@ -1,9 +1,9 @@
 'use client'
 import React, { useEffect } from 'react'
-import Navigation from '@/components/Navigation'
+import Navigation from '@/components/UI/Navigation'
 import Image from 'next/image'
 import Lenis from 'lenis'
-import Split from '@/components/Split'
+import Split from '@/components/Animations/Split'
 
 function page() {
 
