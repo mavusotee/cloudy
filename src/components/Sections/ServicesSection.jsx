@@ -4,46 +4,103 @@ import React, { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Split from "../Animations/Split";
+import { SplitText } from "gsap/SplitText";
 import { ArrowLeft } from "lucide-react";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const services = [
   {
     id: "01",
-    title: "Strategy & CONCEPT",
+    title: "PRE-PRODUCTION",
     description:
       "We design the framework before we ever touch a camera. This is the strategic architecture—mapping the narrative, sourcing locations, and engineering the precise visual blueprint. We eliminate guesswork to ensure that when production begins, every single frame is optimized for maximum commercial impact",
   },
   {
     id: "02",
-    title: "Filming",
+    title: "PRODUCTION",
     description:
       "High-end execution on set. We deploy cinema-grade optics, controlled lighting, and deliberate movement to translate structural design and space into raw, high-authority visual media. Every setup is deliberate, capturing scale, texture, and technical craftsmanship without compromise.",
   },
   {
     id: "03",
-    title: "Editing & Color",
+    title: "POST-PRODUCTION",
     description:
       "Where raw footage is sculpted into a final commercial asset. Precise rhythmic pacing, seamless sound design, and custom architectural color grading elevate the visual tone, giving the final cut an unmistakable cinematic weight that commands authority.",
   },
 ];
 
 function ServiceItem({ service }) {
-  const lineRef = useRef(null);
   const containerRef = useRef(null);
+  const lineRef = useRef(null);
+  const numberRef = useRef(null);
+  const titleRef = useRef(null);
+  const descRef = useRef(null);
+  const arrowRef = useRef(null);
 
   useGSAP(
     () => {
-      if (!lineRef.current) return;
+      const splitTitle = new SplitText(titleRef.current, {
+        type: "chars",
+        charsClass: "inline-block will-change-transform transform-gpu",
+      });
 
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 82%",
+          end: "bottom 60%",
+          toggleActions: "play none none reverse",
+        },
+      });
+
+      // 1. Index number exposure step
+      tl.fromTo(
+        numberRef.current,
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.4, ease: "power1.inOut" }
+      )
+        // 2. GPU-OPTIMIZED FILM GATE SNAP
+        .fromTo(
+          splitTitle.chars,
+          {
+            opacity: 0,
+            y: -35,
+            x: (i) => (i % 2 === 0 ? -3 : 3),
+            scaleY: 1.15, // Replaces heavy blur with anamorphic vertical stretch
+            force3D: true,
+          },
+          {
+            opacity: 1,
+            y: 0,
+            x: 0,
+            scaleY: 1,
+            stagger: 0.02,
+            duration: 0.55,
+            ease: "steps(5)", // High-performance frame step
+            force3D: true,
+          },
+          "-=0.2"
+        )
+        // 3. Arrow latch
+        .fromTo(
+          arrowRef.current,
+          { opacity: 0, x: -15, scaleX: 0.7 },
+          { opacity: 0.8, x: 0, scaleX: 1, duration: 0.4, ease: "power2.out" },
+          "-=0.4"
+        )
+        // 4. Description unmask
+        .fromTo(
+          descRef.current,
+          { opacity: 0, y: 15 },
+          { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
+          "-=0.3"
+        );
+
+      // Bottom line scrubbed on scroll
       gsap.fromTo(
         lineRef.current,
-        {
-          scaleX: 0,
-          transformOrigin: "left center",
-        },
+        { scaleX: 0, transformOrigin: "left center" },
         {
           scaleX: 1,
           ease: "none",
@@ -51,10 +108,12 @@ function ServiceItem({ service }) {
             trigger: containerRef.current,
             start: "top 85%",
             end: "bottom 70%",
-            scrub: 0.8, // Tied to scroll progress with a silky 0.8s catch-up
+            scrub: 0.6,
           },
         }
       );
+
+      return () => splitTitle.revert();
     },
     { scope: containerRef }
   );
@@ -62,13 +121,16 @@ function ServiceItem({ service }) {
   return (
     <div
       ref={containerRef}
-      className="group flex flex-col space-y-8 md:space-y-6 w-full"
+      className="flex flex-col space-y-8 md:space-y-6 w-full pointer-events-none"
     >
       {/* HEADER & CONTENT ROW */}
       <div className="flex flex-row items-start justify-between w-full">
         {/* NUMBERING */}
         <div className="shrink-0 w-12 md:w-20 pt-[clamp(0.2rem,0.5vw,0.6rem)]">
-          <span className="font-sans font-semibold tracking-tighter text-zinc-600 text-[clamp(1.075rem,2.5vw,4.5rem)] select-none">
+          <span
+            ref={numberRef}
+            className="inline-block font-sans font-semibold tracking-tighter text-zinc-500 text-[clamp(1.075rem,2.5vw,4.5rem)] select-none"
+          >
             {service.id}
           </span>
         </div>
@@ -77,27 +139,32 @@ function ServiceItem({ service }) {
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex flex-row items-start justify-between w-full">
             {/* TITLE */}
-            <div className="flex items-start w-full md:translate-x-40">
-              <Split duration="1">
-                <h1 className="text-[clamp(2.05rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tighter transition-colors duration-300 group-hover:text-ghost-white font-medium leading-[1.05]">
-                  {service.title}
-                </h1>
-              </Split>
+            <div className="flex items-start w-full md:translate-x-40 overflow-hidden py-1">
+              <h1
+                ref={titleRef}
+                className="text-[clamp(2.05rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tighter text-ghost-white font-medium leading-[1.05]"
+              >
+                {service.title}
+              </h1>
             </div>
 
             {/* ARROW */}
-            <div className="hidden md:flex items-center shrink-0 pl-4 pt-2">
-              ( <ArrowLeft /> )
+            <div
+              ref={arrowRef}
+              className="hidden md:flex items-center shrink-0 pl-4 pt-2 text-zinc-400"
+            >
+              ( <ArrowLeft className="rotate-180 w-5 h-5" /> )
             </div>
           </div>
 
           {/* DESCRIPTION */}
           <div className="w-full md:translate-x-40 pt-4 md:pt-20">
-            <Split duration="1.2">
-              <p className="text-zinc-500 font-geist-mono uppercase  w-[clamp(350px,50vw,500px)] max-w-full pt-4 pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed">
-                {service.description}
-              </p>
-            </Split>
+            <p
+              ref={descRef}
+              className="text-zinc-500 font-geist-mono uppercase w-[clamp(350px,50vw,500px)] max-w-full pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed will-change-transform"
+            >
+              {service.description}
+            </p>
           </div>
         </div>
       </div>
@@ -127,8 +194,8 @@ export default function ServicesSection() {
 
       {/* MAPPED SERVICES */}
       <div className="flex flex-col space-y-[clamp(2rem,5vw,4.5rem)] mt-[clamp(3.5rem,8vw,8rem)] w-full">
-        {services.map((service, index) => (
-          <ServiceItem key={service.id} service={service} index={index} />
+        {services.map((service) => (
+          <ServiceItem key={service.id} service={service} />
         ))}
       </div>
     </div>

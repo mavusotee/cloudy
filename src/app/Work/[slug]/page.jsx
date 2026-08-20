@@ -692,7 +692,7 @@ export default function CloudhausWorkDetail() {
     <main
       className="
         h-dvh
-        bg-black
+        bg-carbon-black
         text-zinc-300
         font-geist-mono
         selection:bg-white
@@ -711,6 +711,7 @@ export default function CloudhausWorkDetail() {
           overflow-hidden
           flex
           flex-col
+          bg-carbon-black
           justify-between
           p-4
         "

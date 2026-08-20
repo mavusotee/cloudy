@@ -6,108 +6,87 @@ import { SplitText } from "gsap/SplitText";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
-export default function SmudgyTextReveal({ text = "" }) {
+export default function ExtrudedElevationReveal({ text = "" }) {
   const containerRef = useRef(null);
   const textRef = useRef(null);
-  const hasSettledRef = useRef(false);
 
   useLayoutEffect(() => {
     if (!textRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Set perspective on container to activate 3D space rendering
-      gsap.set(containerRef.current, { perspective: 1000 });
-
-      // Split text into lines instead of words
       const split = new SplitText(textRef.current, {
-        type: "lines",
-        linesClass: "block will-change-[filter,opacity,transform,color]",
+        type: "lines,words,chars",
+        linesClass: "sky-line relative block overflow-hidden py-[0.05em]",
+        wordsClass: "sky-word relative inline-block whitespace-nowrap",
+        charsClass:
+          "sky-char relative inline-block will-change-[transform,opacity,filter] transform-gpu",
       });
 
       const mm = gsap.matchMedia();
 
-      // -------------------------------------------------------------
-      // DESKTOP (Width > 768px)
-      // -------------------------------------------------------------
-      mm.add("(min-width: 769px)", () => {
-        gsap.fromTo(
-          split.lines,
-          {
-            color: "rgb(65, 65, 70)",
-            opacity: 0,
-            filter: "blur(12px)",
-            y: 48,
-            x: 20,
-            z: -300,
-            rotationY: 35,
-            rotationX: -25,
-            transformOrigin: "0% 50% -100px",
-          },
-          {
-            color: "rgb(255, 255, 255)",
-            opacity: 1,
-            filter: "blur(0px)",
-            y: 0,
-            x: 0,
-            z: 0,
-            rotationX: 0,
-            rotationY: 0,
-            stagger: 0.12, // Increased stagger for distinct line sequence
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: containerRef.current,
-              start: "top 72%",
-              end: "top 22%",
-              scrub: 1.8,
-           
-              onEnterBack: () => {
-                hasSettledRef.current = false;
-              },
-            },
-          }
-        );
-      });
+      mm.add(
+        { isDesktop: "(min-width: 769px)", isMobile: "(max-width: 768px)" },
+        (context) => {
+          const { isDesktop } = context.conditions;
 
-      // -------------------------------------------------------------
-      // MOBILE (Width <= 768px)
-      // -------------------------------------------------------------
-      mm.add("(max-width: 768px)", () => {
-        gsap.fromTo(
-          split.lines,
-          {
-            color: "rgb(44, 44, 47)",
-            opacity: 0,
-            filter: "blur(8px)",
-            y: 20,
-            x: 5,
-            z: -80,
-            rotationY: 20,
-            rotationX: -25,
-            transformOrigin: "0% 50% -50px",
-          },
-          {
-            color: "rgb(255, 255, 255)",
-            opacity: 1,
-            filter: "blur(0px)",
-            y: 0,
-            x: 0,
-            z: 0,
-            rotationX: 0,
-            rotationY: 0,
-            stagger: 0.1,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: containerRef.current,
-              start: "top 85%",
-              end: "top 35%",
-              scrub: 1.2,
-              onEnterBack: () => {
-                hasSettledRef.current = false;
+          const cfg = isDesktop
+            ? {
+                start: "top 82%",
+                end: "top 20%",
+                scrub: 0.6,
+                stagger: 0.012,
+                lineStagger: 0.08,
+              }
+            : {
+                start: "top 88%",
+                end: "top 35%",
+                scrub: 0.5,
+                stagger: 0.007,
+                lineStagger: 0.06,
+              };
+
+          split.lines.forEach((line, li) => {
+            const chars = line.querySelectorAll(".sky-char");
+
+            const tl = gsap.timeline({
+              scrollTrigger: {
+                trigger: containerRef.current,
+                start: cfg.start,
+                end: cfg.end,
+                scrub: cfg.scrub,
+                fastScrollEnd: true,
               },
-            },
-          }
-        );
-      });
+            });
+
+            // Extrusive Elevation:
+            // Characters start flattened down (scaleY: 0.1), dropped down (yPercent: 120),
+            // and softly blurred, extruding upward into sharp high-contrast letters.
+            tl.fromTo(
+              chars,
+              {
+                opacity: 0,
+                yPercent: 120,
+                scaleY: 0.1,
+                scaleX: 0.9,
+                filter: "blur(10px)",
+                transformOrigin: "50% 100%",
+                force3D: true,
+              },
+              {
+                opacity: 1,
+                yPercent: 0,
+                scaleY: 1,
+                scaleX: 1,
+                filter: "blur(0px)",
+                stagger: cfg.stagger,
+                ease: "power3.out",
+                force3D: true,
+              },
+              li * cfg.lineStagger
+            );
+          });
+        }
+      );
     }, containerRef);
 
     return () => ctx.revert();
@@ -116,10 +95,13 @@ export default function SmudgyTextReveal({ text = "" }) {
   if (!text) return null;
 
   return (
-    <div ref={containerRef} className="relative w-full lg:max-w-[765.9px]">
+    <div
+      ref={containerRef}
+      className="relative w-full lg:max-w-[820px] overflow-hidden"
+    >
       <p
         ref={textRef}
-        className="w-full leading-[120%] font-regular text-[clamp(1.45rem,5vw,3.125rem)] tracking-tight uppercase"
+        className="w-full leading-[115%] font-medium text-[clamp(1.5rem,5.2vw,3.25rem)] tracking-tight uppercase select-none text-white"
       >
         {text}
       </p>

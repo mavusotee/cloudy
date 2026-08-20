@@ -361,6 +361,9 @@ function WorkCard({ video, containerClassName, heightClassName, onHoverChange })
 // ----------------------------------------------------------------------
 export default function Page() {
   const cursorRef = useRef(null);
+  const footerContainerRef = useRef(null);
+  const footerRef = useRef(null);
+  const overlayRef = useRef(null);
   const [isHoveringVideo, setIsHoveringVideo] = useState(false);
 
   useEffect(() => {
@@ -409,6 +412,45 @@ export default function Page() {
       ease: isHoveringVideo ? "power2.out" : "power2.in",
     });
   }, [isHoveringVideo]);
+
+  // GSAP Footer Parallax & Black Overlay Fade
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // 1. Footer Parallax Y-Shift
+      gsap.fromTo(
+        footerRef.current,
+        { yPercent: -35 },
+        {
+          yPercent: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: footerContainerRef.current,
+            start: "top bottom",
+            end: "bottom bottom",
+            scrub: true,
+          },
+        }
+      );
+
+      // 2. Black Dimming Overlay Fade
+      gsap.fromTo(
+        overlayRef.current,
+        { opacity: 0.9 },
+        {
+          opacity: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: footerContainerRef.current,
+            start: "top bottom",
+            end: "bottom bottom",
+            scrub: true,
+          },
+        }
+      );
+    }, footerContainerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const handleHoverChange = useCallback((isHovered) => {
     setIsHoveringVideo(isHovered);
@@ -528,8 +570,26 @@ export default function Page() {
 
       <ServicesSection />
       <ClientsSection />
-      <Testimonials />
-      <Footer />
+
+      {/* PARALLAX FOOTER WRAPPER */}
+      <div ref={footerContainerRef} className="relative w-full overflow-hidden">
+        {/* Testimonials (Top Layer) */}
+        <div className="relative z-10 bg-carbon-black shadow-[0_25px_50px_-12px_rgba(0,0,0,0.9)]">
+          <Testimonials />
+        </div>
+
+        {/* Footer (Under Layer with Parallax Shift & Dimming Fade) */}
+        <div className="relative w-full z-0 overflow-hidden">
+          <div ref={footerRef} className="w-full relative will-change-transform">
+            {/* Dimming Overlay Layer */}
+            <div
+              ref={overlayRef}
+              className="absolute inset-0 bg-carbon-black pointer-events-none z-20"
+            />
+            <Footer />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
