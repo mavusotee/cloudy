@@ -820,6 +820,7 @@ export default function CloudhausWorkDetail() {
           uppercase
           tracking-wider
           text-zinc-400
+          bg-carbon-black
           font-geist-mono
         "
       >
