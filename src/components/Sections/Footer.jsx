@@ -1,11 +1,32 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../UI/Button";
+import BlurFlicker from "../Animations/BlurFlicker";
 
 function Footer() {
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const options = {
+        timeZone: "Australia/Adelaide",
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      };
+      setTime(new Intl.DateTimeFormat("en-AU", options).format(now));
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div className="w-full min-h-[90vh] md:min-h-[80vh] flex flex-col items-start justify-between pt-[clamp(2.5rem,8vw,7.5rem)]">
+    <div className="w-full min-h-[100vh] md:min-h-[80vh] flex flex-col items-start justify-between pt-[clamp(2.5rem,8vw,7.5rem)]">
       {/* TOP DIV HOUSING ALL THREE COLUMNS */}
-      <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(3rem,4vw,5rem)]">
+      <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(3rem,4vw,5rem)] md:pt-20">
         
         {/* 1. LEFT BLOCK */}
         <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,3vw,3rem)]">
@@ -19,11 +40,12 @@ function Footer() {
               let’s make sure the rest of the world sees it that way.
             </p>
           </div>
-
+          <BlurFlicker>
           <Button text="CHECK AVAILABILITY" link="/contact" className="" />
+          </BlurFlicker>
         </div>
 
-        {/* 2. MIDDLE BLOCK (NAVIGATION & PRODUCTION SLATE) */}
+        {/* 2. MIDDLE BLOCK (NAVIGATION & ADELAIDE TELEMETRY) */}
         <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,2vw,2.5rem)]">
           {/* NAVIGATION LINKS */}
           <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
@@ -41,29 +63,20 @@ function Footer() {
             </div>
           </div>
 
-          {/* PRODUCTION SLATE */}
-          <div className="flex flex-col space-y-[clamp(0.5rem,1vw,0.75rem)] items-start justify-start w-full pt-2">
-            <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
-              <div className="w-2 h-2 bg-ghost-white" />
-              <span className="text-zinc-500 text-[clamp(0.65rem,1.1vw,1rem)]">
-                PRODUCTION SLATE
+          {/* DYNAMIC TIME & GEOGRAPHIC DATA */}
+          <div className="flex flex-col space-y-[clamp(0.35rem,1vw,0.5rem)] items-start justify-start w-full pt-2 font-geist-mono uppercase">
+            <div className="flex items-center gap-2 text-[clamp(0.65rem,1.1vw,1rem)] text-ghost-white">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="text-zinc-400 font-bold tabular-nums">
+                ADL {time || "00:00:00"}
               </span>
             </div>
-            <div className="border border-zinc-800 p-3 flex flex-col space-y-2.5 w-full max-w-[270px] bg-zinc-950/60 select-none">
-              <div className="flex justify-between text-[0.625rem] font-geist-mono text-zinc-500 border-b border-zinc-800/80 pb-1.5 tracking-wider">
-                <span>ROLL 04</span>
-                <span>SCENE 01</span>
-                <span>TAKE 12</span>
-              </div>
-              <div className="flex items-center gap-2 pt-0.5">
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
-                </span>
-                <span className="text-[0.625rem] font-geist-mono text-ghost-white tracking-widest uppercase">
-                  REC [ ACTIVE SET ]
-                </span>
-              </div>
+            <div className="text-[clamp(0.6rem,0.9vw,0.8rem)] text-zinc-600 flex flex-col space-y-0.5 tracking-tight">
+              <span>34.9285° S, 138.6007° E</span>
+              <span>ELEV. 50M • ACDT/ACST</span>
             </div>
           </div>
         </div>
