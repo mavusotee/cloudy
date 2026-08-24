@@ -434,7 +434,7 @@ function Home() {
           {/* BOTTOM UI WITH WORD SPLIT REVEAL */}
           <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal pointer-events-auto">
 
-            <p
+            <h1
               ref={bottomTextRef}
               className="w-[clamp(320px,25vw,925px)] text-[clamp(1rem,0.55rem+0.6vw,4.8rem)] flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]"
             >
@@ -447,7 +447,7 @@ function Home() {
                   {word}
                 </span>
               ))}
-            </p>
+            </h1>
 
             <p
               ref={scrollTextRef}

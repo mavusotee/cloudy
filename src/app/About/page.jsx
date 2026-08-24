@@ -62,14 +62,14 @@ function page() {
             <div className="flex flex-col space-y-4">
               <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
                 <div className="w-2 h-2 bg-ghost-white text-ghost-white" />
-                <h1 className="text-zinc-700">CONTACT</h1>
+                <h2 className="text-zinc-700">CONTACT</h2>
               </div>
               
               <div className="flex flex-col space-y-3 w-full">
                 <div className="flex flex-col font-sans text-ghost-white text-[clamp(0.75rem,1.2vw,1rem)] uppercase">
-                  <h1>0404 104 360</h1>
-                  <h1>ADELAIDE, SOUTH AUSTRALIA</h1>
-                  <h1>info@cloudhaus.com.au</h1>
+                  <p>0404 104 360</p>
+                  <p>ADELAIDE, SOUTH AUSTRALIA</p>
+                  <p>info@cloudhaus.com.au</p>
                 </div>
               </div>
             </div>
@@ -78,15 +78,15 @@ function page() {
             <div className="flex flex-col space-y-4">
               <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
                 <div className="w-2 h-2 bg-ghost-white text-eclipse" />
-                <h1 className="text-zinc-700">SERVICES</h1>
+                <h2 className="text-zinc-700">SERVICES</h2>
               </div>
               
               <div className="flex flex-col space-y-3 w-full">
                 <div className="flex flex-col font-sans text-ghost-white text-[clamp(0.75rem,1.2vw,1rem)] uppercase">
-                  <h1>PRE-PRODUCTION</h1>
-                  <h1>PRODUCTION</h1>
-                  <h1>POST-PRODUCTION</h1>
-                  <h1>AI IN MOTION</h1>
+                  <p>PRE-PRODUCTION</p>
+                  <p>PRODUCTION</p>
+                  <p>POST-PRODUCTION</p>
+                  <p>AI IN MOTION</p>
                 </div>
               </div>
             </div>
@@ -96,14 +96,14 @@ function page() {
           <div className="flex flex-col space-y-4">
             <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
               <div className="w-2 h-2 bg-ghost-white text-eclipse" />
-              <h1 className="text-zinc-700">SOCIALS</h1>
+              <h2 className="text-zinc-700">SOCIALS</h2>
             </div>
             
             <div className="flex flex-col space-y-3 w-full">
               <div className="flex flex-row gap-6 sm:flex-row sm:gap-x-8 font-geist-mono text-ghost-white text-[clamp(0.75rem,1.2vw,1rem)] uppercase">
-                <h1>INSTAGRAM</h1>
-                <h1>FACEBOOK</h1>
-                <h1>VIMEO</h1>
+                <p>INSTAGRAM</p>
+                <p>FACEBOOK</p>
+                <p>VIMEO</p>
               </div>
             </div>
           </div>
@@ -115,7 +115,7 @@ function page() {
            <div className="w-full max-w-[220px] lg:max-w-[460px] h-[clamp(18rem,38vw,42rem)] relative">
              <Image 
                src="/Images/JAKE.png" 
-               alt="Jake McIntosh" 
+               alt="Jake McIntosh, founder and director of Cloudhaus" 
                fill 
                className="object-cover rounded-none"
              />
