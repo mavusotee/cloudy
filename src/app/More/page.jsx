@@ -188,7 +188,7 @@ const initialVideos = [
   {
     id: 1,
     date: "01 . 2022",
-    url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4",
+    url: "https://res.cloudinary.com/eafm1vdw/video/upload/v1787746621/evergreen_comp_1080p.mp4",
     title: "THE BUILDING COMPANY",
     subtitle: "EVERGREEN RESIDENCE",
     slug: "evergreen-residence",
@@ -196,7 +196,7 @@ const initialVideos = [
   {
     id: 2,
     date: "01 . 2022",
-    url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4",
+    url: "https://res.cloudinary.com/eafm1vdw/video/upload/v1787746466/woods_project_compressed_1080p.mp4",
     title: "MORGAN BUILD",
     subtitle: "WOODS PROJECT",
     slug: "woods-project",
@@ -204,7 +204,7 @@ const initialVideos = [
   {
     id: 3,
     date: "01 . 2022",
-    url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4",
+    url: "https://res.cloudinary.com/eafm1vdw/video/upload/v1787743752/dunehouse_comp_1080p.mp4",
     title: "4LIFE CONSTRUCTIONS",
     subtitle: "THE DUNE HOUSE",
     slug: "the-dune-house",
@@ -212,7 +212,7 @@ const initialVideos = [
   {
     id: 4,
     date: "01 . 2022",
-    url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922167/skatepark_house_comp_1080p_v29fnm.mp4",
+    url: "https://res.cloudinary.com/eafm1vdw/video/upload/v1787743733/skatepark_house_comp_1080p.mp4",
     title: "MORGAN BUILD",
     subtitle: "SKATEPARK HOUSE",
     slug: "skatepark-house",
@@ -220,7 +220,7 @@ const initialVideos = [
   {
     id: 5,
     date: "01 . 2022",
-    url: "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921778/north_adelaide_comp_1440p_exjydf.mp4",
+    url: "https://res.cloudinary.com/eafm1vdw/video/upload/v1787743741/north_adelaide_comp_1080p.mp4",
     title: "KRIVIC",
     subtitle: "NORTH ADELAIDE",
     slug: "north-adelaide",
@@ -569,13 +569,13 @@ export default function Page() {
       </div>
 
       <ServicesSection />
-      <ClientsSection />
+          <Testimonials />
 
       {/* PARALLAX FOOTER WRAPPER */}
       <div ref={footerContainerRef} className="relative w-full overflow-hidden">
         {/* Testimonials (Top Layer) */}
         <div className="relative z-10 bg-carbon-black shadow-[0_25px_50px_-12px_rgba(0,0,0,0.9)]">
-          <Testimonials />
+      <ClientsSection />
         </div>
 
         {/* Footer (Under Layer with Parallax Shift & Dimming Fade) */}

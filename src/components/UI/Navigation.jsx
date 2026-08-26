@@ -5,10 +5,14 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Logo from '@/Assets/Logo/cloud.svg'
 import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import BlurFlicker from '../Animations/BlurFlicker'
 import TransitionLink from '../PageTransitions/TransitionLink'
 
+gsap.registerPlugin(ScrollTrigger)
+
 function Navigation({ isMuted = true, onToggleSound }) {
+  const navRef = useRef(null)
   const logoRef = useRef(null)
   const linksRef = useRef(null)
 
@@ -18,6 +22,39 @@ function Navigation({ isMuted = true, onToggleSound }) {
   const closeTlRef = useRef(null)
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  // GSAP Fade out navigation on reaching #footer
+  useEffect(() => {
+    if (!navRef.current) return
+
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: '#footer',
+        start: 'top top+=200',
+        end: 'bottom bottom',
+        onEnter: () => {
+          gsap.to(navRef.current, {
+            opacity: 0,
+            y: -20,
+            pointerEvents: 'none',
+            duration: 0.4,
+            ease: 'power2.out'
+          })
+        },
+        onLeaveBack: () => {
+          gsap.to(navRef.current, {
+            opacity: 1,
+            y: 0,
+            pointerEvents: 'auto',
+            duration: 0.4,
+            ease: 'power2.out'
+          })
+        }
+      })
+    })
+
+    return () => ctx.revert()
+  }, [])
 
   // GSAP Vertical Top-to-Bottom Clip-Path Animation
   useEffect(() => {
@@ -96,7 +133,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
   return (
     <>
       {/* NAVIGATION */}
-      <nav className="fixed top-0 left-0 flex flex-row items-center justify-between w-full text-ghost-white p-4 md:px-6 md:py-6 z-[100]">
+      <nav ref={navRef} className="fixed top-0 left-0 flex flex-row items-center justify-between w-full text-ghost-white p-4 md:px-6 md:py-6 z-[100]">
 
         {/* ONLY THE LOGO HAS MIX-BLEND-DIFFERENCE */}
         <div

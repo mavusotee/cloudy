@@ -63,7 +63,7 @@ const projects = {
     title: "WOODS PROJECT",
 
     heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4",
+      "https://res.cloudinary.com/eafm1vdw/video/upload/v1787746466/woods_project_compressed_1080p.mp4",
 
       // Add additional Woods Project videos here
       // "https://res.cloudinary.com/.../woods-video-02.mp4",
