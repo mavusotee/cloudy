@@ -32,9 +32,9 @@ function ClientsSection() {
   const clientBlocks = Array.from({ length: 6 });
 
   return (
-    <div className="w-full h-auto bg-carbon-black mt-[clamp(3rem,8vw,0.5rem)] relative -mx-[clamp(1rem,4vw,3rem)] px-[clamp(1rem,4vw,3rem)] overflow-hidden mb-40">
+    <div className="w-screen relative left-1/2 -translate-x-1/2 bg-black mt-[clamp(3rem,8vw,0.5rem)] overflow-hidden mb-10 md:mb-40">
       {/* HEADER */}
-      <div className="flex flex-row items-center justify-between w-full text-zinc-300">
+      <div className="flex flex-row items-center justify-between w-full text-zinc-300 px-4 md:px-8">
         <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.725rem)] flex items-center gap-[clamp(0.35rem,0.6vw,0.6rem)]">
           <div className="w-[clamp(0.35rem,0.5vw,0.5rem)] h-[clamp(0.35rem,0.5vw,0.5rem)] bg-zinc-300" />
           <h1>CLIENTS</h1>
@@ -45,13 +45,13 @@ function ClientsSection() {
       {/* CONTENT */}
       <div className="flex flex-col space-y-[clamp(1.5rem,4vw,4.5rem)] mt-[clamp(1.5rem,3.5vw,1.5rem)] mb-10">
         {/* TITLE */}
-        <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] font-sans tracking-tight text-ghost-white max-w-[clamp(18rem,80vw,40rem)] leading-tight">
+        <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] font-sans tracking-tight text-ghost-white max-w-[clamp(18rem,80vw,40rem)] leading-tight px-4 md:px-8">
           OUR CURRENT ROSTER:
         </h1>
 
         {/* FULL BLEED HORIZONTAL LOGO TRACK */}
-        <div className="relative -mx-[clamp(1rem,4vw,3rem)] px-[clamp(1rem,4vw,3rem)] overflow-hidden">
-          {/* Edge fade gradient masks for smooth blending */}
+        <div className="relative w-full overflow-hidden">
+          {/* Edge fade gradient masks tuned strictly to carbon-black */}
           <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-carbon-black to-transparent z-10 pointer-events-none" />
           <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-carbon-black to-transparent z-10 pointer-events-none" />
 

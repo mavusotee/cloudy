@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import Button from "../UI/Button";
 import BlurFlicker from "../Animations/BlurFlicker";
+import SmudgyTextReveal from "../Animations/SmudgyTextReveal";
+import TransitionLink from "../PageTransitions/TransitionLink"
+import Link from "next/link";
 
 function Footer() {
   const [time, setTime] = useState("");
@@ -24,20 +27,20 @@ function Footer() {
   }, []);
 
   return (
-    <div id='footer' className="w-full min-h-[100vh] md:min-h-[120vh] flex flex-col items-start justify-between pt-[clamp(2.5rem,8vw,5.5rem)] px-2">
+    <div id='footer' className="w-full min-h-[100vh] md:min-h-[120vh] flex flex-col items-start justify-between pt-[clamp(2.5rem,8vw,5.5rem)] px-0 bg-black">
       {/* TOP DIV HOUSING ALL THREE COLUMNS */}
       <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(3rem,4vw,3rem)] md:pt-20">
         
         {/* 1. LEFT BLOCK */}
-        <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,3vw,3rem)]">
-          <div className="flex flex-col space-y-[clamp(1.2rem,2vw,1.5rem)]">
-            <h1 className="w-full max-w-[clamp(35rem,50vw,40.9125rem)] tracking-tight text-[clamp(1.75rem,3.5vw,2.2375rem)] font-sans font-medium text-ghost-white leading-[120%] uppercase ">
-              BUILT SOMETHING WORTH LOOKING UP TO? Let’s give it a story that
-              rises to the occasion.
-            </h1>
-            <p className="w-full max-w-[clamp(20rem,40vw,38.875rem)] text-[clamp(0.8rem,1.2vw,1rem)] text-zinc-600 leading-[130%] font-geist-mono uppercase ">
-              You’ve put everything into building something incredible. Now,
-              let’s make sure the rest of the world sees it that way.
+        <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,3vw,2rem)]">
+          <div className="flex flex-col space-y-[clamp(1.2rem,2vw,1.3rem)]">
+
+            <SmudgyTextReveal className="w-full max-w-[clamp(35rem,50vw,40.9125rem)] tracking-tight text-[clamp(1.75rem,3.0vw,1.2375rem)] font-sans font-medium text-ghost-white leading-[100%] uppercase " text="BUILT SOMETHING WORTH LOOKING UP TO? Let’s give it a story that
+              rises to the occasion.">
+              
+            </SmudgyTextReveal>
+            <p className="w-full max-w-[clamp(20rem,40vw,22.875rem)] text-[clamp(0.8rem,1.2vw,1rem)] text-zinc-600 leading-[130%] font-geist-mono uppercase ">
+             We know how much goes into building something great. Let’s show it.
             </p>
           </div>
           <BlurFlicker>
@@ -46,7 +49,7 @@ function Footer() {
         </div>
 
         {/* ROW 1 ON MOBILE/TABLET: NAVIGATION & CONTACT */}
-        <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)]">
+        <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)] font-medium">
           {/* NAVIGATION LINKS */}
           <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
             <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
@@ -55,11 +58,11 @@ function Footer() {
                 NAVIGATION
               </span>
             </div>
-            <div className="flex flex-col space-y-1 font-sans text-ghost-white text-[clamp(0.025rem,3.0vw,1.225rem)] uppercase">
-              <a href="#about" className="hover:opacity-70 transition-opacity">ABOUT</a>
+            <div className="flex flex-col space-y-1 font-sans text-ghost-white text-[clamp(0.325rem,3.0vw,1.225rem)] uppercase">
+              <TransitionLink href="/About" className="hover:opacity-70 transition-opacity">ABOUT</TransitionLink>
               <a href="#services" className="hover:opacity-70 transition-opacity">SERVICES</a>
-              <a href="#work" className="hover:opacity-70 transition-opacity">WORK</a>
-              <a href="#testimonials" className="hover:opacity-70 transition-opacity">TESTIMONIALS</a>
+              <TransitionLink href="/All-Works" className="hover:opacity-70 transition-opacity">WORK</TransitionLink>
+              <TransitionLink href="/Weddings" className="hover:opacity-70 transition-opacity">MORE</TransitionLink>
             </div>
           </div>
 
@@ -88,7 +91,7 @@ function Footer() {
                 ADL {time || "00:00:00"}
               </span>
             </div>
-            <div className="text-[clamp(0.6rem,0.9vw,0.8rem)] text-zinc-600 flex flex-col space-y-0.5 tracking-tight">
+            <div className="text-[clamp(0.6rem,0.9vw,1.2rem)] text-zinc-300 flex flex-col space-y-0.5 tracking-tight font-sans">
               <span>34.9285° S, 138.6007° E</span>
               <span>ELEV. 50M • ACDT/ACST</span>
             </div>
@@ -104,9 +107,30 @@ function Footer() {
                 </span>
               </div>
               <div className="flex flex-col items-start justify-start w-full lg:flex-row space-x-[clamp(1.5rem,1.5vw,1rem)] font-sans text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
-                <a href="#instagram" className="hover:opacity-70 transition-opacity">INSTAGRAM</a>
-                <a href="#facebook" className="hover:opacity-70 transition-opacity">FACEBOOK</a>
-                <a href="#vimeo" className="hover:opacity-70 transition-opacity">VIMEO</a>
+                <a 
+                  href="https://www.instagram.com/itsjmvisuals?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw==" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  INSTAGRAM
+                </a>
+                <a 
+                  href="https://facebook.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  FACEBOOK
+                </a>
+                <a 
+                  href="https://vimeo.com/user135969253" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  VIMEO
+                </a>
               </div>
             </div>
           </div>
@@ -149,7 +173,14 @@ function Footer() {
             </div>
             <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
               <span>TERMS & CONDITIONS</span>
-              <span className="font-bold">WEBSITE BY: ZANE</span>
+              <a 
+                href="https://www.withzane.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="font-bold hover:opacity-70 transition-opacity"
+              >
+                WEBSITE BY: ZANE
+              </a>
             </div>
           </div>
 

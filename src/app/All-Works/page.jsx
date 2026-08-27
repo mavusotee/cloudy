@@ -756,7 +756,7 @@ export default function AllWorksSection() {
   }, []);
 
   return (
-    <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:py-2 md:px-4 relative overflow-x-hidden">
+    <div className="bg-black w-full min-h-screen py-6 px-4 md:py-22 md:px-4 relative overflow-x-hidden">
       {/* FULL-BLEED HOVER VIDEO BACKGROUND (LIST VIEW) */}
       <div
         className={`fixed inset-0 z-0 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out ${

@@ -101,7 +101,7 @@ export default function ExtrudedElevationReveal({ text = "" }) {
     >
       <p
         ref={textRef}
-        className="w-full leading-[115%] font-medium text-[clamp(1.5rem,5.2vw,3.25rem)] tracking-tight uppercase select-none text-white"
+        className="w-full leading-[105%] font-medium text-[clamp(1.5rem,5.2vw,3.20rem)] tracking-tight uppercase select-none text-white"
       >
         {text}
       </p>

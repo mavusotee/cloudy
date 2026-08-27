@@ -24,12 +24,26 @@ function Navigation({ isMuted = true, onToggleSound }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // GSAP Fade out navigation on reaching #footer
+ // GSAP Fade out navigation on reaching #footer
   useEffect(() => {
     if (!navRef.current) return
 
     const ctx = gsap.context(() => {
+      // Check if footer exists on the current page
+      const footerEl = document.querySelector('#footer')
+      
+      if (!footerEl) {
+        // Ensure nav remains visible on pages without a footer
+        gsap.set(navRef.current, {
+          opacity: 1,
+          y: 0,
+          pointerEvents: 'auto'
+        })
+        return
+      }
+
       ScrollTrigger.create({
-        trigger: '#footer',
+        trigger: footerEl,
         start: 'top top+=200',
         end: 'bottom bottom',
         onEnter: () => {
