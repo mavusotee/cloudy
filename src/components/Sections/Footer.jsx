@@ -24,7 +24,7 @@ function Footer() {
   }, []);
 
   return (
-    <div id='footer' className="w-full min-h-[100vh] md:min-h-[120vh] flex flex-col items-start justify-between pt-[clamp(2.5rem,8vw,7.5rem)] px-2">
+    <div id='footer' className="w-full min-h-[100vh] md:min-h-[120vh] flex flex-col items-start justify-between pt-[clamp(2.5rem,8vw,5.5rem)] px-2">
       {/* TOP DIV HOUSING ALL THREE COLUMNS */}
       <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(3rem,4vw,3rem)] md:pt-20">
         
@@ -45,8 +45,8 @@ function Footer() {
           </BlurFlicker>
         </div>
 
-        {/* 2. MIDDLE BLOCK (NAVIGATION & ADELAIDE TELEMETRY) */}
-        <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,2vw,2.5rem)]">
+        {/* ROW 1 ON MOBILE/TABLET: NAVIGATION & CONTACT */}
+        <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)]">
           {/* NAVIGATION LINKS */}
           <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
             <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
@@ -55,7 +55,7 @@ function Footer() {
                 NAVIGATION
               </span>
             </div>
-            <div className="flex flex-col space-y-1 font-sans text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
+            <div className="flex flex-col space-y-1 font-sans text-ghost-white text-[clamp(0.025rem,3.0vw,1.225rem)] uppercase">
               <a href="#about" className="hover:opacity-70 transition-opacity">ABOUT</a>
               <a href="#services" className="hover:opacity-70 transition-opacity">SERVICES</a>
               <a href="#work" className="hover:opacity-70 transition-opacity">WORK</a>
@@ -63,6 +63,24 @@ function Footer() {
             </div>
           </div>
 
+          {/* CONTACT DETAILS */}
+          <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
+            <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
+              <div className="w-2 h-2 bg-ghost-white" />
+              <span className="text-zinc-500 text-[clamp(0.65rem,1.1vw,1rem)]">
+                CONTACT
+              </span>
+            </div>
+            <div className="flex flex-col space-y-1 md:space-y-0 font-sans text-ghost-white text-[clamp(0.325rem,3.0vw,1.225rem)] uppercase">
+              <span>0404 104 360</span>
+              <span>ADELAIDE, SOUTH AUSTRALIA</span>
+              <span>info@cloudhaus.com.au</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ROW 2 ON MOBILE/TABLET: TIME/TELEMETRY & SOCIALS */}
+        <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)]">
           {/* DYNAMIC TIME & GEOGRAPHIC DATA */}
           <div className="flex flex-col space-y-[clamp(0.35rem,1vw,0.5rem)] items-start justify-start w-full pt-2 font-geist-mono uppercase">
             <div className="flex items-center gap-2 text-[clamp(0.65rem,1.1vw,1rem)] text-ghost-white">
@@ -75,27 +93,9 @@ function Footer() {
               <span>ELEV. 50M • ACDT/ACST</span>
             </div>
           </div>
-        </div>
-
-        {/* 3. RIGHT BLOCK (CONTACT & SOCIALS) */}
-        <div className="flex flex-col items-start justify-start space-y-[clamp(2.95rem,3vw,3rem)]">
-          {/* CONTACT DETAILS */}
-          <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
-            <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
-              <div className="w-2 h-2 bg-ghost-white" />
-              <span className="text-zinc-500 text-[clamp(0.65rem,1.1vw,1rem)]">
-                CONTACT
-              </span>
-            </div>
-            <div className="flex flex-col -space-y-2 md:space-y-0 font-sans text-ghost-white text-[clamp(0.525rem,4.5vw,1.225rem)] uppercase">
-              <span>0404 104 360</span>
-              <span>ADELAIDE, SOUTH AUSTRALIA</span>
-              <span>info@cloudhaus.com.au</span>
-            </div>
-          </div>
 
           {/* SOCIAL DETAILS */}
-          <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)]">
+          <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] w-full">
             <div className="flex flex-col space-y-[clamp(0.25rem,1vw,0.5rem)] items-start justify-start w-full">
               <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
                 <div className="w-2 h-2 bg-ghost-white" />
@@ -103,7 +103,7 @@ function Footer() {
                   SOCIALS
                 </span>
               </div>
-              <div className="flex flex-row space-x-[clamp(1.5rem,1.5vw,1rem)] font-sans text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
+              <div className="flex flex-col items-start justify-start w-full lg:flex-row space-x-[clamp(1.5rem,1.5vw,1rem)] font-sans text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
                 <a href="#instagram" className="hover:opacity-70 transition-opacity">INSTAGRAM</a>
                 <a href="#facebook" className="hover:opacity-70 transition-opacity">FACEBOOK</a>
                 <a href="#vimeo" className="hover:opacity-70 transition-opacity">VIMEO</a>
