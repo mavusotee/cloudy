@@ -1,12 +1,14 @@
-import { Geist, Geist_Mono, Plus_Jakarta_Sans, Fragment_Mono } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Plus_Jakarta_Sans,
+  Fragment_Mono,
+} from "next/font/google";
 import "./globals.css";
 
-import dynamic from 'next/dynamic'
+import dynamic from "next/dynamic";
 import ClientFogWrapper from "@/components/react-three/ClientFogWrapper";
 import TransitionOverlay from "@/components/PageTransitions/TransitionOverlay";
-
-
-
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,18 +32,18 @@ const fragmentMono = Fragment_Mono({
 });
 
 export const metadata = {
-  metadataBase: new URL('https://steamhaus.vercel.app'),
+  metadataBase: new URL("https://steamhaus.vercel.app"),
 
   title: {
-    default: 'Cloudhaus | Architectural & Construction Photography & Film',
-    template: '%s | Cloudhaus',
+    default: "Cloudhaus | Architectural & Construction Photography & Film",
+    template: "%s | Cloudhaus",
   },
 
   description:
-    'Cloudhaus is an Adelaide visual studio creating high-end photography and cinematic films for architecture, construction and design.',
+    "Cloudhaus is an Adelaide visual studio creating high-end photography and cinematic films for architecture, construction and design.",
 
   alternates: {
-    canonical: '/',
+    canonical: "/",
   },
 
   robots: {
@@ -50,29 +52,29 @@ export const metadata = {
     googleBot: {
       index: true,
       follow: true,
-      'max-image-preview': 'large',
-      'max-video-preview': -1,
-      'max-snippet': -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+      "max-snippet": -1,
     },
   },
 
   openGraph: {
-    title: 'Cloudhaus | Architectural & Construction Photography & Film',
+    title: "Cloudhaus | Architectural & Construction Photography & Film",
     description:
-      'High-end photography and cinematic films for architecture, construction and design.',
-    url: 'https://steamhaus.vercel.app',
-    siteName: 'Cloudhaus',
-    locale: 'en_AU',
-    type: 'website',
+      "High-end photography and cinematic films for architecture, construction and design.",
+    url: "https://steamhaus.vercel.app",
+    siteName: "Cloudhaus",
+    locale: "en_AU",
+    type: "website",
   },
 
   twitter: {
-    card: 'summary_large_image',
-    title: 'Cloudhaus | Architectural & Construction Photography & Film',
+    card: "summary_large_image",
+    title: "Cloudhaus | Architectural & Construction Photography & Film",
     description:
-      'High-end photography and cinematic films for architecture, construction and design.',
+      "High-end photography and cinematic films for architecture, construction and design.",
   },
-}
+};
 
 export default function RootLayout({ children }) {
   return (
@@ -80,9 +82,11 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${fragmentMono.variable} antialiased`}
     >
-      <TransitionOverlay />
-      <body className="min-h-full flex flex-col"><ClientFogWrapper />{children}</body>
-      
+      <body className="min-h-full flex flex-col">
+        <TransitionOverlay />
+        <ClientFogWrapper />
+        {children}
+      </body>
     </html>
   );
 }

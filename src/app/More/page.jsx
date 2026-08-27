@@ -168,10 +168,10 @@ const SmallButton = forwardRef(({ isOpen }, ref) => {
   return (
     <div
       ref={buttonRef}
-      className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(7.5rem,10vw,8.6875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
+      className={`font-mono tracking-tight text-[clamp(0.5875rem,0.9vw,0.65rem)] border transition-colors duration-300 rounded-full w-[clamp(6.5rem,10vw,6.6875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
         isOpen
           ? "bg-ghost-white text-carbon-black border-ghost-white hover:bg-zinc-300"
-          : "bg-carbon-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
+          : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
       }`}
     >
       {isOpen ? "CLOSE" : "CLICK TO VIEW"}
@@ -302,7 +302,7 @@ function WorkCard({ video, containerClassName, heightClassName, onHoverChange })
 
   return (
     <TransitionLink
-      href={`/Works/${video.slug}`}
+      href={`/Work/${video.slug}`}
       className={`flex flex-col space-y-2 w-full block group ${containerClassName || ""}`}
     >
       <div className="flex flex-row items-center justify-between w-full px-0 md:px-2">
@@ -488,16 +488,16 @@ export default function Page() {
 
           {/* WORKS GRID */}
           <div className="flex flex-col space-y-8 lg:space-y-58 pt-6">
-            {/* ROW 1 */}
-            <div className="flex flex-col lg:flex-row items-center justify-center w-full gap-8 lg:gap-0 text-lavender">
+            {/* ROW 1 (FIXED CONTAINMENT) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-8 lg:gap-0 text-lavender">
               <WorkCard
                 video={initialVideos[0]}
-                heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
+                heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
                 onHoverChange={handleHoverChange}
               />
               <WorkCard
                 video={initialVideos[1]}
-                heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
+                heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
                 onHoverChange={handleHoverChange}
               />
             </div>
@@ -510,16 +510,16 @@ export default function Page() {
             />
 
             {/* ROW 3 (ASYMMETRIC GRID) */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] w-full gap-12 lg:gap-20 text-lavender pb-12 lg:pb-24 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-8 lg:gap-12 text-lavender pb-12 lg:pb-24 items-start">
               <WorkCard
                 video={initialVideos[3]}
-                heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem]"
+                heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem]"
                 onHoverChange={handleHoverChange}
               />
               <WorkCard
                 video={initialVideos[4]}
                 containerClassName="lg:translate-y-24"
-                heightClassName="w-[calc(100%+2rem)] -mx-4 md:w-full md:mx-0 aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem]"
+                heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem]"
                 onHoverChange={handleHoverChange}
               />
             </div>

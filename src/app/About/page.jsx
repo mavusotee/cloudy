@@ -1,35 +1,98 @@
 'use client'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import Navigation from '@/components/UI/Navigation'
 import Image from 'next/image'
 import Lenis from 'lenis'
-import Split from '@/components/Animations/Split'
+import gsap from 'gsap'
+import { SplitText } from 'gsap/SplitText'
 
-function page() {
+gsap.registerPlugin(SplitText)
+
+function ExtrudedTextReveal({ text }) {
+  const containerRef = useRef(null)
+  const textRef = useRef(null)
 
   useEffect(() => {
-      const lenis = new Lenis({
-        duration: 1.2,
-        easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        smoothWheel: true,
-        touchMultiplier: 2,
+    if (!textRef.current) return
+
+    const ctx = gsap.context(() => {
+      const split = new SplitText(textRef.current, {
+        type: 'lines,words,chars',
+        linesClass: 'sky-line relative block overflow-hidden py-[0.05em]',
+        wordsClass: 'sky-word relative inline-block whitespace-nowrap',
+        charsClass:
+          'sky-char relative inline-block will-change-[transform,opacity,filter] transform-gpu',
       })
-  
-      let frameId
-  
-      function raf(time) {
-        lenis.raf(time)
-        frameId = requestAnimationFrame(raf)
-      }
-  
+
+      const tl = gsap.timeline({
+        defaults: { ease: 'power3.out' },
+      })
+
+      // Extruded Elevation reveal running on component mount without ScrollTrigger
+      tl.fromTo(
+        split.chars,
+        {
+          opacity: 0,
+          yPercent: 120,
+          scaleY: 0.1,
+          scaleX: 0.9,
+          filter: 'blur(10px)',
+          transformOrigin: '50% 100%',
+          force3D: true,
+        },
+        {
+          opacity: 1,
+          yPercent: 0,
+          scaleY: 1,
+          scaleX: 1,
+          filter: 'blur(0px)',
+          stagger: 0.008,
+          duration: 0.8,
+          force3D: true,
+        }
+      )
+    }, containerRef)
+
+    return () => ctx.revert()
+  }, [text])
+
+  return (
+    <div ref={containerRef} className="w-full">
+      <p
+        ref={textRef}
+        className="text-ghost-white w-full text-[clamp(1.25rem,2.8vw,2.5rem)] tracking-tight leading-[130%] uppercase"
+      >
+        {text}
+      </p>
+    </div>
+  )
+}
+
+export default function Page() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 2,
+    })
+
+    let frameId
+
+    function raf(time) {
+      lenis.raf(time)
       frameId = requestAnimationFrame(raf)
-  
-      // Cleanup when component unmounts
-      return () => {
-        cancelAnimationFrame(frameId)
-        lenis.destroy()
-      }
-    }, [])
+    }
+
+    frameId = requestAnimationFrame(raf)
+
+    // Cleanup when component unmounts
+    return () => {
+      cancelAnimationFrame(frameId)
+      lenis.destroy()
+    }
+  }, [])
+
   return (
     <div className="w-full min-h-dvh bg-carbon-black p-4 md:p-8">
       {/*NAVIGATION*/}
@@ -38,22 +101,21 @@ function page() {
       {/*===============================Page content==========================================*/}
 
       {/*Top Content*/}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 w-full pt-20 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 w-full pt-40 items-start">
 
         {/*LEFT CONTENT (Span 7 columns on desktop) */}
         <div className="flex flex-col space-y-18 lg:col-span-7 w-full">
 
           <div className="flex flex-col gap-y-6">
             <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
-              <div className="w-2 h-2 bg-ghost-white text-ghost-white" />
+              <div className="w-2 h-2 bg-ghost-white text-zinc-800" />
               <h1>ABOUT CLOUDHAUS</h1>
             </div>
-            <Split>
 
-            <p className="text-ghost-white w-full text-[clamp(1.25rem,2.8vw,2.5rem)] tracking-tight leading-[130%] uppercase">
-              Since 2019, Cloudhaus has created cinematic films and photography for high-end architecture and construction. Led by Jake McIntosh, the studio operates on the belief that exceptional work deserves to be documented with the same care and craftsmanship that brought it into being.
-            </p>
-            </Split>
+            {/* EXTRUDED ELEVATION REVEAL (NO SCROLLTRIGGER) */}
+            <ExtrudedTextReveal 
+              text="Since 2019, Cloudhaus has created cinematic films and photography for high-end architecture and construction. Led by Jake McIntosh, the studio operates on the belief that exceptional work deserves to be documented with the same care and craftsmanship that brought it into being." 
+            />
           </div> 
 
           {/*LINKS AND MORE INFO*/}
@@ -149,5 +211,3 @@ function page() {
     </div>
   )
 }
-
-export default page

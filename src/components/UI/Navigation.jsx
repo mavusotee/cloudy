@@ -1,94 +1,112 @@
-'use client'
+"use client";
 
-import React, { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import Logo from '@/Assets/Logo/cloud.svg'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import BlurFlicker from '../Animations/BlurFlicker'
-import TransitionLink from '../PageTransitions/TransitionLink'
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import Logo from "@/Assets/Logo/cloud.svg";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import BlurFlicker from "../Animations/BlurFlicker";
+import TransitionLink from "../PageTransitions/TransitionLink";
 
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger);
 
 function Navigation({ isMuted = true, onToggleSound }) {
-  const navRef = useRef(null)
-  const logoRef = useRef(null)
-  const linksRef = useRef(null)
+  const navRef = useRef(null);
+  const logoRef = useRef(null);
+  const linksRef = useRef(null);
+  const rightActionsRef = useRef(null);
 
-  const menuOverlayRef = useRef(null)
-  const menuContentRef = useRef(null)
-  const openTlRef = useRef(null)
-  const closeTlRef = useRef(null)
+  const menuOverlayRef = useRef(null);
+  const menuContentRef = useRef(null);
+  const openTlRef = useRef(null);
+  const closeTlRef = useRef(null);
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // GSAP Fade out navigation on reaching #footer
- // GSAP Fade out navigation on reaching #footer
+  // GSAP ScrollTrigger direction split animation on reaching #footer
   useEffect(() => {
-    if (!navRef.current) return
+    if (!navRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Check if footer exists on the current page
-      const footerEl = document.querySelector('#footer')
-      
+      const footerEl = document.querySelector("#footer");
+
       if (!footerEl) {
-        // Ensure nav remains visible on pages without a footer
-        gsap.set(navRef.current, {
+        gsap.set([logoRef.current, linksRef.current, rightActionsRef.current], {
           opacity: 1,
+          x: 0,
           y: 0,
-          pointerEvents: 'auto'
-        })
-        return
+          pointerEvents: "auto",
+        });
+        return;
       }
 
       ScrollTrigger.create({
         trigger: footerEl,
-        start: 'top top+=200',
-        end: 'bottom bottom',
+        start: "top top+=200",
+        end: "bottom bottom",
         onEnter: () => {
-          gsap.to(navRef.current, {
+          // Links move UP & fade out
+          gsap.to(linksRef.current, {
             opacity: 0,
-            y: -20,
-            pointerEvents: 'none',
-            duration: 0.4,
-            ease: 'power2.out'
-          })
+            y: -80,
+            duration: 0.8,
+            ease: "power2.inOut",
+          });
+          // Logo moves LEFT & fades out
+          gsap.to(logoRef.current, {
+            opacity: 0,
+            x: -80,
+            duration: 0.8,
+            ease: "power2.inOut",
+          });
+          // Right button moves RIGHT & fades out
+          gsap.to(rightActionsRef.current, {
+            opacity: 0,
+            x: 80,
+            duration: 0.8,
+            ease: "power2.inOut",
+          });
+          gsap.set(navRef.current, { pointerEvents: "none" });
         },
         onLeaveBack: () => {
-          gsap.to(navRef.current, {
-            opacity: 1,
-            y: 0,
-            pointerEvents: 'auto',
-            duration: 0.4,
-            ease: 'power2.out'
-          })
-        }
-      })
-    })
+          // Reset all back to original positions
+          gsap.to(
+            [logoRef.current, linksRef.current, rightActionsRef.current],
+            {
+              opacity: 1,
+              x: 0,
+              y: 0,
+              duration: 0.4,
+              ease: "power2.out",
+            },
+          );
+          gsap.set(navRef.current, { pointerEvents: "auto" });
+        },
+      });
+    });
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   // GSAP Vertical Top-to-Bottom Clip-Path Animation
   useEffect(() => {
-    if (!menuOverlayRef.current) return
+    if (!menuOverlayRef.current) return;
 
-    // Initial State: Squeezed flat to top line
     gsap.set(menuOverlayRef.current, {
       clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-      display: "none"
-    })
+      display: "none",
+    });
 
-    const linkItems =
-      menuContentRef.current?.querySelectorAll('a') || []
+    const linkItems = menuContentRef.current?.querySelectorAll("a") || [];
 
-    const openTl = gsap.timeline({ paused: true })
+    const openTl = gsap
+      .timeline({ paused: true })
       .set(menuOverlayRef.current, { display: "flex" })
       .to(menuOverlayRef.current, {
         clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
         duration: 0.75,
-        ease: "power3.inOut"
+        ease: "power3.inOut",
       })
       .fromTo(
         linkItems,
@@ -101,55 +119,62 @@ function Navigation({ isMuted = true, onToggleSound }) {
           opacity: 1,
           duration: 0.95,
           stagger: 0.08,
-          ease: "power3.out"
+          ease: "power3.out",
         },
-        "-=0.5"
-      )
+        "-=0.5",
+      );
 
-    const closeTl = gsap.timeline({
-      paused: true,
-      onComplete: () => {
-        gsap.set(menuOverlayRef.current, { display: "none" })
-        setIsMobileMenuOpen(false)
-        document.body.style.overflow = ''
-      }
-    })
+    const closeTl = gsap
+      .timeline({
+        paused: true,
+        onComplete: () => {
+          gsap.set(menuOverlayRef.current, { display: "none" });
+          setIsMobileMenuOpen(false);
+          document.body.style.overflow = "";
+        },
+      })
       .to(linkItems, {
         yPercent: -100,
         xPercent: -8,
         opacity: 0,
         duration: 0.8,
         stagger: -0.04,
-        ease: "power3.in"
+        ease: "power3.in",
       })
-      .to(menuOverlayRef.current, {
-        clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-        duration: 0.65,
-        ease: "power3.inOut"
-      }, "-=0.2")
+      .to(
+        menuOverlayRef.current,
+        {
+          clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+          duration: 0.65,
+          ease: "power3.inOut",
+        },
+        "-=0.2",
+      );
 
-    openTlRef.current = openTl
-    closeTlRef.current = closeTl
-  }, [])
+    openTlRef.current = openTl;
+    closeTlRef.current = closeTl;
+  }, []);
 
   const toggleMobileMenu = () => {
     if (!isMobileMenuOpen) {
-      setIsMobileMenuOpen(true)
-      document.body.style.overflow = 'hidden'
-      closeTlRef.current?.pause(0)
-      openTlRef.current?.restart()
+      setIsMobileMenuOpen(true);
+      document.body.style.overflow = "hidden";
+      closeTlRef.current?.pause(0);
+      openTlRef.current?.restart();
     } else {
-      openTlRef.current?.pause()
-      closeTlRef.current?.restart()
+      openTlRef.current?.pause();
+      closeTlRef.current?.restart();
     }
-  }
+  };
 
   return (
     <>
       {/* NAVIGATION */}
-      <nav ref={navRef} className="fixed top-0 left-0 flex flex-row items-center justify-between w-full text-ghost-white p-4 md:px-6 md:py-6 z-[100]">
-
-        {/* ONLY THE LOGO HAS MIX-BLEND-DIFFERENCE */}
+      <nav
+        ref={navRef}
+        className="fixed top-0 left-0 flex flex-row items-center justify-between w-full text-ghost-white p-4 md:px-6 md:py-6 z-[100]"
+      >
+        {/* LOGO - Animates X negative (Left) */}
         <div
           ref={logoRef}
           className="mix-blend-difference pointer-events-auto [isolation:auto]"
@@ -166,34 +191,45 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </Link>
         </div>
 
-        {/* LINKS DESKTOP - NO BLEND MODE */}
+        {/* LINKS DESKTOP - Animates Y negative (Up) */}
         <div
           ref={linksRef}
           className="hidden md:flex items-center justify-center space-x-4 font-mono uppercase text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)] translate-x-[clamp(0px,12vw,190px)] pointer-events-auto"
         >
+           <BlurFlicker>
+
           <TransitionLink href="/About">
-            ABOUT
+          ABOUT
           </TransitionLink>
+           </BlurFlicker>
+<BlurFlicker>
 
           <TransitionLink href="/All-Works">
-            WORK
+          WORK
           </TransitionLink>
+</BlurFlicker>
+<BlurFlicker>
 
           <TransitionLink href="/Weddings">
-            MORE
+          MORE
           </TransitionLink>
+</BlurFlicker>
+<BlurFlicker>
 
           <TransitionLink href="/#footer">
-            CONTACT
+          CONTACT
           </TransitionLink>
+</BlurFlicker>
         </div>
 
-        {/* RIGHT ACTION BUTTONS - NO BLEND MODE */}
-        <div className="flex items-center space-x-2 sm:space-x-3 pointer-events-auto">
-
+        {/* RIGHT ACTION BUTTONS - Animates X positive (Right) */}
+        <div
+          ref={rightActionsRef}
+          className="flex items-center space-x-2 sm:space-x-3 pointer-events-auto"
+        >
           {/* CHECK AVAILABILITY BUTTON */}
           <BlurFlicker>
-            <button className="hidden md:flex bg-carbon-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(155px,12vw+70px,224px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.3rem,0.63rem+0.3vw,1.25rem)] text-center items-center justify-center text-ghost-white cursor-pointer">
+            <button className="hidden md:flex bg-carbon-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(155px,12vw+70px,204px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.3rem,0.63rem+0.3vw,1.25rem)] text-center items-center justify-center text-ghost-white cursor-pointer">
               Check availability
             </button>
           </BlurFlicker>
@@ -286,7 +322,6 @@ function Navigation({ isMuted = true, onToggleSound }) {
             </h1>
 
             <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.65rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
-
               <Link
                 className="hover:text-zinc-700"
                 href="https://instagram.com/itsjmvisuals"
@@ -313,13 +348,12 @@ function Navigation({ isMuted = true, onToggleSound }) {
               >
                 VIMEO
               </Link>
-
             </div>
           </div>
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default Navigation
+export default Navigation;

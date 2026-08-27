@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import Navigation from "@/components/UI/Navigation";
 import HeroCanvas from "@/components/react-three/HeroCanvas";
@@ -8,6 +8,11 @@ import WorkControls from "@/components/UI/WorkControls";
 
 import { useParams } from "next/navigation";
 import Lenis from "lenis";
+
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 /* =========================================================
    PROJECT DATA
@@ -577,6 +582,12 @@ export default function CloudhausWorkDetail() {
       : null;
 
   /* =======================================================
+     GALLERY REF (for GSAP scoping)
+  ======================================================= */
+
+  const galleryRef = useRef(null);
+
+  /* =======================================================
      NEXT VIDEO
   ======================================================= */
 
@@ -615,7 +626,7 @@ export default function CloudhausWorkDetail() {
 
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.4,
 
       easing: (t) =>
         Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -641,6 +652,35 @@ export default function CloudhausWorkDetail() {
       lenis.destroy();
     };
   }, []);
+
+  /* =======================================================
+     GSAP GALLERY REVEAL
+  ======================================================= */
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const tiles = gsap.utils.toArray(".gallery-tile");
+
+      gsap.set(tiles, {
+        clipPath: "inset(50% 50% 50% 50%)",
+      });
+
+      ScrollTrigger.batch(tiles, {
+        start: "top 85%",
+        once: true,
+        onEnter: (batch) => {
+          gsap.to(batch, {
+            clipPath: "inset(0% 0% 0% 0%)",
+            duration: 1.1,
+            ease: "power4.inOut",
+            stagger: 0.1,
+          });
+        },
+      });
+    }, galleryRef);
+
+    return () => ctx.revert();
+  }, [project]);
 
   /* =======================================================
      PROJECT NOT FOUND
@@ -691,8 +731,8 @@ export default function CloudhausWorkDetail() {
   return (
     <main
       className="
-        h-dvh
-        bg-carbon-black
+        min-h-dvh
+        bg-black
         text-zinc-300
         font-geist-mono
         selection:bg-white
@@ -711,7 +751,7 @@ export default function CloudhausWorkDetail() {
           overflow-hidden
           flex
           flex-col
-          bg-carbon-black
+          bg-black
           justify-between
           p-4
         "
@@ -749,36 +789,7 @@ export default function CloudhausWorkDetail() {
           "
         />
 
-        {/* ===============================================
-            CENTER TITLE
-        =============================================== */}
-
-        <div
-          className="
-            relative
-            z-10
-            flex
-            flex-col
-            items-center
-            justify-center
-            my-auto
-            text-center
-            pointer-events-none
-          "
-        >
-          <span
-            className="
-              font-sans
-              text-3xl
-              md:text-5xl
-              text-white
-              tracking-tight
-              drop-shadow-xl
-            "
-          >
-            {project.title}
-          </span>
-        </div>
+        
 
         {/* ===============================================
             WORK CONTROLS
@@ -809,7 +820,7 @@ export default function CloudhausWorkDetail() {
       <section
         className="
           mx-auto
-          py-20
+          py-40
           p-4
           md:p-8
           grid
@@ -821,8 +832,9 @@ export default function CloudhausWorkDetail() {
           uppercase
           tracking-wider
           text-zinc-400
-          bg-carbon-black
+          bg-black
           font-geist-mono
+          pt-8
         "
       >
         <div
@@ -834,7 +846,6 @@ export default function CloudhausWorkDetail() {
           <h2
             className="
               text-white
-              font-medium
               md:text-lg
             "
           >
@@ -863,7 +874,6 @@ export default function CloudhausWorkDetail() {
           <h2
             className="
               text-white
-              font-medium
               md:text-lg
             "
           >
@@ -891,13 +901,13 @@ export default function CloudhausWorkDetail() {
           className="
             md:col-span-7
             space-y-2
-            pt-6
+            pt-6 md:pt-12
+            hidden
           "
         >
           <h2
             className="
               text-white
-              font-semibold
               tracking-widest
             "
           >
@@ -908,6 +918,8 @@ export default function CloudhausWorkDetail() {
             className="
               space-y-1
               text-zinc-400
+              font-sans
+              font-medium
             "
           >
             {project.servicesLeft.map(
@@ -930,7 +942,6 @@ export default function CloudhausWorkDetail() {
           <h2
             className="
               text-white
-              font-medium
               md:text-lg
             "
           >
@@ -953,6 +964,7 @@ export default function CloudhausWorkDetail() {
       ================================================= */}
 
       <section
+        ref={galleryRef}
         className="
           mx-auto
           px-6
@@ -960,6 +972,7 @@ export default function CloudhausWorkDetail() {
           md:px-12
           pt-20
           md:pt-40
+          bg-black
         "
       >
         {/* ROW 1 */}
@@ -999,6 +1012,7 @@ export default function CloudhausWorkDetail() {
 
                 <div
                   className="
+                    gallery-tile
                     relative
                     aspect-[4/5]
                     w-full
@@ -1078,6 +1092,7 @@ export default function CloudhausWorkDetail() {
 
                 <div
                   className="
+                    gallery-tile
                     relative
                     aspect-[4/5]
                     w-full
@@ -1160,6 +1175,7 @@ export default function CloudhausWorkDetail() {
 
                 <div
                   className="
+                    gallery-tile
                     relative
                     aspect-[4/5]
                     w-full
@@ -1244,6 +1260,7 @@ export default function CloudhausWorkDetail() {
 
                 <div
                   className="
+                    gallery-tile
                     relative
                     aspect-[4/5]
                     w-full
@@ -1315,6 +1332,7 @@ export default function CloudhausWorkDetail() {
 
                 <div
                   className="
+                    gallery-tile
                     relative
                     aspect-[4/5]
                     w-full

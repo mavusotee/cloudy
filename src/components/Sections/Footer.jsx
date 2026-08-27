@@ -49,12 +49,12 @@ function Footer() {
         </div>
 
         {/* ROW 1 ON MOBILE/TABLET: NAVIGATION & CONTACT */}
-        <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)] font-medium">
+        <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)] font-regular">
           {/* NAVIGATION LINKS */}
           <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
             <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
               <div className="w-2 h-2 bg-ghost-white" />
-              <span className="text-zinc-500 text-[clamp(0.65rem,1.1vw,1rem)]">
+              <span className="text-zinc-800 text-[clamp(0.65rem,1.1vw,1rem)]">
                 NAVIGATION
               </span>
             </div>
@@ -70,7 +70,7 @@ function Footer() {
           <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
             <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
               <div className="w-2 h-2 bg-ghost-white" />
-              <span className="text-zinc-500 text-[clamp(0.65rem,1.1vw,1rem)]">
+              <span className="text-zinc-800 text-[clamp(0.65rem,1.1vw,1rem)]">
                 CONTACT
               </span>
             </div>
@@ -91,7 +91,7 @@ function Footer() {
                 ADL {time || "00:00:00"}
               </span>
             </div>
-            <div className="text-[clamp(0.6rem,0.9vw,1.2rem)] text-zinc-300 flex flex-col space-y-0.5 tracking-tight font-sans">
+            <div className="text-[clamp(0.6rem,0.9vw,1.2rem)] text-zinc-400 flex flex-col space-y-0.5 tracking-tight font-sans">
               <span>34.9285° S, 138.6007° E</span>
               <span>ELEV. 50M • ACDT/ACST</span>
             </div>
@@ -102,7 +102,7 @@ function Footer() {
             <div className="flex flex-col space-y-[clamp(0.25rem,1vw,0.5rem)] items-start justify-start w-full">
               <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
                 <div className="w-2 h-2 bg-ghost-white" />
-                <span className="text-zinc-500 text-[clamp(0.65rem,1.1vw,1rem)]">
+                <span className="text-zinc-800 text-[clamp(0.65rem,1.1vw,1rem)]">
                   SOCIALS
                 </span>
               </div>

@@ -40,9 +40,11 @@ function ServiceItem({ service }) {
 
   useGSAP(
     () => {
+      // Split Title for Extruded Elevation Reveal
       const splitTitle = new SplitText(titleRef.current, {
         type: "chars",
-        charsClass: "inline-block will-change-transform transform-gpu",
+        charsClass:
+          "sky-char relative inline-block will-change-[transform,opacity,filter] transform-gpu",
       });
 
       const tl = gsap.timeline({
@@ -60,24 +62,27 @@ function ServiceItem({ service }) {
         { opacity: 0, x: -10 },
         { opacity: 1, x: 0, duration: 0.4, ease: "power1.inOut" }
       )
-        // 2. GPU-OPTIMIZED FILM GATE SNAP
+        // 2. EXTRUDED ELEVATION REVEAL (TITLES)
         .fromTo(
           splitTitle.chars,
           {
             opacity: 0,
-            y: -35,
-            x: (i) => (i % 2 === 0 ? -3 : 3),
-            scaleY: 1.15, // Replaces heavy blur with anamorphic vertical stretch
+            yPercent: 120,
+            scaleY: 0.1,
+            scaleX: 0.9,
+            filter: "blur(10px)",
+            transformOrigin: "50% 100%",
             force3D: true,
           },
           {
             opacity: 1,
-            y: 0,
-            x: 0,
+            yPercent: 0,
             scaleY: 1,
-            stagger: 0.02,
-            duration: 0.55,
-            ease: "steps(5)", // High-performance frame step
+            scaleX: 1,
+            filter: "blur(0px)",
+            stagger: 0.015,
+            duration: 0.7,
+            ease: "power3.out",
             force3D: true,
           },
           "-=0.2"
@@ -129,7 +134,7 @@ function ServiceItem({ service }) {
         <div className="shrink-0 w-12 md:w-20 pt-[clamp(0.2rem,0.5vw,0.6rem)]">
           <span
             ref={numberRef}
-            className="inline-block font-sans font-semibold tracking-tighter text-zinc-500 text-[clamp(1.075rem,2.5vw,4.5rem)] select-none"
+            className="inline-block font-sans font-medium tracking-tighter text-zinc-100 text-[clamp(1.075rem,2.5vw,4.5rem)] select-none"
           >
             {service.id}
           </span>
@@ -138,7 +143,7 @@ function ServiceItem({ service }) {
         {/* SHARED COLUMN FOR TITLE + DESCRIPTION */}
         <div className="flex flex-col flex-1 min-w-0">
           <div className="flex flex-row items-start justify-between w-full">
-            {/* TITLE */}
+            {/* TITLE WITH EXTRUDED ELEVATION CONTAINER */}
             <div className="flex items-start w-full md:translate-x-40 overflow-hidden py-1">
               <h1
                 ref={titleRef}
@@ -172,7 +177,7 @@ function ServiceItem({ service }) {
       {/* FULL-WIDTH UNDERLINE (SCRUBBED ON SCROLL) */}
       <div
         ref={lineRef}
-        className="w-full bg-zinc-800 h-[1.5px] mt-[clamp(1.25rem,3vw,2rem)]"
+        className="w-full bg-zinc-950 h-[1.5px] mt-[clamp(1.25rem,3vw,2rem)]"
       />
     </div>
   );
