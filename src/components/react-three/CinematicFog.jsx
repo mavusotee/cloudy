@@ -213,7 +213,7 @@ function RadialVaporRing() {
             scale={3.2}
             volume={26}
             color="#ffffff"
-            opacity={0.30}
+            opacity={0.35}
             fade={65}
             speed={0.25}
             growth={3.5}
