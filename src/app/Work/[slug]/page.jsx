@@ -1,600 +1,278 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import Navigation from "@/components/UI/Navigation";
 import HeroCanvas from "@/components/react-three/HeroCanvas";
 import WorkControls from "@/components/UI/WorkControls";
 
 import { useParams } from "next/navigation";
+
 import Lenis from "lenis";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import { client } from "@/lib/client";
+
 gsap.registerPlugin(ScrollTrigger);
 
-/* =========================================================
-   PROJECT DATA
-========================================================= */
-
-const projects = {
-  "evergreen-residence": {
-    client: "THE BUILDING COMPANY",
-
-    title: "EVERGREEN RESIDENCE",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4",
-
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4",
-
-      // Add video 03 here:
-      // "https://res.cloudinary.com/.../video03.mp4",
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "woods-project": {
-    client: "MORGAN BUILD",
-
-    title: "WOODS PROJECT",
-
-    heroVideos: [
-      "https://res.cloudinary.com/eafm1vdw/video/upload/v1787746466/woods_project_compressed_1080p.mp4",
-
-      // Add additional Woods Project videos here
-      // "https://res.cloudinary.com/.../woods-video-02.mp4",
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "the-dune-house": {
-    client: "4LIFE CONSTRUCTIONS",
-
-    title: "THE DUNE HOUSE",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4",
-
-      // Add additional videos here
-      // "https://res.cloudinary.com/.../dunehouse-02.mp4",
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "skatepark-house": {
-    client: "MORGAN BUILD",
-
-    title: "SKATEPARK HOUSE",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922167/skatepark_house_comp_1080p_v29fnm.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "north-adelaide": {
-    client: "KRIVIC",
-
-    title: "NORTH ADELAIDE",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921778/north_adelaide_comp_1440p_exjydf.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "circa-estate": {
-    client: "CIRCA",
-
-    title: "ESTATE REDEVELOPMENT",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "ora-projects": {
-    client: "ORA PROJECTS",
-
-    title: "VALLEY VIEW RESIDENCE",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "nue-built": {
-    client: "NUE BUILT",
-
-    title: "MODERN PAVILION",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "arcadia-projects": {
-    client: "ARCADIA PROJECTS",
-
-    title: "CLIFFSIDE STUDIO",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922167/skatepark_house_comp_1080p_v29fnm.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "ap-dh": {
-    client: "AP.DH",
-
-    title: "HARBOR HOUSE",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921778/north_adelaide_comp_1440p_exjydf.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "glass-pavilion": {
-    client: "KINETIC STUDIO",
-
-    title: "GLASS PAVILION",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922206/evergreen_comp_1080p_vfkngm.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "desert-retreat": {
-    client: "MODERN ARCH",
-
-    title: "DESERT RETREAT",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785922129/woods_project_compressed_1080p_dpzyjd.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
-
-  "coastal-complex": {
-    client: "LUMEN HOMES",
-
-    title: "COASTAL COMPLEX",
-
-    heroVideos: [
-      "https://res.cloudinary.com/dfdzkwnb9/video/upload/v1785921796/dunehouse_comp_1440p_hp8mzj.mp4",
-
-      // Add additional videos here
-    ],
-
-    overview:
-      "Lorem ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1988.",
-
-    servicesLeft: ["Art Direction", "Creative Direction"],
-
-    servicesRight: ["Shorts", "Photography", "Videography"],
-
-    date: "2022",
-
-    gallery: [
-      { id: "01", type: "image", src: "/path-to-image-1.jpg" },
-      { id: "02", type: "image", src: "/path-to-image-2.jpg" },
-      { id: "03", type: "image", src: "/path-to-image-3.jpg" },
-      { id: "04", type: "image", src: "/path-to-image-4.jpg" },
-      { id: "05", type: "image", src: "/path-to-image-5.jpg" },
-      { id: "06", type: "image", src: "/path-to-image-6.jpg" },
-      { id: "07", type: "image", src: "/path-to-image-7.jpg" },
-      { id: "08", type: "image", src: "/path-to-image-8.jpg" },
-      { id: "09", type: "image", src: "/path-to-image-9.jpg" },
-      { id: "10", type: "image", src: "/path-to-image-10.jpg" },
-      { id: "11", type: "image", src: "/path-to-image-11.jpg" },
-      { id: "12", type: "image", src: "/path-to-image-12.jpg" },
-      { id: "13", type: "image", src: "/path-to-image-13.jpg" },
-      { id: "14", type: "image", src: "/path-to-image-14.jpg" },
-      { id: "15", type: "image", src: "/path-to-image-15.jpg" },
-      { id: "16", type: "image", src: "/path-to-image-16.jpg" },
-    ],
-  },
+// =========================================================
+// SANITY QUERY
+// =========================================================
+//
+// heroVideos = array of Sanity "file"
+// gallery    = array containing:
+//              - Sanity "image"
+//              - Sanity "file" (video)
+//
+// We return the asset URL and the Sanity item type.
+// =========================================================
+
+const PROJECT_QUERY = `
+  *[
+    _type == "caseStudy" &&
+    slug.current == $slug
+  ][0]{
+    _id,
+    title,
+    client,
+    overview,
+    date,
+    services,
+
+    heroVideos[]{
+      _key,
+      "src": asset->url
+    },
+
+    gallery[]{
+      _key,
+      "src": asset->url,
+      "mimeType": asset->mimeType
+    }
+  }
+`;
+
+// =========================================================
+// MEDIA URL HELPER
+// =========================================================
+
+const getMediaUrl = (media) => {
+  if (!media) {
+    return null;
+  }
+
+  // Already a URL string
+  if (typeof media === "string") {
+    return media;
+  }
+
+  // Our GROQ query returns { src: "..." }
+  if (typeof media.src === "string") {
+    return media.src;
+  }
+
+  // Fallback
+  if (typeof media.url === "string") {
+    return media.url;
+  }
+
+  return null;
 };
 
-/* =========================================================
-   PAGE
-========================================================= */
+// =========================================================
+// PAGE
+// =========================================================
 
 export default function CloudhausWorkDetail() {
   const params = useParams();
 
-  const project = projects[params.slug];
+  // =======================================================
+  // SLUG
+  // =======================================================
 
-  /* =======================================================
-     HERO STATE
-  ======================================================= */
+  const slug =
+    typeof params?.slug === "string"
+      ? params.slug
+      : Array.isArray(params?.slug)
+        ? params.slug[0]
+        : null;
 
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  // =======================================================
+  // PROJECT STATE
+  // =======================================================
 
-  const [nextVideoIndex, setNextVideoIndex] = useState(null);
+  const [project, setProject] = useState(null);
 
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isLoading, setIsLoading] =
+    useState(true);
 
-  /*
-    Always make sure we have
-    a valid video array.
-  */
+  const [error, setError] =
+    useState(null);
 
-  const heroVideos = project?.heroVideos || [];
+  // =======================================================
+  // FETCH PROJECT FROM SANITY
+  // =======================================================
 
-  const totalVideos = heroVideos.length;
+  useEffect(() => {
+    if (!slug) {
+      setIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function fetchProject() {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const data = await client.fetch(
+          PROJECT_QUERY,
+          {
+            slug,
+          },
+          {
+            next: {
+              revalidate: 60,
+            },
+          }
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!data) {
+          setProject(null);
+          return;
+        }
+
+        console.log(
+          "SANITY PROJECT:",
+          data
+        );
+
+        console.log(
+          "SANITY GALLERY:",
+          data.gallery
+        );
+
+        console.log(
+          "SANITY HERO VIDEOS:",
+          data.heroVideos
+        );
+
+        setProject(data);
+      } catch (err) {
+        console.error(
+          "Failed to fetch Sanity project:",
+          err
+        );
+
+        if (!cancelled) {
+          setProject(null);
+
+          setError(
+            "Unable to load project."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchProject();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  // =======================================================
+  // HERO STATE
+  // =======================================================
+
+  const [
+    currentVideoIndex,
+    setCurrentVideoIndex,
+  ] = useState(0);
+
+  const [
+    nextVideoIndex,
+    setNextVideoIndex,
+  ] = useState(null);
+
+  const [
+    isTransitioning,
+    setIsTransitioning,
+  ] = useState(false);
+
+  // =======================================================
+  // HERO VIDEOS
+  // =======================================================
+
+  const heroVideos =
+    Array.isArray(project?.heroVideos)
+      ? project.heroVideos
+          .map((video) => ({
+            ...video,
+            src: getMediaUrl(video),
+          }))
+          .filter((video) => video.src)
+      : [];
+
+  const totalVideos =
+    heroVideos.length;
 
   const activeSrc =
-    heroVideos[currentVideoIndex] || null;
+    heroVideos[
+      currentVideoIndex
+    ]?.src || null;
 
   const nextSrc =
     nextVideoIndex !== null
-      ? heroVideos[nextVideoIndex]
+      ? heroVideos[
+          nextVideoIndex
+        ]?.src || null
       : null;
 
-  /* =======================================================
-     GALLERY REF (for GSAP scoping)
-  ======================================================= */
+  // =======================================================
+  // GALLERY REF
+  // =======================================================
 
-  const galleryRef = useRef(null);
+  const galleryRef =
+    useRef(null);
 
-  /* =======================================================
-     NEXT VIDEO
-  ======================================================= */
+  // =======================================================
+  // RESET HERO INDEX WHEN PROJECT CHANGES
+  // =======================================================
+
+  useEffect(() => {
+    setCurrentVideoIndex(0);
+    setNextVideoIndex(null);
+    setIsTransitioning(false);
+  }, [project]);
+
+  // =======================================================
+  // NEXT HERO VIDEO
+  // =======================================================
 
   const handleNext = () => {
-    if (isTransitioning) return;
+    if (isTransitioning) {
+      return;
+    }
 
-    if (totalVideos <= 1) return;
+    if (totalVideos <= 1) {
+      return;
+    }
 
     const nextIndex =
       currentVideoIndex + 1 >= totalVideos
@@ -602,34 +280,43 @@ export default function CloudhausWorkDetail() {
         : currentVideoIndex + 1;
 
     setNextVideoIndex(nextIndex);
-
     setIsTransitioning(true);
   };
 
-  /* =======================================================
-     TRANSITION COMPLETE
-  ======================================================= */
+  // =======================================================
+  // HERO TRANSITION COMPLETE
+  // =======================================================
 
   const handleTransitionComplete = () => {
-    if (nextVideoIndex === null) return;
+    if (nextVideoIndex === null) {
+      return;
+    }
 
-    setCurrentVideoIndex(nextVideoIndex);
+    setCurrentVideoIndex(
+      nextVideoIndex
+    );
 
     setNextVideoIndex(null);
-
     setIsTransitioning(false);
   };
 
-  /* =======================================================
-     LENIS
-  ======================================================= */
+  // =======================================================
+  // LENIS
+  // =======================================================
 
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.4,
 
       easing: (t) =>
-        Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        Math.min(
+          1,
+          1.001 -
+            Math.pow(
+              2,
+              -10 * t
+            )
+        ),
 
       smoothWheel: true,
 
@@ -641,322 +328,278 @@ export default function CloudhausWorkDetail() {
     function raf(time) {
       lenis.raf(time);
 
-      frameId = requestAnimationFrame(raf);
+      frameId =
+        requestAnimationFrame(raf);
     }
 
-    frameId = requestAnimationFrame(raf);
+    frameId =
+      requestAnimationFrame(raf);
 
     return () => {
       cancelAnimationFrame(frameId);
-
       lenis.destroy();
     };
   }, []);
 
-  /* =======================================================
-     GSAP GALLERY REVEAL
-  ======================================================= */
+  // =======================================================
+  // GALLERY REVEAL
+  // =======================================================
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tiles = gsap.utils.toArray(".gallery-tile");
+    if (
+      !project ||
+      !galleryRef.current
+    ) {
+      return;
+    }
 
-      gsap.set(tiles, {
-        clipPath: "inset(50% 50% 50% 50%)",
-      });
+    const ctx = gsap.context(
+      () => {
+        const tiles =
+          gsap.utils.toArray(
+            ".gallery-tile"
+          );
 
-      ScrollTrigger.batch(tiles, {
-        start: "top 85%",
-        once: true,
-        onEnter: (batch) => {
-          gsap.to(batch, {
-            clipPath: "inset(0% 0% 0% 0%)",
-            duration: 1.1,
-            ease: "power4.inOut",
-            stagger: 0.1,
-          });
-        },
-      });
-    }, galleryRef);
+        if (!tiles.length) {
+          return;
+        }
 
-    return () => ctx.revert();
+        gsap.set(tiles, {
+          clipPath:
+            "inset(50% 50% 50% 50%)",
+        });
+
+        ScrollTrigger.batch(
+          tiles,
+          {
+            start: "top 85%",
+
+            once: true,
+
+            onEnter: (batch) => {
+              gsap.to(batch, {
+                clipPath:
+                  "inset(0% 0% 0% 0%)",
+
+                duration: 1.1,
+
+                ease:
+                  "power4.inOut",
+
+                stagger: 0.1,
+              });
+            },
+          }
+        );
+      },
+      galleryRef
+    );
+
+    return () => {
+      ctx.revert();
+    };
   }, [project]);
 
-  /* =======================================================
-     PROJECT NOT FOUND
-  ======================================================= */
+  // =======================================================
+  // LOADING
+  // =======================================================
 
-  if (!project) {
+  if (isLoading) {
     return (
-      <main
-        className="
-          min-h-screen
-          bg-black
-          text-white
-          flex
-          items-center
-          justify-center
-        "
-      >
-        <p
-          className="
-            font-geist-mono
-            text-sm
-            uppercase
-            tracking-widest
-          "
-        >
-          Project not found
+      <main className="min-h-screen bg-black text-white flex items-center justify-center">
+        <p className="font-geist-mono text-sm uppercase tracking-widest">
+          Loading project
         </p>
       </main>
     );
   }
 
-  /* =======================================================
-     FORMAT COUNTER
-  ======================================================= */
+  // =======================================================
+  // NOT FOUND
+  // =======================================================
 
-  const formattedIndex = String(
-    currentVideoIndex + 1
-  ).padStart(2, "0");
+  if (!project) {
+    return (
+      <main className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center space-y-3">
 
-  const formattedTotal = String(
-    totalVideos
-  ).padStart(2, "0");
+          <p className="font-geist-mono text-sm uppercase tracking-widest">
+            Project not found
+          </p>
 
-  /* =======================================================
-     RENDER
-  ======================================================= */
+          {error && (
+            <p className="font-geist-mono text-[10px] text-zinc-600 uppercase">
+              {error}
+            </p>
+          )}
+
+        </div>
+      </main>
+    );
+  }
+
+  // =======================================================
+  // GALLERY
+  // =======================================================
+
+  const gallery =
+    Array.isArray(project.gallery)
+      ? project.gallery
+          .map((item) => ({
+            ...item,
+            src: getMediaUrl(item),
+          }))
+          .filter((item) => item.src)
+      : [];
+
+  // =======================================================
+  // SERVICES
+  // =======================================================
+
+  const services =
+    Array.isArray(project.services)
+      ? project.services.filter(
+          (service) =>
+            typeof service === "string" &&
+            service.trim().length > 0
+        )
+      : [];
+
+  // =======================================================
+  // RENDER
+  // =======================================================
 
   return (
-    <main
-      className="
-        min-h-dvh
-        bg-black
-        text-zinc-300
-        font-geist-mono
-        selection:bg-white
-        selection:text-black
-      "
-    >
+    <main className="min-h-dvh bg-black text-zinc-300 font-geist-mono selection:bg-white selection:text-black">
+
       {/* =================================================
           HERO
       ================================================= */}
 
-      <section
-        className="
-          relative
-          w-full
-          h-dvh
-          overflow-hidden
-          flex
-          flex-col
-          bg-black
-          justify-between
-          p-4
-        "
-      >
-        {/* ===============================================
-            NAVIGATION
-        =============================================== */}
+      <section className="relative w-full h-dvh overflow-hidden flex flex-col bg-black justify-between p-4">
+
+        {/* NAVIGATION */}
 
         <div className="relative z-20">
           <Navigation />
         </div>
 
-        {/* ===============================================
-            THREE.JS HERO
-        =============================================== */}
+        {/* HERO VIDEO */}
 
-        <HeroCanvas
-          activeSrc={activeSrc}
-          nextSrc={nextSrc}
-          isTransitioning={isTransitioning}
-          onTransitionComplete={handleTransitionComplete}
-        />
-
-        {/* ===============================================
-            HERO OVERLAY
-        =============================================== */}
-
-        <div
-          className="
-            absolute
-            inset-0
-            z-[1]
-            bg-black/20
-            pointer-events-none
-          "
-        />
-
-        
-
-        {/* ===============================================
-            WORK CONTROLS
-        =============================================== */}
-
-        <div
-          className="
-            relative
-            z-20
-            w-full
-          "
-        >
-          <WorkControls
-            client={project.client}
-            title={project.title}
-            onNext={handleNext}
-            disabled={isTransitioning}
-            currentVideo={currentVideoIndex + 1}
-            totalVideos={totalVideos}
+        {activeSrc && (
+          <HeroCanvas
+            activeSrc={activeSrc}
+            nextSrc={nextSrc}
+            isTransitioning={
+              isTransitioning
+            }
+            onTransitionComplete={
+              handleTransitionComplete
+            }
           />
+        )}
+
+        {/* DARK OVERLAY */}
+
+        <div className="absolute inset-0 z-[1] bg-black/20 pointer-events-none" />
+
+        {/* WORK CONTROLS */}
+
+        <div className="relative z-20 w-full">
+
+          <WorkControls
+            client={
+              project.client || ""
+            }
+            title={
+              project.title || ""
+            }
+            onNext={
+              handleNext
+            }
+            disabled={
+              isTransitioning ||
+              totalVideos <= 1
+            }
+            currentVideo={
+              totalVideos > 0
+                ? currentVideoIndex + 1
+                : 0
+            }
+            totalVideos={
+              totalVideos
+            }
+          />
+
         </div>
+
       </section>
 
       {/* =================================================
           PROJECT OVERVIEW
       ================================================= */}
 
-      <section
-        className="
-          mx-auto
-          py-40
-          p-4
-          md:p-8
-          grid
-          grid-cols-1
-          md:grid-cols-12
-          gap-12
-          text-[11px]
-          leading-relaxed
-          uppercase
-          tracking-wider
-          text-zinc-400
-          bg-black
-          font-geist-mono
-          pt-8
-        "
-      >
-        <div
-          className="
-            md:col-span-7
-            space-y-4
-          "
-        >
-          <h2
-            className="
-              text-white
-              md:text-lg
-            "
-          >
+      <section className="mx-auto py-40 p-4 md:p-8 grid grid-cols-1 md:grid-cols-12 gap-12 text-[11px] leading-relaxed uppercase tracking-wider text-zinc-400 bg-black font-geist-mono pt-8">
+
+        {/* OVERVIEW */}
+
+        <div className="md:col-span-7 space-y-4">
+
+          <h2 className="text-white md:text-lg">
             PROJECT OVERVIEW
           </h2>
 
-          <p
-            className="
-              max-w-xl
-              text-zinc-400
-              text-sm
-              font-normal
-              leading-5
-            "
-          >
-            {project.overview}
+          <p className="max-w-xl text-zinc-400 text-sm font-normal leading-5">
+            {project.overview ||
+              "No project overview available."}
           </p>
+
         </div>
 
-        <div
-          className="
-            md:col-span-5
-            space-y-4
-          "
-        >
-          <h2
-            className="
-              text-white
-              md:text-lg
-            "
-          >
+        {/* SERVICES */}
+
+        <div className="md:col-span-5 space-y-4">
+
+          <h2 className="text-white md:text-lg">
             WHAT WE DID:
           </h2>
 
-          <ul
-            className="
-              space-y-1
-              text-zinc-400
-              text-sm
-            "
-          >
-            {project.servicesRight.map(
-              (service, index) => (
-                <li key={index}>
-                  {service}
-                </li>
-              )
-            )}
-          </ul>
+          {services.length > 0 ? (
+            <ul className="space-y-1 text-zinc-400 text-sm">
+
+              {services.map(
+                (service, index) => (
+                  <li
+                    key={`${service}-${index}`}
+                  >
+                    {service}
+                  </li>
+                )
+              )}
+
+            </ul>
+          ) : (
+            <p className="text-zinc-600 text-sm">
+              —
+            </p>
+          )}
+
         </div>
 
-        <div
-          className="
-            md:col-span-7
-            space-y-2
-            pt-6 md:pt-12
-            hidden
-          "
-        >
-          <h2
-            className="
-              text-white
-              tracking-widest
-            "
-          >
-            WHAT WE DID:
-          </h2>
+        {/* DATE */}
 
-          <ul
-            className="
-              space-y-1
-              text-zinc-400
-              font-sans
-              font-medium
-            "
-          >
-            {project.servicesLeft.map(
-              (service, index) => (
-                <li key={index}>
-                  {service}
-                </li>
-              )
-            )}
-          </ul>
-        </div>
+        <div className="md:col-span-5 space-y-2 pt-6">
 
-        <div
-          className="
-            md:col-span-5
-            space-y-2
-            pt-6
-          "
-        >
-          <h2
-            className="
-              text-white
-              md:text-lg
-            "
-          >
+          <h2 className="text-white md:text-lg">
             DATE
           </h2>
 
-          <p
-            className="
-              text-zinc-400
-              text-sm
-            "
-          >
-            {project.date}
+          <p className="text-zinc-400 text-sm">
+            {project.date || "—"}
           </p>
+
         </div>
+
       </section>
 
       {/* =================================================
@@ -964,406 +607,100 @@ export default function CloudhausWorkDetail() {
       ================================================= */}
 
       <section
-        ref={galleryRef}
-        className="
-          mx-auto
-          px-6
-          pb-32
-          md:px-12
-          pt-20
-          md:pt-40
-          bg-black
-        "
-      >
-        {/* ROW 1 */}
+  ref={galleryRef}
+  className="mx-auto px-6 pb-32 md:px-12 pt-20 md:pt-40 bg-black"
+>
+  {gallery.length > 0 ? (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
 
-        <div
-          className="
-            grid
-            grid-cols-2
-            md:grid-cols-4
-            gap-4
-            md:gap-6
-            mb-16
-            md:mb-24
-          "
-        >
-          {project.gallery
-            .slice(0, 4)
-            .map((item, index) => (
-              <div
-                key={index}
-                className="
-                  flex
-                  flex-col
-                  space-y-2
-                  group
-                "
-              >
-                <span
-                  className="
-                    text-[10px]
-                    text-zinc-300
-                    font-geist-mono
-                  "
-                >
-                  #{item.id}
-                </span>
+      {gallery.map((item, index) => {
 
-                <div
-                  className="
-                    gallery-tile
-                    relative
-                    aspect-[4/5]
-                    w-full
-                    overflow-hidden
-                    bg-zinc-900
-                    border
-                    border-zinc-800/80
-                  "
-                >
-                  <img
-                    src={item.src}
-                    alt={`Cloudhaus media ${
-                      index + 1
-                    }`}
-                    className="
-                      w-full
-                      h-full
-                      object-cover
-                      brightness-90
-                      group-hover:scale-105
-                      group-hover:brightness-100
-                      transition-all
-                      duration-500
-                      ease-out
-                    "
-                  />
-                </div>
-              </div>
-            ))}
-        </div>
+        const number = String(index + 1).padStart(2, "0");
 
-        {/* ROW 2 */}
+        const src = item.src;
 
-        <div
-          className="
-            grid
-            grid-cols-2
-            md:grid-cols-4
-            gap-4
-            md:gap-6
-            mb-16
-            md:mb-24
-          "
-        >
-          {[4, 5, 6].map(
-            (galleryIndex, index) => (
-              <div
-                key={galleryIndex}
-                className={`
-                  flex
-                  flex-col
-                  space-y-2
-                  group
-                  ${
-                    index === 0
-                      ? "col-start-1 md:col-start-1"
-                      : index === 1
-                        ? "col-start-2 md:col-start-3"
-                        : "col-start-1 md:col-start-4"
+        const isVideo =
+          item.mimeType?.startsWith("video/");
+
+        return (
+          <div
+            key={
+              item._key ||
+              `gallery-${index}`
+            }
+            className="flex flex-col space-y-2 group"
+          >
+
+            {/* NUMBER */}
+
+            <span className="text-[10px] text-zinc-300 font-geist-mono">
+              #{number}
+            </span>
+
+            {/* MEDIA */}
+
+            <div className="gallery-tile relative aspect-[4/5] w-full overflow-hidden bg-zinc-900 border border-zinc-800/80">
+
+              {isVideo ? (
+
+                <video
+                  src={src}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  className="w-full h-full object-cover brightness-90 group-hover:scale-105 group-hover:brightness-100 transition-all duration-500 ease-out"
+                  onError={() => {
+                    console.error(
+                      "Failed to load gallery video:",
+                      src
+                    );
+                  }}
+                />
+
+              ) : (
+
+                <img
+                  src={src}
+                  alt={`${project.title || "Project"} media ${index + 1}`}
+                  loading={
+                    index < 4
+                      ? "eager"
+                      : "lazy"
                   }
-                `}
-              >
-                <span
-                  className="
-                    text-[10px]
-                    text-zinc-300
-                    font-geist-mono
-                  "
-                >
-                  #
-                  {
-                    project.gallery[
-                      galleryIndex
-                    ].id
-                  }
-                </span>
+                  decoding="async"
+                  className="w-full h-full object-cover brightness-90 group-hover:scale-105 group-hover:brightness-100 transition-all duration-500 ease-out"
+                  onError={() => {
+                    console.error(
+                      "Failed to load gallery image:",
+                      src
+                    );
+                  }}
+                />
 
-                <div
-                  className="
-                    gallery-tile
-                    relative
-                    aspect-[4/5]
-                    w-full
-                    overflow-hidden
-                    bg-zinc-900
-                    border
-                    border-zinc-800/80
-                  "
-                >
-                  <img
-                    src={
-                      project.gallery[
-                        galleryIndex
-                      ].src
-                    }
-                    alt={`Cloudhaus media ${
-                      galleryIndex + 1
-                    }`}
-                    className="
-                      w-full
-                      h-full
-                      object-cover
-                      brightness-90
-                      group-hover:scale-105
-                      group-hover:brightness-100
-                      transition-all
-                      duration-500
-                      ease-out
-                    "
-                  />
-                </div>
-              </div>
-            )
-          )}
-        </div>
+              )}
 
-        {/* ROW 3 */}
+            </div>
 
-        <div
-          className="
-            grid
-            grid-cols-2
-            md:grid-cols-4
-            gap-4
-            md:gap-6
-            mb-16
-            md:mb-24
-          "
-        >
-          {[7, 8].map(
-            (galleryIndex, index) => (
-              <div
-                key={galleryIndex}
-                className={`
-                  flex
-                  flex-col
-                  space-y-2
-                  group
-                  ${
-                    index === 0
-                      ? "col-start-1 md:col-start-2"
-                      : "col-start-2 md:col-start-3"
-                  }
-                `}
-              >
-                <span
-                  className="
-                    text-[10px]
-                    text-zinc-300
-                    font-geist-mono
-                  "
-                >
-                  #
-                  {
-                    project.gallery[
-                      galleryIndex
-                    ].id
-                  }
-                </span>
+          </div>
+        );
+      })}
 
-                <div
-                  className="
-                    gallery-tile
-                    relative
-                    aspect-[4/5]
-                    w-full
-                    overflow-hidden
-                    bg-zinc-900
-                    border
-                    border-zinc-800/80
-                  "
-                >
-                  <img
-                    src={
-                      project.gallery[
-                        galleryIndex
-                      ].src
-                    }
-                    alt={`Cloudhaus media ${
-                      galleryIndex + 1
-                    }`}
-                    className="
-                      w-full
-                      h-full
-                      object-cover
-                      brightness-90
-                      group-hover:scale-105
-                      group-hover:brightness-100
-                      transition-all
-                      duration-500
-                      ease-out
-                    "
-                  />
-                </div>
-              </div>
-            )
-          )}
-        </div>
+    </div>
+  ) : (
 
-        {/* ROW 4 */}
+    <div className="flex items-center justify-center py-32">
 
-        <div
-          className="
-            grid
-            grid-cols-2
-            md:grid-cols-4
-            gap-4
-            md:gap-6
-            mb-16
-            md:mb-24
-          "
-        >
-          {[9, 10, 11].map(
-            (galleryIndex, index) => (
-              <div
-                key={galleryIndex}
-                className={`
-                  flex
-                  flex-col
-                  space-y-2
-                  group
-                  ${
-                    index === 0
-                      ? "col-start-1 md:col-start-1"
-                      : index === 1
-                        ? "col-start-2 md:col-start-2"
-                        : "col-start-1 md:col-start-4"
-                  }
-                `}
-              >
-                <span
-                  className="
-                    text-[10px]
-                    text-zinc-300
-                    font-geist-mono
-                  "
-                >
-                  #
-                  {
-                    project.gallery[
-                      galleryIndex
-                    ].id
-                  }
-                </span>
+      <p className="font-geist-mono text-xs uppercase tracking-widest text-zinc-700">
+        No gallery media
+      </p>
 
-                <div
-                  className="
-                    gallery-tile
-                    relative
-                    aspect-[4/5]
-                    w-full
-                    overflow-hidden
-                    bg-zinc-900
-                    border
-                    border-zinc-800/80
-                  "
-                >
-                  <img
-                    src={
-                      project.gallery[
-                        galleryIndex
-                      ].src
-                    }
-                    alt={`Cloudhaus media ${
-                      galleryIndex + 1
-                    }`}
-                    className="
-                      w-full
-                      h-full
-                      object-cover
-                      brightness-90
-                      group-hover:scale-105
-                      group-hover:brightness-100
-                      transition-all
-                      duration-500
-                      ease-out
-                    "
-                  />
-                </div>
-              </div>
-            )
-          )}
-        </div>
+    </div>
 
-        {/* ROW 5 */}
+  )}
+</section>
 
-        <div
-          className="
-            grid
-            grid-cols-2
-            md:grid-cols-4
-            gap-4
-            md:gap-6
-          "
-        >
-          {project.gallery
-            .slice(12, 16)
-            .map((item, index) => (
-              <div
-                key={index}
-                className="
-                  flex
-                  flex-col
-                  space-y-2
-                  group
-                "
-              >
-                <span
-                  className="
-                    text-[10px]
-                    text-zinc-300
-                    font-geist-mono
-                  "
-                >
-                  #{item.id}
-                </span>
-
-                <div
-                  className="
-                    gallery-tile
-                    relative
-                    aspect-[4/5]
-                    w-full
-                    overflow-hidden
-                    bg-zinc-900
-                    border
-                    border-zinc-800/80
-                  "
-                >
-                  <img
-                    src={item.src}
-                    alt={`Cloudhaus media ${
-                      index + 13
-                    }`}
-                    className="
-                      w-full
-                      h-full
-                      object-cover
-                      brightness-90
-                      group-hover:scale-105
-                      group-hover:brightness-100
-                      transition-all
-                      duration-500
-                      ease-out
-                    "
-                  />
-                </div>
-              </div>
-            ))}
-        </div>
-      </section>
     </main>
   );
 }
