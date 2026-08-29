@@ -1,10 +1,77 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { ChevronRight } from "lucide-react";
+import gsap from "gsap";
+import { SplitText } from "gsap/SplitText";
+
+gsap.registerPlugin(SplitText);
+
+function ExtrudedTextReveal({ text }) {
+  const containerRef = useRef(null);
+  const textRef = useRef(null);
+
+  useEffect(() => {
+    if (!textRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const split = new SplitText(textRef.current, {
+        type: "lines,words,chars",
+        linesClass: "sky-line relative block overflow-hidden py-[0.05em]",
+        wordsClass: "sky-word relative inline-block whitespace-nowrap",
+        charsClass:
+          "sky-char relative inline-block will-change-[transform,opacity,filter] transform-gpu",
+      });
+
+      const tl = gsap.timeline({
+        defaults: { ease: "power3.out" },
+      });
+
+      tl.fromTo(
+        split.chars,
+        {
+          opacity: 0,
+          yPercent: 120,
+          scaleY: 0.1,
+          scaleX: 0.9,
+          filter: "blur(10px)",
+          transformOrigin: "50% 100%",
+          force3D: true,
+        },
+        {
+          opacity: 1,
+          yPercent: 0,
+          scaleY: 1,
+          scaleX: 1,
+          filter: "blur(0px)",
+          stagger: 0.008,
+          duration: 0.8,
+          force3D: true,
+        },
+      );
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [text]);
+
+  return (
+    <div ref={containerRef} className="w-full">
+      <h2
+        ref={textRef}
+        className="text-3xl md:text-7xl text-ghost-white tracking-tight leading-[0.9]"
+      >
+        {title.split(" ").map((word, index) => (
+          <React.Fragment key={`${word}-${index}`}>
+            {index > 0 && <br />}
+            {word}
+          </React.Fragment>
+        ))}
+      </h2>
+    </div>
+  );
+}
 
 function WorkControls({
-  client,
   title,
   onNext,
   disabled = false,
@@ -13,15 +80,10 @@ function WorkControls({
 }) {
   return (
     <div className="flex items-end justify-between w-full select-none pb-5">
-      {/* LEFT CLIENT INFORMATION */}
+      {/* LEFT PROJECT INFORMATION */}
       <div className="flex flex-col space-y-2 font-sans tracking-tight">
-        <h1 className="text-sm text-ghost-white font-monot uppercase">
-          {client}
-        </h1>
-
-        <h2 className="text-3xl md:text-7xl text-ghost-white tracking-tight">
-          {title}
-        </h2>
+        {/* PROJECT TITLE */}
+        <ExtrudedTextReveal text={title || ""} />
 
         {/* VIDEO COUNTER */}
         {totalVideos > 1 && (
