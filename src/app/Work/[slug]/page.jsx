@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, {
@@ -36,11 +37,17 @@ if (typeof window !== "undefined") {
 const getMediaUrl = (media) => {
   if (!media) return null;
 
-  if (typeof media === "string") return media;
+  if (typeof media === "string") {
+    return media;
+  }
 
-  if (typeof media.src === "string") return media.src;
+  if (typeof media.src === "string") {
+    return media.src;
+  }
 
-  if (typeof media.url === "string") return media.url;
+  if (typeof media.url === "string") {
+    return media.url;
+  }
 
   return null;
 };
@@ -60,10 +67,12 @@ const PROJECT_QUERY = `
     overview,
     date,
     services,
+
     heroVideos[]{
       _key,
       "src": asset->url
     },
+
     gallery[]{
       _key,
       "src": asset->url,
@@ -180,6 +189,10 @@ export default function CloudhausWorkDetail() {
         ? params.slug[0]
         : null;
 
+  // =======================================================
+  // STATE
+  // =======================================================
+
   const [project, setProject] = useState(null);
   const [allProjects, setAllProjects] = useState([]);
 
@@ -199,16 +212,11 @@ export default function CloudhausWorkDetail() {
     useState(false);
 
   // =======================================================
-  // PROJECT INFO / HERO DIMMING
+  // REFS
   // =======================================================
 
   const projectInfoRef = useRef(null);
   const heroDimmingRef = useRef(null);
-
-  // =======================================================
-  // SCROLL PROGRESS
-  // =======================================================
-
   const scrollProgressRef = useRef(null);
 
   // =======================================================
@@ -468,6 +476,7 @@ export default function CloudhausWorkDetail() {
     };
 
     gsap.ticker.add(raf);
+
     gsap.ticker.lagSmoothing(0);
 
     return () => {
@@ -493,34 +502,32 @@ export default function CloudhausWorkDetail() {
 
   useGSAP(
     () => {
-      const section =
-        projectInfoRef.current;
-
-      const dimmer =
-        heroDimmingRef.current;
+      const section = projectInfoRef.current;
+      const dimmer = heroDimmingRef.current;
 
       if (!section || !dimmer) return;
 
-      gsap.fromTo(
-        dimmer,
-        {
-          opacity: 0,
-        },
-        {
-          opacity: 0.75,
-          ease: "none",
+      gsap.set(dimmer, {
+        opacity: 0,
+      });
 
-          scrollTrigger: {
-            trigger: section,
-            start: "top 85%",
-            end: "bottom 35%",
-            scrub: true,
-          },
-        }
-      );
+      gsap.to(dimmer, {
+        opacity: 0.75,
+        ease: "none",
+
+        scrollTrigger: {
+          trigger: section,
+
+          start: "top 85%",
+          end: "bottom 35%",
+
+          scrub: true,
+        },
+      });
     },
     {
       dependencies: [project],
+      revertOnUpdate: true,
     }
   );
 
@@ -600,7 +607,6 @@ export default function CloudhausWorkDetail() {
         selection:text-black
       "
     >
-
       {/* =================================================
           NAVIGATION
       ================================================= */}
@@ -657,99 +663,102 @@ export default function CloudhausWorkDetail() {
           HERO
       ================================================= */}
 
-      <div className="relative w-full bg-black">
+      <section className="relative w-full bg-black">
 
-        {/* STICKY HERO */}
+        {/* =================================================
+            STICKY HERO BACKGROUND
+
+            IMPORTANT:
+            The sticky element is now isolated from the
+            scrolling content. There is NO negative margin.
+        ================================================= */}
 
         <div
           className="
-            sticky
-            top-0
-            w-full
-            h-dvh
-            overflow-hidden
-            z-0
+            absolute
+            inset-0
+            pointer-events-none
           "
         >
-          {activeSrc && (
-            <div className="absolute inset-0 pointer-events-none">
-              <HeroCanvas
-                activeSrc={activeSrc}
-                nextSrc={nextSrc}
-                isTransitioning={isTransitioning}
-                onTransitionComplete={
-                  handleTransitionComplete
-                }
-              />
-            </div>
-          )}
-
-          {/* BASE HERO OVERLAY */}
-
           <div
             className="
-              absolute
-              inset-0
-              z-[1]
-              bg-black/40
-              pointer-events-none
+              sticky
+              top-0
+              h-dvh
+              w-full
+              overflow-hidden
             "
-          />
+          >
+            {/* HERO CANVAS */}
 
-          {/* SCROLL DIMMER */}
+            {activeSrc && (
+              <div className="absolute inset-0">
+                <HeroCanvas
+                  activeSrc={activeSrc}
+                  nextSrc={nextSrc}
+                  isTransitioning={isTransitioning}
+                  onTransitionComplete={
+                    handleTransitionComplete
+                  }
+                />
+              </div>
+            )}
 
-          <div
-            ref={heroDimmingRef}
-            className="
-              absolute
-              inset-0
-              z-[2]
-              bg-black
-              pointer-events-none
-            "
-          />
+            {/* BASE HERO OVERLAY */}
+
+            <div
+              className="
+                absolute
+                inset-0
+                z-[1]
+                bg-black/40
+              "
+            />
+
+            {/* SCROLL DIMMER */}
+
+            <div
+              ref={heroDimmingRef}
+              className="
+                absolute
+                inset-0
+                z-[2]
+                bg-black
+              "
+            />
+          </div>
         </div>
 
-        {/* HERO CONTENT */}
+        {/* =================================================
+            HERO CONTENT
+        ================================================= */}
 
-        <div
-          className="
-            relative
-            z-10
-            -mt-[100vh]
-            w-full
-          "
-        >
+        <div className="relative z-10">
+
+          {/* =================================================
+              HERO INTRO
+          ================================================= */}
+
           <div
             className="
               h-dvh
               w-full
-
               flex
               flex-col
               justify-end
-
               p-4
               md:p-8
             "
           >
-
-            {/* =================================================
-                TITLE / MEDIA / CONTROLS
-            ================================================= */}
-
             <div
               className="
                 relative
                 w-full
-
                 flex
                 flex-col
-
                 md:flex-row
                 md:items-end
                 md:justify-between
-
                 gap-8
                 md:gap-0
               "
@@ -764,10 +773,8 @@ export default function CloudhausWorkDetail() {
                   flex
                   flex-col
                   gap-3
-
                   font-sans
                   tracking-tighter
-
                   order-1
                   md:order-none
                 "
@@ -777,12 +784,9 @@ export default function CloudhausWorkDetail() {
                   className="
                     text-[clamp(4.5rem,12vw,7rem)]
                     md:text-9xl
-
                     text-ghost-white
-
                     tracking-tight
                     md:tracking-[-7px]
-
                     leading-[90%]
                   "
                 />
@@ -792,11 +796,8 @@ export default function CloudhausWorkDetail() {
                     className="
                       text-[10px]
                       md:text-xs
-
                       text-zinc-400
-
                       font-geist-mono
-
                       tracking-normal
                     "
                   >
@@ -821,17 +822,13 @@ export default function CloudhausWorkDetail() {
                   md:left-1/2
                   md:bottom-0
                   md:-translate-x-[40%]
-
                   flex
                   justify-start
                   md:justify-center
                   items-end
-
                   w-full
                   md:w-auto
-
                   pointer-events-none
-
                   order-2
                   md:order-none
                 "
@@ -842,19 +839,12 @@ export default function CloudhausWorkDetail() {
                   className="
                     text-left
                     md:text-center
-
                     font-geist-mono
-
                     text-[clamp(0.5rem,1.5vw,0.75rem)]
-
-
                     uppercase
                     tracking-[0px]
-
                     text-zinc-400
-
                     leading-none
-
                     whitespace-nowrap
                   "
                 />
@@ -870,10 +860,8 @@ export default function CloudhausWorkDetail() {
                   flex-row
                   items-center
                   gap-3
-
                   w-full
                   md:w-auto
-
                   order-3
                   md:order-none
                 "
@@ -891,41 +879,31 @@ export default function CloudhausWorkDetail() {
                       group
                       relative
                       overflow-hidden
-
                       bg-black
                       border
                       border-eclipse
                       text-white
-
                       h-[4rem]
-
                       px-5
                       md:px-7
-
                       flex
                       shrink-0
                       items-center
                       justify-center
-
                       transition-colors
                       duration-300
-
                       hover:bg-white
                       hover:text-black
-
                       rounded-full
                     "
                   >
                     <span
                       className="
                         font-geist-mono
-
                         text-[10px]
                         md:text-xs
-
                         tracking-widest
                         uppercase
-
                         relative
                         z-10
                       "
@@ -940,15 +918,11 @@ export default function CloudhausWorkDetail() {
                         left-0
                         w-full
                         h-[1px]
-
                         bg-white
-
                         scale-x-0
                         origin-left
-
                         transition-transform
                         duration-500
-
                         group-hover:scale-x-100
                       "
                     />
@@ -967,22 +941,16 @@ export default function CloudhausWorkDetail() {
                   aria-label="Next project video"
                   className={`
                     bg-black
-
                     border
                     border-eclipse
-
                     text-2xl
-
                     w-[3.5rem]
                     h-[4rem]
-
                     flex
                     shrink-0
                     items-center
                     justify-center
-
                     text-center
-
                     transition-opacity
                     duration-300
 
@@ -998,9 +966,7 @@ export default function CloudhausWorkDetail() {
                     →
                   </span>
                 </button>
-
               </div>
-
             </div>
           </div>
 
@@ -1011,6 +977,7 @@ export default function CloudhausWorkDetail() {
           <div
             ref={projectInfoRef}
             className="
+              relative
               px-4
               md:px-8
               py-20
@@ -1021,19 +988,14 @@ export default function CloudhausWorkDetail() {
                 grid
                 grid-cols-1
                 md:grid-cols-12
-
                 gap-12
                 md:gap-x-8
                 md:gap-y-12
-
                 text-[11px]
                 leading-relaxed
-
                 uppercase
                 tracking-wider
-
                 text-ghost-white
-
                 font-geist-mono
               "
             >
@@ -1047,7 +1009,6 @@ export default function CloudhausWorkDetail() {
                   md:col-span-7
                   md:col-start-1
                   md:row-start-1
-
                   space-y-4
                 "
               >
@@ -1063,14 +1024,10 @@ export default function CloudhausWorkDetail() {
                 <p
                   className="
                     max-w-xl
-
                     text-ghost-white
-
                     text-sm
-
                     font-normal
                     leading-5
-
                     uppercase
                   "
                 >
@@ -1088,7 +1045,6 @@ export default function CloudhausWorkDetail() {
                   md:col-span-5
                   md:col-start-8
                   md:row-start-1
-
                   space-y-4
                 "
               >
@@ -1105,11 +1061,8 @@ export default function CloudhausWorkDetail() {
                   <ul
                     className="
                       space-y-1
-
                       text-ghost-white
-
                       text-sm
-
                       uppercase
                     "
                   >
@@ -1137,12 +1090,6 @@ export default function CloudhausWorkDetail() {
 
               {/* =================================================
                   CLIENT + DATE
-
-                  MOBILE:
-                  FULL FLEX ROW
-
-                  DESKTOP:
-                  RETURNS TO GRID
               ================================================= */}
 
               <div
@@ -1151,22 +1098,17 @@ export default function CloudhausWorkDetail() {
                   flex-row
                   items-start
                   justify-between
-
                   w-full
-
                   md:contents
                 "
               >
 
-                {/* =================================================
-                    CLIENT
-                ================================================= */}
+                {/* CLIENT */}
 
                 <div
                   className="
                     space-y-2
                     pt-2
-
                     md:col-span-7
                     md:col-start-1
                     md:row-start-2
@@ -1184,9 +1126,7 @@ export default function CloudhausWorkDetail() {
                   <p
                     className="
                       text-ghost-white
-
                       text-sm
-
                       uppercase
                     "
                   >
@@ -1194,15 +1134,12 @@ export default function CloudhausWorkDetail() {
                   </p>
                 </div>
 
-                {/* =================================================
-                    DATE
-                ================================================= */}
+                {/* DATE */}
 
                 <div
                   className="
                     space-y-2
                     pt-2
-
                     md:col-span-5
                     md:col-start-8
                     md:row-start-2
@@ -1220,9 +1157,7 @@ export default function CloudhausWorkDetail() {
                   <p
                     className="
                       text-ghost-white
-
                       text-sm
-
                       uppercase
                     "
                   >
@@ -1231,12 +1166,10 @@ export default function CloudhausWorkDetail() {
                 </div>
 
               </div>
-
             </div>
           </div>
-
         </div>
-      </div>
+      </section>
 
       {/* =================================================
           GALLERY
@@ -1248,13 +1181,10 @@ export default function CloudhausWorkDetail() {
           z-20
           w-full
           bg-black
-
           px-4
           md:px-8
-
           pt-20
           md:pt-40
-
           pb-20
         "
       >
@@ -1264,7 +1194,6 @@ export default function CloudhausWorkDetail() {
               grid
               grid-cols-1
               md:grid-cols-2
-
               gap-4
               md:gap-6
             "
@@ -1299,21 +1228,17 @@ export default function CloudhausWorkDetail() {
                         loop
                         playsInline
                         preload="none"
-
                         className="
                           block
                           w-full
                           h-auto
                           object-cover
-
                           brightness-90
                           hover:brightness-100
-
                           transition-all
                           duration-500
                           ease-out
                         "
-
                         onError={() =>
                           console.error(
                             "Failed to load gallery video:",
@@ -1332,21 +1257,17 @@ export default function CloudhausWorkDetail() {
                         priority={index < 2}
                         sizes="(max-width: 768px) 100vw, 50vw"
                         quality={100}
-
                         className="
                           block
                           w-full
                           h-auto
                           object-cover
-
                           brightness-90
                           hover:brightness-100
-
                           transition-all
                           duration-500
                           ease-out
                         "
-
                         onError={() =>
                           console.error(
                             "Failed to load gallery image:",
@@ -1366,19 +1287,15 @@ export default function CloudhausWorkDetail() {
               flex
               items-center
               justify-center
-
               py-32
             "
           >
             <p
               className="
                 font-geist-mono
-
                 text-xs
-
                 uppercase
                 tracking-widest
-
                 text-zinc-700
               "
             >
@@ -1409,13 +1326,10 @@ export default function CloudhausWorkDetail() {
               group
               block
               w-full
-
               px-4
               md:px-8
-
               py-24
               md:py-40
-
               overflow-hidden
             "
           >
@@ -1424,7 +1338,6 @@ export default function CloudhausWorkDetail() {
                 flex
                 items-center
                 justify-between
-
                 mb-16
                 md:mb-24
               "
@@ -1432,13 +1345,10 @@ export default function CloudhausWorkDetail() {
               <span
                 className="
                   font-geist-mono
-
                   text-[10px]
                   md:text-xs
-
                   uppercase
                   tracking-[0.2em]
-
                   text-zinc-500
                 "
               >
@@ -1448,17 +1358,12 @@ export default function CloudhausWorkDetail() {
               <span
                 className="
                   font-geist-mono
-
                   text-[10px]
                   md:text-xs
-
                   uppercase
                   tracking-[0.2em]
-
                   text-zinc-500
-
                   group-hover:text-white
-
                   transition-colors
                   duration-500
                 "
@@ -1471,17 +1376,12 @@ export default function CloudhausWorkDetail() {
               <h2
                 className="
                   font-sans
-
                   text-[17vw]
                   md:text-9xl
-
                   leading-[115%]
-
                   tracking-[-0.07em]
-
                   text-white
                   uppercase
-
                   transition-transform
                   duration-700
                 "
@@ -1494,7 +1394,6 @@ export default function CloudhausWorkDetail() {
               className="
                 mt-16
                 md:mt-24
-
                 flex
                 items-center
                 justify-between
@@ -1503,13 +1402,10 @@ export default function CloudhausWorkDetail() {
               <span
                 className="
                   font-geist-mono
-
                   text-[10px]
                   md:text-xs
-
                   uppercase
                   tracking-widest
-
                   text-zinc-600
                 "
               >
@@ -1521,21 +1417,15 @@ export default function CloudhausWorkDetail() {
                   flex
                   items-center
                   justify-center
-
                   w-12
                   h-12
-
                   md:w-16
                   md:h-16
-
                   border
                   border-white/30
-
                   text-white
-
                   transition-all
                   duration-500
-
                   group-hover:bg-white
                   group-hover:text-black
                   group-hover:border-white
@@ -1545,10 +1435,8 @@ export default function CloudhausWorkDetail() {
                   className="
                     text-xl
                     md:text-2xl
-
                     transition-transform
                     duration-500
-
                     group-hover:translate-x-1
                   "
                 >
@@ -1569,26 +1457,16 @@ export default function CloudhausWorkDetail() {
           flex
           flex-col-reverse
           md:flex-row
-
           items-start
           md:items-end
-
           justify-between
-
           font-geist-mono
-
           text-ghost-white
-
           text-[clamp(0.3rem,2.5vw,0.725rem)]
-
           uppercase
-
           w-full
-
           gap-[clamp(0.55rem,0.8vw,1.5rem)]
-
           pb-4
-
           px-2
           md:px-4
         "
@@ -1598,9 +1476,7 @@ export default function CloudhausWorkDetail() {
             flex
             flex-row
             md:contents
-
             justify-between
-
             w-full
             md:w-auto
           "
@@ -1610,9 +1486,7 @@ export default function CloudhausWorkDetail() {
               flex
               flex-col
               md:flex-row
-
               space-y-0
-
               space-x-[clamp(0.5rem,4.5vw,6rem)]
             "
           >
@@ -1630,9 +1504,7 @@ export default function CloudhausWorkDetail() {
               flex
               flex-col
               md:flex-row
-
               space-y-0
-
               space-x-[clamp(0.5rem,4.5vw,6rem)]
             "
           >
@@ -1655,7 +1527,6 @@ export default function CloudhausWorkDetail() {
           className="
             flex
             flex-row
-
             space-x-[clamp(0.5rem,4.5vw,6rem)]
           "
         >
@@ -1680,7 +1551,7 @@ export default function CloudhausWorkDetail() {
           setIsPlayerOpen(false)
         }
       />
-
     </main>
   );
 }
+
