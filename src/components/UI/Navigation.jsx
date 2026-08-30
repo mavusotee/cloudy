@@ -1,183 +1,370 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/Assets/Logo/cloud.svg";
+
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
 import BlurFlicker from "../Animations/BlurFlicker";
 import TransitionLink from "../PageTransitions/TransitionLink";
 
 gsap.registerPlugin(ScrollTrigger);
 
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
 function Navigation({ isMuted = true, onToggleSound }) {
+  /* =======================================================
+     REFS
+  ======================================================= */
+
   const navRef = useRef(null);
+
   const logoRef = useRef(null);
   const linksRef = useRef(null);
   const rightActionsRef = useRef(null);
 
   const menuOverlayRef = useRef(null);
   const menuContentRef = useRef(null);
-  const openTlRef = useRef(null);
-  const closeTlRef = useRef(null);
+
+  const menuOpenTimelineRef = useRef(null);
+  const menuCloseTimelineRef = useRef(null);
+
+  const isUnmountingRef = useRef(false);
+
+  /* =======================================================
+     STATE
+  ======================================================= */
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // GSAP ScrollTrigger direction split animation on reaching #footer
-  useEffect(() => {
-    if (!navRef.current) return;
+  /* =======================================================
+     BODY SCROLL LOCK
+  ======================================================= */
 
-    const ctx = gsap.context(() => {
+  const lockBodyScroll = useCallback(() => {
+    document.body.style.overflow = "hidden";
+  }, []);
+
+  const unlockBodyScroll = useCallback(() => {
+    document.body.style.overflow = "";
+  }, []);
+
+  /* =======================================================
+     MAIN GSAP CONTEXT
+     
+     EVERYTHING GSAP-RELATED LIVES INSIDE THIS CONTEXT.
+     When Navigation unmounts, useGSAP automatically reverts
+     the animations and ScrollTrigger instances.
+  ======================================================= */
+
+  useGSAP(
+    () => {
+      if (!navRef.current) return;
+
+      const nav = navRef.current;
+      const logo = logoRef.current;
+      const links = linksRef.current;
+      const rightActions = rightActionsRef.current;
+
+      const overlay = menuOverlayRef.current;
+      const menuContent = menuContentRef.current;
+
+      /* =====================================================
+         INITIAL NAVIGATION STATE
+      ===================================================== */
+
+      gsap.set([logo, links, rightActions], {
+        opacity: 1,
+        x: 0,
+        y: 0,
+      });
+
+      /* =====================================================
+         FOOTER NAVIGATION ANIMATION
+      ===================================================== */
+
       const footerEl = document.querySelector("#footer");
 
-      if (!footerEl) {
-        gsap.set([logoRef.current, linksRef.current, rightActionsRef.current], {
-          opacity: 1,
-          x: 0,
-          y: 0,
-          pointerEvents: "auto",
-        });
-        return;
-      }
+      if (footerEl) {
+        ScrollTrigger.create({
+          trigger: footerEl,
+          start: "top top+=200",
+          end: "bottom bottom",
 
-      ScrollTrigger.create({
-        trigger: footerEl,
-        start: "top top+=200",
-        end: "bottom bottom",
-        onEnter: () => {
-          // Links move UP & fade out
-          gsap.to(linksRef.current, {
-            opacity: 0,
-            y: -80,
-            duration: 0.8,
-            ease: "power2.inOut",
-          });
-          // Logo moves LEFT & fades out
-          gsap.to(logoRef.current, {
-            opacity: 0,
-            x: -80,
-            duration: 0.8,
-            ease: "power2.inOut",
-          });
-          // Right button moves RIGHT & fades out
-          gsap.to(rightActionsRef.current, {
-            opacity: 0,
-            x: 80,
-            duration: 0.8,
-            ease: "power2.inOut",
-          });
-          gsap.set(navRef.current, { pointerEvents: "none" });
-        },
-        onLeaveBack: () => {
-          // Reset all back to original positions
-          gsap.to(
-            [logoRef.current, linksRef.current, rightActionsRef.current],
-            {
+          onEnter: () => {
+            // Kill any existing tweens before starting new ones.
+            gsap.killTweensOf([logo, links, rightActions]);
+
+            gsap.to(links, {
+              opacity: 0,
+              y: -80,
+              duration: 0.8,
+              ease: "power2.inOut",
+              overwrite: true,
+            });
+
+            gsap.to(logo, {
+              opacity: 0,
+              x: -80,
+              duration: 0.8,
+              ease: "power2.inOut",
+              overwrite: true,
+            });
+
+            gsap.to(rightActions, {
+              opacity: 0,
+              x: 80,
+              duration: 0.8,
+              ease: "power2.inOut",
+              overwrite: true,
+            });
+
+            gsap.set(nav, {
+              pointerEvents: "none",
+            });
+          },
+
+          onLeaveBack: () => {
+            gsap.killTweensOf([logo, links, rightActions]);
+
+            gsap.to([logo, links, rightActions], {
               opacity: 1,
               x: 0,
               y: 0,
               duration: 0.4,
               ease: "power2.out",
-            },
-          );
-          gsap.set(navRef.current, { pointerEvents: "auto" });
+              overwrite: true,
+            });
+
+            gsap.set(nav, {
+              pointerEvents: "auto",
+            });
+          },
+        });
+      }
+
+      /* =====================================================
+         MOBILE MENU
+      ===================================================== */
+
+      if (!overlay || !menuContent) return;
+
+      const linkItems = menuContent.querySelectorAll("a");
+
+      /* -----------------------------------------------------
+         INITIAL OVERLAY STATE
+
+         Important:
+         We hide the overlay immediately with GSAP.
+         This prevents the menu from flashing during mount.
+      ----------------------------------------------------- */
+
+      gsap.set(overlay, {
+        display: "none",
+        clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+      });
+
+      gsap.set(linkItems, {
+        yPercent: 100,
+        opacity: 0,
+      });
+
+      /* =====================================================
+         OPEN TIMELINE
+      ===================================================== */
+
+      const openTl = gsap.timeline({
+        paused: true,
+      });
+
+      openTl
+        .set(overlay, {
+          display: "flex",
+        })
+        .to(overlay, {
+          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+          duration: 0.75,
+          ease: "power3.inOut",
+        })
+        .to(
+          linkItems,
+          {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.95,
+            stagger: 0.08,
+            ease: "power3.out",
+            overwrite: true,
+          },
+          "-=0.5",
+        );
+
+      /* =====================================================
+         CLOSE TIMELINE
+      ===================================================== */
+
+      const closeTl = gsap.timeline({
+        paused: true,
+
+        onComplete: () => {
+          if (isUnmountingRef.current) return;
+
+          gsap.set(overlay, {
+            display: "none",
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+          });
+
+          gsap.set(linkItems, {
+            yPercent: 100,
+            xPercent: 0,
+            opacity: 0,
+          });
+
+          setIsMobileMenuOpen(false);
+
+          unlockBodyScroll();
         },
       });
-    });
 
-    return () => ctx.revert();
-  }, []);
-
-  // GSAP Vertical Top-to-Bottom Clip-Path Animation
-  useEffect(() => {
-    if (!menuOverlayRef.current) return;
-
-    gsap.set(menuOverlayRef.current, {
-      clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-      display: "none",
-    });
-
-    const linkItems = menuContentRef.current?.querySelectorAll("a") || [];
-
-    const openTl = gsap
-      .timeline({ paused: true })
-      .set(menuOverlayRef.current, { display: "flex" })
-      .to(menuOverlayRef.current, {
-        clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-        duration: 0.75,
-        ease: "power3.inOut",
-      })
-      .fromTo(
-        linkItems,
-        {
-          yPercent: 100,
+      closeTl
+        .to(linkItems, {
+          yPercent: -100,
+          xPercent: -8,
           opacity: 0,
-        },
-        {
-          yPercent: 0,
-          opacity: 1,
-          duration: 0.95,
-          stagger: 0.08,
-          ease: "power3.out",
-        },
-        "-=0.5",
-      );
+          duration: 0.8,
+          stagger: -0.04,
+          ease: "power3.in",
+          overwrite: true,
+        })
+        .to(
+          overlay,
+          {
+            clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+            duration: 0.65,
+            ease: "power3.inOut",
+          },
+          "-=0.2",
+        );
 
-    const closeTl = gsap
-      .timeline({
-        paused: true,
-        onComplete: () => {
-          gsap.set(menuOverlayRef.current, { display: "none" });
-          setIsMobileMenuOpen(false);
-          document.body.style.overflow = "";
-        },
-      })
-      .to(linkItems, {
-        yPercent: -100,
-        xPercent: -8,
-        opacity: 0,
-        duration: 0.8,
-        stagger: -0.04,
-        ease: "power3.in",
-      })
-      .to(
-        menuOverlayRef.current,
-        {
-          clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
-          duration: 0.65,
-          ease: "power3.inOut",
-        },
-        "-=0.2",
-      );
+      menuOpenTimelineRef.current = openTl;
+      menuCloseTimelineRef.current = closeTl;
+    },
+    {
+      scope: navRef,
+      dependencies: [],
+      revertOnUpdate: true,
+    },
+  );
 
-    openTlRef.current = openTl;
-    closeTlRef.current = closeTl;
-  }, []);
+  /* =======================================================
+     MOBILE MENU TOGGLE
+  ======================================================= */
 
-  const toggleMobileMenu = () => {
+  const toggleMobileMenu = useCallback(() => {
+    const openTl = menuOpenTimelineRef.current;
+    const closeTl = menuCloseTimelineRef.current;
+
+    if (!openTl || !closeTl) return;
+
+    /* -----------------------------------------------------
+       OPEN
+    ----------------------------------------------------- */
+
     if (!isMobileMenuOpen) {
+      // Kill whatever the opposite timeline is doing.
+      closeTl.pause(0);
+
       setIsMobileMenuOpen(true);
-      document.body.style.overflow = "hidden";
-      closeTlRef.current?.pause(0);
-      openTlRef.current?.restart();
-    } else {
-      openTlRef.current?.pause();
-      closeTlRef.current?.restart();
+
+      lockBodyScroll();
+
+      // Make sure the menu starts from a clean state.
+      openTl.restart();
+      return;
     }
-  };
+
+    /* -----------------------------------------------------
+       CLOSE
+    ----------------------------------------------------- */
+
+    openTl.pause();
+
+    closeTl.restart();
+  }, [isMobileMenuOpen, lockBodyScroll]);
+
+  /* =======================================================
+     CLEANUP / UNMOUNT
+
+     useGSAP handles GSAP cleanup, but we also explicitly
+     clean the refs and body state.
+  ======================================================= */
+
+  useGSAP(
+    () => {
+      return () => {
+        isUnmountingRef.current = true;
+
+        menuOpenTimelineRef.current?.kill();
+        menuCloseTimelineRef.current?.kill();
+
+        menuOpenTimelineRef.current = null;
+        menuCloseTimelineRef.current = null;
+
+        unlockBodyScroll();
+      };
+    },
+    {
+      scope: navRef,
+      dependencies: [],
+      revertOnUpdate: true,
+    },
+  );
+
+  /* =======================================================
+     RENDER
+  ======================================================= */
 
   return (
     <>
-      {/* NAVIGATION */}
+      {/* ===================================================
+          NAVIGATION
+      =================================================== */}
+
       <nav
         ref={navRef}
-        className="fixed top-0 left-0 flex flex-row items-center justify-between w-full text-ghost-white p-4 md:px-6 md:py-6 z-[100]"
+        className="
+          fixed
+          top-0
+          left-0
+          flex
+          flex-row
+          items-center
+          justify-between
+          w-full
+          text-ghost-white
+          p-4
+          md:px-6
+          md:py-6
+          z-[100]
+        "
       >
-        {/* LOGO - Animates X negative (Left) */}
+        {/* =================================================
+            LOGO
+        ================================================= */}
+
         <div
           ref={logoRef}
-          className="mix-blend-difference pointer-events-auto [isolation:auto]"
+          className="
+            mix-blend-difference
+            pointer-events-auto
+            [isolation:auto]
+          "
         >
           <Link href="/" className="block">
             <Image
@@ -186,71 +373,175 @@ function Navigation({ isMuted = true, onToggleSound }) {
               width={200}
               height={60}
               priority
-              className="w-[clamp(140px,10vw+80px,320px)] h-auto"
+              className="
+                w-[clamp(140px,10vw+80px,320px)]
+                h-auto
+              "
             />
           </Link>
         </div>
 
-        {/* LINKS DESKTOP - Animates Y negative (Up) */}
+        {/* =================================================
+            DESKTOP LINKS
+        ================================================= */}
+
         <div
           ref={linksRef}
-          className="hidden md:flex items-center justify-center space-x-4 font-mono uppercase text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)] translate-x-[clamp(0px,12vw,190px)] pointer-events-auto"
+          className="
+            hidden
+            md:flex
+            items-center
+            justify-center
+            space-x-4
+            font-mono
+            uppercase
+            text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)]
+            translate-x-[clamp(0px,12vw,190px)]
+            pointer-events-auto
+          "
         >
-           <BlurFlicker>
+          <BlurFlicker>
+            <TransitionLink href="/About">ABOUT</TransitionLink>
+          </BlurFlicker>
 
-          <TransitionLink href="/About">
-          ABOUT
-          </TransitionLink>
-           </BlurFlicker>
-<BlurFlicker>
+          <BlurFlicker>
+            <TransitionLink href="/All-Works">WORK</TransitionLink>
+          </BlurFlicker>
 
-          <TransitionLink href="/All-Works">
-          WORK
-          </TransitionLink>
-</BlurFlicker>
-<BlurFlicker>
+          <BlurFlicker>
+            <TransitionLink href="/Weddings">MORE</TransitionLink>
+          </BlurFlicker>
 
-          <TransitionLink href="/Weddings">
-          MORE
-          </TransitionLink>
-</BlurFlicker>
-<BlurFlicker>
-
-          <TransitionLink href="/#footer">
-          CONTACT
-          </TransitionLink>
-</BlurFlicker>
+          <BlurFlicker>
+            <TransitionLink href="/#footer">CONTACT</TransitionLink>
+          </BlurFlicker>
         </div>
 
-        {/* RIGHT ACTION BUTTONS - Animates X positive (Right) */}
+        {/* =================================================
+            RIGHT ACTIONS
+        ================================================= */}
+
         <div
           ref={rightActionsRef}
-          className="flex items-center space-x-2 sm:space-x-3 pointer-events-auto"
+          className="
+            flex
+            items-center
+            space-x-2
+            sm:space-x-3
+            pointer-events-auto
+          "
         >
-          {/* CHECK AVAILABILITY BUTTON */}
+          {/* CHECK AVAILABILITY */}
+
           <BlurFlicker>
-            <button className="hidden md:flex bg-black hover:bg-zinc-800 transition-colors px-[clamp(16px,1vw+8px,16px)] py-0 w-[clamp(155px,12vw+70px,204px)] h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-eclipse font-mono tracking-tighter uppercase text-[clamp(0.3rem,0.63rem+0.3vw,1.25rem)] text-center items-center justify-center text-ghost-white cursor-pointer">
+            <button
+              type="button"
+              className="
+                hidden
+                md:flex
+                bg-black
+                hover:bg-zinc-800
+                transition-colors
+                px-[clamp(16px,1vw+8px,16px)]
+                py-0
+                w-[clamp(155px,12vw+70px,204px)]
+                h-[clamp(44px,2.5vw+20px,55px)]
+                rounded-full
+                border
+                border-eclipse
+                font-mono
+                tracking-tighter
+                uppercase
+                text-[clamp(0.3rem,0.63rem+0.3vw,1.25rem)]
+                text-center
+                items-center
+                justify-center
+                text-ghost-white
+                cursor-pointer
+              "
+            >
               Check availability
             </button>
           </BlurFlicker>
 
           {/* MOBILE MENU BUTTON */}
+
           <button
+            type="button"
             onClick={toggleMobileMenu}
-            className="flex md:hidden bg-ghost-white hover:bg-zinc-200 transition-colors px-5 py-0 h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-ghost-white font-mono tracking-tighter uppercase text-[clamp(0.75rem,0.63rem+0.3vw,1rem)] text-carbon-black items-center justify-center font-bold cursor-pointer"
+            aria-expanded={isMobileMenuOpen}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            className="
+              flex
+              md:hidden
+              bg-ghost-white
+              hover:bg-zinc-200
+              transition-colors
+              px-5
+              py-0
+              h-[clamp(44px,2.5vw+20px,55px)]
+              rounded-full
+              border
+              border-ghost-white
+              font-mono
+              tracking-tighter
+              uppercase
+              text-[clamp(0.75rem,0.63rem+0.3vw,1rem)]
+              text-carbon-black
+              items-center
+              justify-center
+              font-bold
+              cursor-pointer
+            "
           >
-            Menu
+            {isMobileMenuOpen ? "Close" : "Menu"}
           </button>
         </div>
       </nav>
 
-      {/* MOBILE OVERLAY */}
+      {/* =====================================================
+          MOBILE MENU OVERLAY
+      ===================================================== */}
+
       <div
         ref={menuOverlayRef}
-        className="fixed inset-0 z-[110] bg-carbon-black flex flex-col justify-between text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
+        className="
+          fixed
+          inset-0
+          z-[110]
+          bg-black
+          flex
+          flex-col
+          justify-between
+          text-ghost-white
+          md:hidden
+          h-[85vh]
+          border-b
+          border-eclipse
+        "
+        style={{
+          display: "none",
+        }}
       >
-        <div className="flex items-center justify-between w-full p-4">
-          <Link href="/" onClick={toggleMobileMenu}>
+        {/* =================================================
+            MENU HEADER
+        ================================================= */}
+
+        <div
+          className="
+            flex
+            items-center
+            justify-between
+            w-full
+            p-4
+          "
+        >
+          <Link
+            href="/"
+            onClick={() => {
+              toggleMobileMenu();
+            }}
+          >
             <Image
               src={Logo}
               alt="Logo"
@@ -262,66 +553,127 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </Link>
 
           <button
+            type="button"
             onClick={toggleMobileMenu}
-            className="bg-ghost-white text-carbon-black px-4 h-11 rounded-full font-mono text-xs uppercase font-bold flex items-center justify-center"
+            className="
+              bg-ghost-white
+              text-carbon-black
+              px-4
+              h-11
+              rounded-full
+              font-mono
+              text-xs
+              uppercase
+              font-bold
+              flex
+              items-center
+              justify-center
+            "
           >
             Close
           </button>
         </div>
 
-        {/* MENU LINKS CONTAINER WITH OVERFLOW-HIDDEN WRAPPERS */}
+        {/* =================================================
+            MENU LINKS
+        ================================================= */}
+
         <div
           ref={menuContentRef}
-          className="flex flex-col space-y-2 font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6"
+          className=" flex flex-col font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6 "
         >
+          {" "}
           <div className="overflow-hidden">
+            {" "}
             <Link
               href="/About"
               onClick={toggleMobileMenu}
-              className="block hover:text-zinc-400 transition-colors"
+              className=" block hover:text-zinc-400 transition-colors leading-none "
             >
-              ABOUT
-            </Link>
-          </div>
-
-          <div className="overflow-hidden">
+              {" "}
+              ABOUT{" "}
+            </Link>{" "}
+          </div>{" "}
+          <div className="overflow-hidden mt-3">
+            {" "}
             <Link
               href="/All-Works"
               onClick={toggleMobileMenu}
-              className="block hover:text-zinc-400 transition-colors"
+              className=" block hover:text-zinc-400 transition-colors leading-none "
             >
-              WORK
-            </Link>
-          </div>
-
-          <div className="overflow-hidden">
+              {" "}
+              WORK{" "}
+            </Link>{" "}
+          </div>{" "}
+          <div className="overflow-hidden mt-3">
+            {" "}
             <Link
               href="/Weddings"
               onClick={toggleMobileMenu}
-              className="block hover:text-zinc-400 transition-colors"
+              className=" block hover:text-zinc-400 transition-colors leading-none "
             >
-              MORE
-            </Link>
-          </div>
-
-          <div className="overflow-hidden">
+              {" "}
+              MORE{" "}
+            </Link>{" "}
+          </div>{" "}
+          {/* MEDIA BY CLOUDHAUS */}{" "}
+          <div className=" mt-3 ml-1 font-geist-mono text-[9px] uppercase tracking-[0.18em] text-zinc-600 leading-none ">
+            {" "}
+            MEDIA BY CLOUDHAUS{" "}
+          </div>{" "}
+          <div className="overflow-hidden mt-6">
+            {" "}
             <Link
               href="/#footer"
               onClick={toggleMobileMenu}
-              className="block hover:text-zinc-400 transition-colors"
+              className=" block hover:text-zinc-400 transition-colors leading-none "
             >
-              CONTACT
-            </Link>
-          </div>
+              {" "}
+              CONTACT{" "}
+            </Link>{" "}
+          </div>{" "}
         </div>
 
-        <div className="pt-6 flex flex-row items-start space-y-4 p-4">
+        {/* =================================================
+            SOCIALS
+        ================================================= */}
+
+        <div
+          className="
+            pt-6
+            flex
+            flex-row
+            items-start
+            space-y-4
+            p-4
+          "
+        >
           <div className="flex flex-col gap-1">
-            <h1 className="text-eclipse font-mono font-medium tracking-tight text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]">
+            <h1
+              className="
+                text-eclipse
+                font-mono
+                font-medium
+                tracking-tight
+                text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]
+              "
+            >
               SOCIALS
             </h1>
 
-            <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.65rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
+            <div
+              className="
+                flex
+                flex-row
+                w-full
+                items-center
+                gap-4
+                text-[clamp(0.65rem,0.65vw+0.3rem,1rem)]
+                font-mono
+                tracking-tight
+                uppercase
+              "
+            >
               <Link
                 className="hover:text-zinc-700"
                 href="https://instagram.com/itsjmvisuals"
