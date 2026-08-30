@@ -2,7 +2,7 @@
 import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 
-import caseStudy from "./schemaTypes/caseStudy";
+import { schemaTypes } from "./schemaTypes";
 
 export default defineConfig({
   name: "default",
@@ -18,7 +18,7 @@ export default defineConfig({
   ],
 
   schema: {
-    types: [caseStudy],
+    types: schemaTypes,
   },
 });
 

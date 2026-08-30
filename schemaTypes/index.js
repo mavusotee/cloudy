@@ -1,3 +1,4 @@
-import { caseStudy } from './caseStudy'
+import caseStudy from "./caseStudy";
+import wedding from "./weddings";
 
-export const schemaTypes = [caseStudy]
+export const schemaTypes = [caseStudy, wedding];

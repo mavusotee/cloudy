@@ -26,8 +26,8 @@ export default function TransitionLink({ href, children, className }) {
     tl.to(overlay, {
       opacity: 1,
       "--wipe": "125%",
-      duration: 0.55,
-      ease: "power2.inOut",
+      duration: 0.75,
+      ease: "power4.inOut",
     });
 
     // 2. Trigger route push once screen is completely blacked out

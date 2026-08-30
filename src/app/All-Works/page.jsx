@@ -20,6 +20,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import Footer from '@/components/Sections/Footer'
 
 import Navigation from "@/components/UI/Navigation";
 import { client } from "@/lib/client";
@@ -658,14 +659,14 @@ function ListItemRow({
       >
         <span
           ref={titleRef}
-          className="font-sans text-sm md:text-xl font-light uppercase text-ghost-white inline-block"
+          className="font-sans text-sm md:text-sm font-light uppercase text-ghost-white inline-block"
         >
           {project.client}
         </span>
 
         <span
           ref={subtitleRef}
-          className="font-geist-mono text-xs md:text-sm text-start uppercase tracking-wider text-zinc-400 inline-block"
+          className="font-geist-mono text-xs md:text-4xl text-start uppercase tracking-wider text-zinc-400 inline-block"
         >
           {project.title}
         </span>
@@ -1633,6 +1634,7 @@ export default function AllWorksSection() {
 
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import gsap from "gsap";
 function ClientsSection() {
   const trackRef = useRef(null);
   const blurTweenRef = useRef(null);
+  const wheelRAFRef = useRef(null);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -17,6 +18,7 @@ function ClientsSection() {
 
       // =========================================================
       // INFINITE CAROUSEL
+      // KEEPING THE ORIGINAL MOVEMENT
       // =========================================================
 
       const loop = gsap.to(items, {
@@ -33,38 +35,60 @@ function ClientsSection() {
       // SCROLL VELOCITY / DIZZINESS EFFECT
       // =========================================================
 
-      const handleWheel = (event) => {
-        const delta = event.deltaY;
+      let latestDelta = 0;
 
-        // Scroll down (delta > 0) = right to left (timeScale = 1 + boost)
-        // Scroll up (delta < 0)   = left to right (timeScale = -1 - boost)
+      const applyWheelEffect = () => {
+        wheelRAFRef.current = null;
+
+        const delta = latestDelta;
+
+        if (!delta) return;
+
+        // Scroll down = right to left
+        // Scroll up = left to right
         const direction = delta > 0 ? 1 : -1;
+
         const speedBoost = Math.min(Math.abs(delta) / 20, 5);
         const targetTimeScale = direction * (1 + speedBoost);
 
-        // Blur based on scroll velocity
         const blur = Math.min(Math.abs(delta) / 18, 8);
 
+        // Kill previous recovery animation before creating
+        // another one. This prevents timelines piling up.
         if (blurTweenRef.current) {
           blurTweenRef.current.kill();
+          blurTweenRef.current = null;
         }
 
-        // Accelerate carousel speed in scroll direction + add blur
+        // -------------------------------------------------------
+        // SPEED
+        // -------------------------------------------------------
+
         gsap.to(loop, {
           timeScale: targetTimeScale,
           duration: 0.1,
-          overwrite: "auto",
+          ease: "power2.out",
+          overwrite: true,
         });
+
+        // -------------------------------------------------------
+        // BLUR
+        // -------------------------------------------------------
 
         gsap.to(track, {
           filter: `blur(${blur}px)`,
           duration: 0.08,
           ease: "power2.out",
-          overwrite: "auto",
+          overwrite: true,
         });
 
-        // Smoothly return loop to base speed and clear blur
-        blurTweenRef.current = gsap.timeline()
+        // -------------------------------------------------------
+        // RETURN TO NORMAL
+        // -------------------------------------------------------
+
+        const timeline = gsap.timeline();
+
+        timeline
           .to(loop, {
             timeScale: direction,
             duration: 0.6,
@@ -79,18 +103,49 @@ function ClientsSection() {
             },
             "<"
           );
+
+        blurTweenRef.current = timeline;
+      };
+
+      // =========================================================
+      // THROTTLED WHEEL HANDLER
+      // =========================================================
+
+      const handleWheel = (event) => {
+        latestDelta = event.deltaY;
+
+        // Don't run the expensive animation logic for every
+        // individual wheel event. Process at most once/frame.
+        if (wheelRAFRef.current !== null) return;
+
+        wheelRAFRef.current = requestAnimationFrame(applyWheelEffect);
       };
 
       window.addEventListener("wheel", handleWheel, {
         passive: true,
       });
 
+      // =========================================================
+      // CLEANUP
+      // =========================================================
+
       return () => {
         window.removeEventListener("wheel", handleWheel);
 
+        if (wheelRAFRef.current !== null) {
+          cancelAnimationFrame(wheelRAFRef.current);
+          wheelRAFRef.current = null;
+        }
+
         if (blurTweenRef.current) {
           blurTweenRef.current.kill();
+          blurTweenRef.current = null;
         }
+
+        loop.kill();
+
+        // Kill any remaining GSAP tweens created for this section.
+        gsap.killTweensOf(track);
       };
     }, trackRef);
 

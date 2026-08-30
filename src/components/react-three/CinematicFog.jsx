@@ -6,7 +6,7 @@ import React, {
   Suspense,
   useEffect,
 } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Clouds, Cloud } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -18,6 +18,40 @@ function useIsClient() {
     () => true,
     () => false
   );
+}
+
+/* =========================================================
+   ERROR BOUNDARY
+   ========================================================= */
+
+class WebGLSceneErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      hasError: false,
+    };
+  }
+
+  static getDerivedStateFromError() {
+    return {
+      hasError: true,
+    };
+  }
+
+  componentDidCatch(error) {
+    // Prevent the Three.js/R3F error from crashing
+    // the entire React application.
+    console.error("WebGL scene error:", error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+
+    return this.props.children;
+  }
 }
 
 const CLOUD_URL = "/textures/cloud.png";
@@ -32,6 +66,40 @@ const scrollState = {
 };
 
 /* =========================================================
+   WEBGL CONTEXT GUARD
+========================================================= */
+
+function WebGLContextGuard() {
+  const { gl } = useThree();
+
+  useEffect(() => {
+    if (!gl || !gl.domElement) return;
+
+    const canvas = gl.domElement;
+
+    const handleContextLost = (event) => {
+      event.preventDefault();
+    };
+
+    canvas.addEventListener(
+      "webglcontextlost",
+      handleContextLost,
+      false
+    );
+
+    return () => {
+      canvas.removeEventListener(
+        "webglcontextlost",
+        handleContextLost,
+        false
+      );
+    };
+  }, [gl]);
+
+  return null;
+}
+
+/* =========================================================
    RADIAL STEAM
 ========================================================= */
 
@@ -42,7 +110,9 @@ function RadialVaporRing() {
   const smoothDepth = useRef(0);
 
   useFrame((state, delta) => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+
+    if (!container) return;
 
     const actualScrollY =
       typeof window !== "undefined"
@@ -65,7 +135,7 @@ function RadialVaporRing() {
 
     smoothScroll.current +=
       (scrollState.target - smoothScroll.current) *
-      Math.min(1, delta * 5);
+      Math.min(1, delta * 15);
 
     scrollState.current =
       smoothScroll.current;
@@ -74,9 +144,15 @@ function RadialVaporRing() {
        DOCUMENT PROGRESS
     ======================================================= */
 
+    const docElement =
+      typeof document !== "undefined"
+        ? document.documentElement
+        : null;
+
     const docHeight =
-      document.documentElement.scrollHeight -
-      window.innerHeight;
+      docElement
+        ? docElement.scrollHeight - window.innerHeight
+        : 0;
 
     let progress = 0;
 
@@ -109,7 +185,7 @@ function RadialVaporRing() {
      * forward as the user scrolls.
      */
 
-    const maxPull = 1.6;
+    const maxPull = 5.6;
 
     const targetDepth =
       progress * maxPull;
@@ -118,7 +194,7 @@ function RadialVaporRing() {
       (targetDepth - smoothDepth.current) *
       Math.min(1, delta * 4);
 
-    containerRef.current.position.z =
+    container.position.z =
       smoothDepth.current;
 
     /* =======================================================
@@ -142,7 +218,7 @@ function RadialVaporRing() {
      *     clouds continue pulling
      */
 
-    const maxZoom = 0.56;
+    const maxZoom = 1.56;
 
     const zoom =
       progress * maxZoom;
@@ -150,7 +226,7 @@ function RadialVaporRing() {
     const finalScale =
       1 + zoom;
 
-    containerRef.current.scale.set(
+    container.scale.set(
       finalScale,
       finalScale,
       finalScale
@@ -168,10 +244,10 @@ function RadialVaporRing() {
     const lateral =
       progress * Math.PI * 1.25;
 
-    containerRef.current.position.x =
+    container.position.x =
       Math.sin(lateral) * 0.18;
 
-    containerRef.current.position.y =
+    container.position.y =
       Math.cos(lateral * 0.7) * 0.08;
 
     /* =======================================================
@@ -187,10 +263,10 @@ function RadialVaporRing() {
     const time =
       state.clock.elapsedTime;
 
-    containerRef.current.rotation.z =
+    container.rotation.z =
       Math.sin(time * 0.18) * 0.018;
 
-    containerRef.current.rotation.x =
+    container.rotation.x =
       Math.cos(time * 0.16) * 0.014;
   });
 
@@ -230,11 +306,11 @@ function RadialVaporRing() {
           <Cloud
             seed={34}
             scale={3.5}
-            volume={16}
+            volume={26}
             color="#e8e8e8"
-            opacity={0.17}
+            opacity={0.37}
             fade={65}
-            speed={0.20}
+            speed={0.50}
             growth={3}
           />
         </group>
@@ -253,7 +329,7 @@ function RadialVaporRing() {
             color="#d0d0d0"
             opacity={0.14}
             fade={75}
-            speed={0.18}
+            speed={0.28}
             growth={2}
           />
         </group>
@@ -330,13 +406,25 @@ export default function GlobalCinematicFog() {
   useEffect(() => {
     if (!isClient) return;
 
-    let animationFrameId;
+    let animationFrameId = null;
+    let cancelled = false;
 
     const updateOpacity = () => {
-      if (wrapperRef.current) {
+      if (cancelled) return;
+
+      const wrapper = wrapperRef.current;
+
+      if (wrapper) {
+        const docElement =
+          typeof document !== "undefined"
+            ? document.documentElement
+            : null;
+
         const docHeight =
-          document.documentElement.scrollHeight -
-          window.innerHeight;
+          docElement
+            ? docElement.scrollHeight -
+              window.innerHeight
+            : 0;
 
         if (docHeight > 0) {
           const progress =
@@ -362,15 +450,17 @@ export default function GlobalCinematicFog() {
             ) *
               0.18;
 
-          wrapperRef.current.style.opacity =
+          wrapper.style.opacity =
             fade.toFixed(3);
         }
       }
 
-      animationFrameId =
-        requestAnimationFrame(
-          updateOpacity
-        );
+      if (!cancelled) {
+        animationFrameId =
+          requestAnimationFrame(
+            updateOpacity
+          );
+      }
     };
 
     animationFrameId =
@@ -378,10 +468,17 @@ export default function GlobalCinematicFog() {
         updateOpacity
       );
 
-    return () =>
-      cancelAnimationFrame(
-        animationFrameId
-      );
+    return () => {
+      cancelled = true;
+
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(
+          animationFrameId
+        );
+
+        animationFrameId = null;
+      }
+    };
   }, [isClient]);
 
   if (!isClient) return null;
@@ -394,43 +491,47 @@ export default function GlobalCinematicFog() {
         pointerEvents: "none",
       }}
     >
-      <Canvas
-        camera={{
-          position: [0, 0, 7],
-          fov: 75,
-        }}
-        gl={{
-          powerPreference:
-            "high-performance",
-          antialias: false,
-          alpha: true,
-        }}
-        style={{
-          pointerEvents: "none",
-          width: "100%",
-          height: "100%",
-        }}
-        events={() => ({
-          enabled: false,
-        })}
-        onCreated={({ scene }) => {
-          scene.fog = new THREE.FogExp2(
-            "#0a0c10",
-            0.001
-          );
-        }}
-      >
-        <ambientLight intensity={1.2} />
+      <WebGLSceneErrorBoundary>
+        <Canvas
+          camera={{
+            position: [0, 0, 7],
+            fov: 75,
+          }}
+          gl={{
+            powerPreference:
+              "high-performance",
+            antialias: false,
+            alpha: true,
+          }}
+          style={{
+            pointerEvents: "none",
+            width: "100%",
+            height: "100%",
+          }}
+          events={() => ({
+            enabled: false,
+          })}
+          onCreated={({ scene }) => {
+            scene.fog = new THREE.FogExp2(
+              "#0a0c10",
+              0.001
+            );
+          }}
+        >
+          <WebGLContextGuard />
 
-        <directionalLight
-          position={[5, 10, 5]}
-          intensity={1.1}
-        />
+          <ambientLight intensity={1.2} />
 
-        <Suspense fallback={null}>
-          <RadialVaporRing />
-        </Suspense>
-      </Canvas>
+          <directionalLight
+            position={[5, 10, 5]}
+            intensity={1.1}
+          />
+
+          <Suspense fallback={null}>
+            <RadialVaporRing />
+          </Suspense>
+        </Canvas>
+      </WebGLSceneErrorBoundary>
     </div>
   );
 }

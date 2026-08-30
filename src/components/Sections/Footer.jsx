@@ -39,7 +39,7 @@ function Footer() {
               rises to the occasion.">
               
             </SmudgyTextReveal>
-            <p className="w-full max-w-[clamp(20rem,40vw,22.875rem)] text-[clamp(0.8rem,1.2vw,1rem)] text-zinc-600 leading-[130%] font-geist-mono uppercase ">
+            <p className="w-full max-w-[clamp(20rem,40vw,22.875rem)] text-[clamp(0.8rem,1vw,1rem)] text-zinc-600 leading-[130%] font-geist-mono uppercase ">
              We know how much goes into building something great. Let’s show it.
             </p>
           </div>

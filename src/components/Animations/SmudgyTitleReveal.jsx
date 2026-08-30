@@ -1,6 +1,13 @@
+
 // components/SmudgyTitleReveal.jsx
 "use client";
-import React, { useRef, useLayoutEffect, useMemo } from "react";
+
+import React, {
+  useRef,
+  useLayoutEffect,
+  useMemo,
+} from "react";
+
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -9,29 +16,51 @@ gsap.registerPlugin(ScrollTrigger);
 export default function SmudgyTitleReveal({
   text = "",
   className = "",
+  fontClassName = "font-sans",
   tag: Tag = "h1",
 }) {
   const containerRef = useRef(null);
   const charsRef = useRef([]);
 
-  const words = useMemo(() => (text || "").split(" "), [text]);
+  const words = useMemo(
+    () => (text || "").split(" "),
+    [text]
+  );
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       const validChars = charsRef.current.filter(Boolean);
+
       if (!validChars.length) return;
 
-      const containerRect = containerRef.current.getBoundingClientRect();
+      const containerRect =
+        containerRef.current.getBoundingClientRect();
+
       const centerX = containerRect.width / 2;
       const centerY = containerRect.height / 2;
 
       const charData = validChars.map((charEl) => {
         const rect = charEl.getBoundingClientRect();
-        const charX = rect.left - containerRect.left + rect.width / 2;
-        const charY = rect.top - containerRect.top + rect.height / 2;
 
-        const dist = Math.hypot(charX - centerX, charY - centerY);
-        return { el: charEl, dist };
+        const charX =
+          rect.left -
+          containerRect.left +
+          rect.width / 2;
+
+        const charY =
+          rect.top -
+          containerRect.top +
+          rect.height / 2;
+
+        const dist = Math.hypot(
+          charX - centerX,
+          charY - centerY
+        );
+
+        return {
+          el: charEl,
+          dist,
+        };
       });
 
       const sortedChars = charData
@@ -41,10 +70,10 @@ export default function SmudgyTitleReveal({
       gsap.fromTo(
         sortedChars,
         {
-          color: "rgb(113, 113, 122)", // Muted zinc-500
+          color: "rgb(113, 113, 122)",
         },
         {
-          color: "rgb(255, 255, 255)", // White highlight
+          color: "rgb(255, 255, 255)",
           stagger: {
             each: 0.025,
             from: "start",
@@ -71,20 +100,28 @@ export default function SmudgyTitleReveal({
   if (!text) return null;
 
   return (
-    <div ref={containerRef} className="inline-block w-full">
+    <div
+      ref={containerRef}
+      className={`inline-block w-full uppercase ${fontClassName}`}
+    >
       <Tag
         className={`w-full flex flex-wrap gap-x-[0.25em] ${
           className ||
-          "font-sans font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white"
+          "font-medium tracking-tight text-[clamp(1rem,1.5vw,1.35rem)] text-ghost-white"
         }`}
       >
         {words.map((word, wordIdx) => (
-          <span key={wordIdx} className="inline-block whitespace-nowrap">
+          <span
+            key={wordIdx}
+            className="inline-block whitespace-nowrap"
+          >
             {word.split("").map((char, charIdx) => (
               <span
                 key={charIdx}
                 ref={(el) => {
-                  if (el) charsRef.current.push(el);
+                  if (el) {
+                    charsRef.current.push(el);
+                  }
                 }}
                 className="inline-block text-eclipse will-change-[color]"
               >
@@ -97,3 +134,4 @@ export default function SmudgyTitleReveal({
     </div>
   );
 }
+
