@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 // =========================================================
 // HELPER
@@ -34,27 +40,80 @@ export default function CustomVideoPlayer({
   const videoRef = useRef(null);
   const progressRef = useRef(null);
 
+  // Video preload reference
+  const preloadVideoRef = useRef(null);
+
+  // Progress RAF reference
+  const progressFrameRef = useRef(null);
+
+  // Active GSAP timeline
+  const animationRef = useRef(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  // -------------------------------------------------------
-  // OPEN ANIMATION
-  // -------------------------------------------------------
+  // =========================================================
+  // PRELOAD VIDEO
+  // =========================================================
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!src) return;
 
-    const overlay = overlayRef.current;
-    const player = playerRef.current;
-    const video = videoRef.current;
+    // Clean up previous preload
+    if (preloadVideoRef.current) {
+      const previousVideo = preloadVideoRef.current;
 
-    if (!overlay || !player) return;
+      previousVideo.pause();
+      previousVideo.removeAttribute("src");
+      previousVideo.load();
 
-    document.body.style.overflow = "hidden";
+      preloadVideoRef.current = null;
+    }
 
-    const ctx = gsap.context(() => {
+    const preloadVideo = document.createElement("video");
+
+    preloadVideo.preload = "metadata";
+    preloadVideo.muted = true;
+    preloadVideo.playsInline = true;
+    preloadVideo.src = src;
+
+    preloadVideo.load();
+
+    preloadVideoRef.current = preloadVideo;
+
+    return () => {
+      if (preloadVideoRef.current === preloadVideo) {
+        preloadVideo.pause();
+        preloadVideo.removeAttribute("src");
+        preloadVideo.load();
+
+        preloadVideoRef.current = null;
+      }
+    };
+  }, [src]);
+
+  // =========================================================
+  // OPEN ANIMATION
+  // =========================================================
+
+  useGSAP(
+    () => {
+      if (!isOpen) return;
+
+      const overlay = overlayRef.current;
+      const player = playerRef.current;
+      const video = videoRef.current;
+
+      if (!overlay || !player) return;
+
+      document.body.style.overflow = "hidden";
+
+      // -----------------------------------------------------
+      // INITIAL STATE
+      // -----------------------------------------------------
+
       gsap.set(overlay, {
         opacity: 0,
       });
@@ -64,9 +123,16 @@ export default function CustomVideoPlayer({
         scale: 0.88,
         y: 40,
         filter: "blur(18px)",
+        force3D: true,
       });
 
+      // -----------------------------------------------------
+      // ORIGINAL ANIMATION
+      // -----------------------------------------------------
+
       const tl = gsap.timeline();
+
+      animationRef.current = tl;
 
       tl.to(overlay, {
         opacity: 1,
@@ -81,9 +147,14 @@ export default function CustomVideoPlayer({
           filter: "blur(0px)",
           duration: 0.8,
           ease: "power4.out",
+          force3D: true,
         },
         "-=0.15"
       );
+
+      // -----------------------------------------------------
+      // START VIDEO
+      // -----------------------------------------------------
 
       if (video) {
         video.currentTime = 0;
@@ -100,17 +171,44 @@ export default function CustomVideoPlayer({
             });
         }
       }
-    });
+    },
+    {
+      dependencies: [isOpen],
+      scope: overlayRef,
+      revertOnUpdate: true,
+    }
+  );
 
-    return () => {
-      ctx.revert();
-      document.body.style.overflow = "";
-    };
+  // =========================================================
+  // CLEANUP WHEN CLOSED
+  // =========================================================
+
+  useEffect(() => {
+    if (isOpen) return;
+
+    // Stop video
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+
+    // Kill active animation
+    if (animationRef.current) {
+      animationRef.current.kill();
+      animationRef.current = null;
+    }
+
+    // Cancel pending RAF
+    if (progressFrameRef.current) {
+      cancelAnimationFrame(progressFrameRef.current);
+      progressFrameRef.current = null;
+    }
+
+    document.body.style.overflow = "";
   }, [isOpen]);
 
-  // -------------------------------------------------------
+  // =========================================================
   // CLOSE ANIMATION
-  // -------------------------------------------------------
+  // =========================================================
 
   const closePlayer = useCallback(() => {
     const overlay = overlayRef.current;
@@ -121,32 +219,48 @@ export default function CustomVideoPlayer({
       return;
     }
 
-    gsap
-      .timeline({
-        onComplete: onClose,
-      })
-      .to(player, {
+    // Stop playback immediately
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
+
+    // Kill any previous timeline
+    if (animationRef.current) {
+      animationRef.current.kill();
+      animationRef.current = null;
+    }
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        animationRef.current = null;
+        onClose();
+      },
+    });
+
+    animationRef.current = tl;
+
+    tl.to(player, {
+      opacity: 0,
+      scale: 0.94,
+      y: 25,
+      filter: "blur(10px)",
+      duration: 0.35,
+      ease: "power3.in",
+      force3D: true,
+    }).to(
+      overlay,
+      {
         opacity: 0,
-        scale: 0.94,
-        y: 25,
-        filter: "blur(10px)",
-        duration: 0.35,
-        ease: "power3.in",
-      })
-      .to(
-        overlay,
-        {
-          opacity: 0,
-          duration: 0.25,
-          ease: "power2.in",
-        },
-        "-=0.1"
-      );
+        duration: 0.25,
+        ease: "power2.in",
+      },
+      "-=0.1"
+    );
   }, [onClose]);
 
-  // -------------------------------------------------------
+  // =========================================================
   // ESC KEY
-  // -------------------------------------------------------
+  // =========================================================
 
   useEffect(() => {
     if (!isOpen) return;
@@ -154,6 +268,7 @@ export default function CustomVideoPlayer({
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         closePlayer();
+        return;
       }
 
       if (
@@ -181,39 +296,69 @@ export default function CustomVideoPlayer({
     };
   }, [isOpen, closePlayer]);
 
-  // -------------------------------------------------------
-  // VIDEO EVENTS
-  // -------------------------------------------------------
+  // =========================================================
+  // VIDEO METADATA
+  // =========================================================
 
-  const handleLoadedMetadata = () => {
+  const handleLoadedMetadata = useCallback(() => {
     const video = videoRef.current;
 
     if (!video) return;
 
     setDuration(video.duration);
-  };
+  }, []);
 
-  const handleTimeUpdate = () => {
+  // =========================================================
+  // OPTIMIZED TIME UPDATE
+  // =========================================================
+
+  const handleTimeUpdate = useCallback(() => {
     const video = videoRef.current;
 
     if (!video) return;
 
-    setCurrentTime(video.currentTime);
-  };
+    // Prevent React from rendering excessively
+    if (progressFrameRef.current) return;
 
-  const handlePlay = () => {
+    progressFrameRef.current = requestAnimationFrame(() => {
+      if (videoRef.current) {
+        setCurrentTime(videoRef.current.currentTime);
+      }
+
+      progressFrameRef.current = null;
+    });
+  }, []);
+
+  // =========================================================
+  // PLAY / PAUSE EVENTS
+  // =========================================================
+
+  const handlePlay = useCallback(() => {
     setIsPlaying(true);
-  };
+  }, []);
 
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     setIsPlaying(false);
-  };
+  }, []);
 
-  // -------------------------------------------------------
+  // =========================================================
+  // RAF CLEANUP
+  // =========================================================
+
+  useEffect(() => {
+    return () => {
+      if (progressFrameRef.current) {
+        cancelAnimationFrame(progressFrameRef.current);
+        progressFrameRef.current = null;
+      }
+    };
+  }, []);
+
+  // =========================================================
   // PLAY / PAUSE
-  // -------------------------------------------------------
+  // =========================================================
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     const video = videoRef.current;
 
     if (!video) return;
@@ -223,45 +368,49 @@ export default function CustomVideoPlayer({
     } else {
       video.pause();
     }
-  };
+  }, []);
 
-  // -------------------------------------------------------
+  // =========================================================
   // MUTE
-  // -------------------------------------------------------
+  // =========================================================
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     const video = videoRef.current;
 
     if (!video) return;
 
     video.muted = !video.muted;
+
     setIsMuted(video.muted);
-  };
+  }, []);
 
-  // -------------------------------------------------------
+  // =========================================================
   // PROGRESS
-  // -------------------------------------------------------
+  // =========================================================
 
-  const handleProgressClick = (event) => {
-    const video = videoRef.current;
-    const bar = progressRef.current;
+  const handleProgressClick = useCallback(
+    (event) => {
+      const video = videoRef.current;
+      const bar = progressRef.current;
 
-    if (!video || !bar || !duration) return;
+      if (!video || !bar || !duration) return;
 
-    const rect = bar.getBoundingClientRect();
+      const rect = bar.getBoundingClientRect();
 
-    const percentage =
-      (event.clientX - rect.left) / rect.width;
+      const percentage =
+        (event.clientX - rect.left) / rect.width;
 
-    video.currentTime =
-      Math.max(0, Math.min(1, percentage)) * duration;
-  };
+      video.currentTime =
+        Math.max(0, Math.min(1, percentage)) * duration;
+    },
+    [duration]
+  );
 
-  // -------------------------------------------------------
+  // =========================================================
   // FULLSCREEN
-  // -------------------------------------------------------
+  // =========================================================
 
-  const handleFullscreen = () => {
+  const handleFullscreen = useCallback(() => {
     const player = playerRef.current;
 
     if (!player) return;
@@ -272,11 +421,11 @@ export default function CustomVideoPlayer({
     }
 
     player.requestFullscreen?.();
-  };
+  }, []);
 
-  // -------------------------------------------------------
+  // =========================================================
   // DON'T RENDER
-  // -------------------------------------------------------
+  // =========================================================
 
   if (!isOpen || !src) return null;
 
@@ -284,6 +433,10 @@ export default function CustomVideoPlayer({
     duration > 0
       ? (currentTime / duration) * 100
       : 0;
+
+  // =========================================================
+  // RENDER
+  // =========================================================
 
   return (
     <div
@@ -298,8 +451,13 @@ export default function CustomVideoPlayer({
       <div
         ref={playerRef}
         className="relative w-full max-w-[1500px] aspect-video bg-black overflow-hidden shadow-2xl"
+        style={{
+          willChange: "transform, opacity, filter",
+        }}
       >
-        {/* VIDEO */}
+        {/* =================================================
+            VIDEO
+        ================================================= */}
 
         <video
           ref={videoRef}
@@ -314,11 +472,15 @@ export default function CustomVideoPlayer({
           onClick={togglePlay}
         />
 
-        {/* TOP GRADIENT */}
+        {/* =================================================
+            TOP GRADIENT
+        ================================================= */}
 
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/70 to-transparent pointer-events-none" />
 
-        {/* TOP BAR */}
+        {/* =================================================
+            TOP BAR
+        ================================================= */}
 
         <div className="absolute top-0 left-0 right-0 p-4 md:p-6 flex items-start justify-between z-10">
           <div className="flex flex-col gap-1">
@@ -343,7 +505,9 @@ export default function CustomVideoPlayer({
           </button>
         </div>
 
-        {/* CENTER PLAY BUTTON */}
+        {/* =================================================
+            CENTER PLAY BUTTON
+        ================================================= */}
 
         <button
           type="button"
@@ -364,11 +528,15 @@ export default function CustomVideoPlayer({
           </span>
         </button>
 
-        {/* BOTTOM GRADIENT */}
+        {/* =================================================
+            BOTTOM GRADIENT
+        ================================================= */}
 
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
 
-        {/* CONTROLS */}
+        {/* =================================================
+            CONTROLS
+        ================================================= */}
 
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 z-10">
 

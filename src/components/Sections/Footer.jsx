@@ -58,7 +58,7 @@ function Footer() {
                 NAVIGATION
               </span>
             </div>
-            <div className="flex flex-col space-y-1 font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
+            <div className="flex flex-col  font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
               <TransitionLink href="/About" className="hover:opacity-70 transition-opacity">ABOUT</TransitionLink>
               <a href="#services" className="hover:opacity-70 transition-opacity">SERVICES</a>
               <TransitionLink href="/All-Works" className="hover:opacity-70 transition-opacity">WORK</TransitionLink>
@@ -106,7 +106,7 @@ function Footer() {
                   SOCIALS
                 </span>
               </div>
-              <div className="flex flex-col items-start justify-start w-full lg:flex-row space-x-[clamp(1.5rem,1.5vw,1rem)] font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
+              <div className="flex flex-col items-start justify-start w-full lg:flex-col space-x-[clamp(1.0rem,1.5vw,0.5rem)] font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
                 <a 
                   href="https://www.instagram.com/itsjmvisuals?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw==" 
                   target="_blank" 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 export default function TransitionLink({
   href,
@@ -15,84 +15,42 @@ export default function TransitionLink({
   const pathname = usePathname();
 
   const isTransitioning = useRef(false);
-  const targetPath = useRef(null);
-
-  // =========================================================
-  // REVEAL WHEN NEW ROUTE HAS ARRIVED
-  // =========================================================
-
-  useEffect(() => {
-    if (!isTransitioning.current) return;
-    if (!targetPath.current) return;
-
-    // Wait until pathname matches the route we navigated to
-    if (pathname !== targetPath.current) return;
-
-    const overlay = document.querySelector(
-      ".page-transition-overlay"
-    );
-
-    if (!overlay) {
-      isTransitioning.current = false;
-      targetPath.current = null;
-      return;
-    }
-
-    // Give React/Next a moment to render the new page
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        gsap.to(overlay, {
-          "--wipe": "0%",
-          opacity: 0,
-          duration: 0.75,
-          ease: "power4.inOut",
-          onComplete: () => {
-            isTransitioning.current = false;
-            targetPath.current = null;
-
-            ScrollTrigger.refresh();
-          },
-        });
-      });
-    });
-  }, [pathname]);
-
-  // =========================================================
-  // START TRANSITION
-  // =========================================================
 
   const handleTransition = (e) => {
     e.preventDefault();
 
     if (isTransitioning.current) return;
 
+    // Don't transition to the current page
+    if (href === pathname) return;
+
     const overlay = document.querySelector(
       ".page-transition-overlay"
     );
 
-    // If overlay doesn't exist, just navigate normally
     if (!overlay) {
       router.push(href);
       return;
     }
 
-    // Don't transition to the page we're already on
-    if (href === pathname) return;
-
     isTransitioning.current = true;
-    targetPath.current = href;
 
-    // Reset overlay
+    // =======================================================
+    // RESET OVERLAY
+    // =======================================================
+
+    gsap.killTweensOf(overlay);
+
     gsap.set(overlay, {
       "--wipe": "0%",
       opacity: 0,
     });
 
-    const tl = gsap.timeline();
+    // =======================================================
+    // WIPE IN
+    // =======================================================
 
-    // =======================================================
-    // 1. COVER SCREEN
-    // =======================================================
+    const tl = gsap.timeline();
 
     tl.to(overlay, {
       opacity: 1,
@@ -102,11 +60,50 @@ export default function TransitionLink({
     });
 
     // =======================================================
-    // 2. NAVIGATE
+    // NAVIGATE
     // =======================================================
 
     tl.call(() => {
       router.push(href);
+
+      // =====================================================
+      // WAIT FOR THE NEW ROUTE
+      // =====================================================
+
+      const checkRoute = () => {
+        if (window.location.pathname !== href) {
+          requestAnimationFrame(checkRoute);
+          return;
+        }
+
+        // Give Next/React time to paint the new page
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            // =================================================
+            // WIPE OUT
+            // =================================================
+
+            gsap.to(overlay, {
+              "--wipe": "0%",
+              opacity: 0,
+              duration: 0.75,
+              ease: "power4.inOut",
+              onComplete: () => {
+                gsap.set(overlay, {
+                  "--wipe": "0%",
+                  opacity: 0,
+                });
+
+                isTransitioning.current = false;
+
+                ScrollTrigger.refresh();
+              },
+            });
+          });
+        });
+      };
+
+      checkRoute();
     });
   };
 

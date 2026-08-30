@@ -1,13 +1,19 @@
-
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+} from "react";
 
 import Image from "next/image";
 import Link from "next/link";
+
 import Navigation from "@/components/UI/Navigation";
 import HeroCanvas from "@/components/react-three/HeroCanvas";
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
+
 import { useParams } from "next/navigation";
 
 import Lenis from "lenis";
@@ -31,7 +37,9 @@ const getMediaUrl = (media) => {
   if (!media) return null;
 
   if (typeof media === "string") return media;
+
   if (typeof media.src === "string") return media.src;
+
   if (typeof media.url === "string") return media.url;
 
   return null;
@@ -52,12 +60,10 @@ const PROJECT_QUERY = `
     overview,
     date,
     services,
-
     heroVideos[]{
       _key,
       "src": asset->url
     },
-
     gallery[]{
       _key,
       "src": asset->url,
@@ -87,7 +93,11 @@ const ALL_PROJECTS_QUERY = `
 // EXTRUDED TEXT REVEAL
 // =========================================================
 
-function ExtrudedTextReveal({ text }) {
+function ExtrudedTextReveal({
+  text,
+  className = "",
+  delay = 0,
+}) {
   const containerRef = useRef(null);
   const textRef = useRef(null);
 
@@ -112,6 +122,7 @@ function ExtrudedTextReveal({ text }) {
         defaults: {
           ease: "power3.out",
         },
+        delay,
       });
 
       tl.fromTo(
@@ -138,15 +149,17 @@ function ExtrudedTextReveal({ text }) {
       );
     }, containerRef);
 
-    return () => ctx.revert();
-  }, [text]);
+    return () => {
+      ctx.revert();
+    };
+  }, [text, delay]);
 
   return (
-    <div ref={containerRef} className="w-[99.6%]">
-      <h1
-        ref={textRef}
-        className="text-4xl md:text-9xl text-ghost-white tracking-tight md:tracking-[-7px] leading-[90%]"
-      >
+    <div
+      ref={containerRef}
+      className={`w-[99.6%] ${className}`}
+    >
+      <h1 ref={textRef} className="m-0">
         {text}
       </h1>
     </div>
@@ -169,14 +182,21 @@ export default function CloudhausWorkDetail() {
 
   const [project, setProject] = useState(null);
   const [allProjects, setAllProjects] = useState([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [nextVideoIndex, setNextVideoIndex] = useState(null);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [currentVideoIndex, setCurrentVideoIndex] =
+    useState(0);
 
-  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
+  const [nextVideoIndex, setNextVideoIndex] =
+    useState(null);
+
+  const [isTransitioning, setIsTransitioning] =
+    useState(false);
+
+  const [isPlayerOpen, setIsPlayerOpen] =
+    useState(false);
 
   // =======================================================
   // PROJECT INFO / HERO DIMMING
@@ -268,31 +288,42 @@ export default function CloudhausWorkDetail() {
   // NEXT PROJECT
   // =======================================================
 
-  const currentProjectIndex = allProjects.findIndex(
-    (item) => item.slug === slug
-  );
+  const currentProjectIndex = useMemo(() => {
+    return allProjects.findIndex(
+      (item) => item.slug === slug
+    );
+  }, [allProjects, slug]);
 
-  const nextProject =
-    allProjects.length > 1 &&
-    currentProjectIndex !== -1
-      ? allProjects[
-          (currentProjectIndex + 1) %
-            allProjects.length
-        ]
-      : null;
+  const nextProject = useMemo(() => {
+    if (
+      allProjects.length <= 1 ||
+      currentProjectIndex === -1
+    ) {
+      return null;
+    }
+
+    return allProjects[
+      (currentProjectIndex + 1) %
+        allProjects.length
+    ];
+  }, [allProjects, currentProjectIndex]);
 
   // =======================================================
   // HERO VIDEOS
   // =======================================================
 
-  const heroVideos = Array.isArray(project?.heroVideos)
-    ? project.heroVideos
-        .map((video) => ({
-          ...video,
-          src: getMediaUrl(video),
-        }))
-        .filter((video) => video.src)
-    : [];
+  const heroVideos = useMemo(() => {
+    if (!Array.isArray(project?.heroVideos)) {
+      return [];
+    }
+
+    return project.heroVideos
+      .map((video) => ({
+        ...video,
+        src: getMediaUrl(video),
+      }))
+      .filter((video) => video.src);
+  }, [project]);
 
   const totalVideos = heroVideos.length;
 
@@ -303,6 +334,34 @@ export default function CloudhausWorkDetail() {
     nextVideoIndex !== null
       ? heroVideos[nextVideoIndex]?.src || null
       : null;
+
+  // =======================================================
+  // PRELOAD ACTIVE HERO VIDEO
+  // =======================================================
+
+  useEffect(() => {
+    if (!activeSrc) return;
+
+    const existing = document.querySelector(
+      `link[data-video-preload="${activeSrc}"]`
+    );
+
+    if (existing) return;
+
+    const link = document.createElement("link");
+
+    link.rel = "preload";
+    link.as = "video";
+    link.href = activeSrc;
+
+    link.dataset.videoPreload = activeSrc;
+
+    document.head.appendChild(link);
+
+    return () => {
+      link.remove();
+    };
+  }, [activeSrc]);
 
   // =======================================================
   // RESET VIDEO STATE WHEN PROJECT CHANGES
@@ -320,7 +379,10 @@ export default function CloudhausWorkDetail() {
   // =======================================================
 
   const handleNext = () => {
-    if (isTransitioning || totalVideos <= 1) {
+    if (
+      isTransitioning ||
+      totalVideos <= 1
+    ) {
       return;
     }
 
@@ -359,10 +421,6 @@ export default function CloudhausWorkDetail() {
       touchMultiplier: 2,
     });
 
-    // -------------------------------------------------------
-    // SCROLL PROGRESS
-    // -------------------------------------------------------
-
     const updateScrollProgress = ({ scroll }) => {
       const documentHeight =
         document.documentElement.scrollHeight -
@@ -379,7 +437,10 @@ export default function CloudhausWorkDetail() {
 
       const progress = Math.min(
         1,
-        Math.max(0, scroll / documentHeight)
+        Math.max(
+          0,
+          scroll / documentHeight
+        )
       );
 
       if (scrollProgressRef.current) {
@@ -388,8 +449,15 @@ export default function CloudhausWorkDetail() {
       }
     };
 
-    lenis.on("scroll", ScrollTrigger.update);
-    lenis.on("scroll", updateScrollProgress);
+    lenis.on(
+      "scroll",
+      ScrollTrigger.update
+    );
+
+    lenis.on(
+      "scroll",
+      updateScrollProgress
+    );
 
     updateScrollProgress({
       scroll: lenis.scroll,
@@ -403,10 +471,18 @@ export default function CloudhausWorkDetail() {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
-      lenis.off("scroll", ScrollTrigger.update);
-      lenis.off("scroll", updateScrollProgress);
+      lenis.off(
+        "scroll",
+        ScrollTrigger.update
+      );
+
+      lenis.off(
+        "scroll",
+        updateScrollProgress
+      );
 
       gsap.ticker.remove(raf);
+
       lenis.destroy();
     };
   }, []);
@@ -415,30 +491,38 @@ export default function CloudhausWorkDetail() {
   // HERO DIMMING WHILE SCROLLING THROUGH PROJECT INFO
   // =======================================================
 
-  useGSAP(() => {
-    const section = projectInfoRef.current;
-    const dimmer = heroDimmingRef.current;
+  useGSAP(
+    () => {
+      const section =
+        projectInfoRef.current;
 
-    if (!section || !dimmer) return;
+      const dimmer =
+        heroDimmingRef.current;
 
-    gsap.fromTo(
-      dimmer,
-      {
-        opacity: 0,
-      },
-      {
-        opacity: 0.75,
-        ease: "none",
+      if (!section || !dimmer) return;
 
-        scrollTrigger: {
-          trigger: section,
-          start: "top 85%",
-          end: "bottom 35%",
-          scrub: true,
+      gsap.fromTo(
+        dimmer,
+        {
+          opacity: 0,
         },
-      }
-    );
-  }, [project]);
+        {
+          opacity: 0.75,
+          ease: "none",
+
+          scrollTrigger: {
+            trigger: section,
+            start: "top 85%",
+            end: "bottom 35%",
+            scrub: true,
+          },
+        }
+      );
+    },
+    {
+      dependencies: [project],
+    }
+  );
 
   // =======================================================
   // LOADING
@@ -447,9 +531,7 @@ export default function CloudhausWorkDetail() {
   if (isLoading) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
-        <p className="font-geist-mono text-sm uppercase tracking-widest">
-          Loading project
-        </p>
+        <p className="font-geist-mono text-sm uppercase tracking-widest" />
       </main>
     );
   }
@@ -506,19 +588,65 @@ export default function CloudhausWorkDetail() {
   // =======================================================
 
   return (
-    <main className="min-h-dvh bg-black text-zinc-300 font-geist-mono selection:bg-white selection:text-black">
+    <main
+      className="
+        relative
+        isolate
+        min-h-dvh
+        bg-black
+        text-zinc-300
+        font-geist-mono
+        selection:bg-white
+        selection:text-black
+      "
+    >
+
+      {/* =================================================
+          NAVIGATION
+      ================================================= */}
+
+      <div
+        className="
+          fixed
+          top-0
+          left-0
+          w-full
+          z-[100000]
+          pointer-events-auto
+        "
+      >
+        <Navigation />
+      </div>
 
       {/* =================================================
           SCROLL PROGRESS
       ================================================= */}
 
       <div
-        className="fixed top-0 left-0 w-full h-[2px] bg-white/10 z-[9999] pointer-events-none"
+        className="
+          fixed
+          top-0
+          left-0
+          w-full
+          h-[2px]
+          bg-white/10
+          z-[9999]
+          pointer-events-none
+        "
         aria-hidden="true"
       >
         <div
           ref={scrollProgressRef}
-          className="absolute top-0 left-0 h-full w-full bg-white origin-left will-change-transform"
+          className="
+            absolute
+            top-0
+            left-0
+            h-full
+            w-full
+            bg-white
+            origin-left
+            will-change-transform
+          "
           style={{
             transform: "scaleX(0)",
           }}
@@ -533,121 +661,347 @@ export default function CloudhausWorkDetail() {
 
         {/* STICKY HERO */}
 
-        <div className="sticky top-0 w-full h-dvh overflow-hidden z-0">
-
+        <div
+          className="
+            sticky
+            top-0
+            w-full
+            h-dvh
+            overflow-hidden
+            z-0
+          "
+        >
           {activeSrc && (
-            <HeroCanvas
-              activeSrc={activeSrc}
-              nextSrc={nextSrc}
-              isTransitioning={isTransitioning}
-              onTransitionComplete={
-                handleTransitionComplete
-              }
-            />
+            <div className="absolute inset-0 pointer-events-none">
+              <HeroCanvas
+                activeSrc={activeSrc}
+                nextSrc={nextSrc}
+                isTransitioning={isTransitioning}
+                onTransitionComplete={
+                  handleTransitionComplete
+                }
+              />
+            </div>
           )}
 
           {/* BASE HERO OVERLAY */}
 
-          <div className="absolute inset-0 z-[1] bg-black/40 pointer-events-none" />
+          <div
+            className="
+              absolute
+              inset-0
+              z-[1]
+              bg-black/40
+              pointer-events-none
+            "
+          />
 
           {/* SCROLL DIMMER */}
 
           <div
             ref={heroDimmingRef}
-            className="absolute inset-0 z-[2] bg-black pointer-events-none"
+            className="
+              absolute
+              inset-0
+              z-[2]
+              bg-black
+              pointer-events-none
+            "
           />
-
         </div>
 
-        <div className="relative z-10 -mt-[100vh] w-full">
+        {/* HERO CONTENT */}
 
-          {/* =================================================
-              HERO CONTENT
-          ================================================= */}
+        <div
+          className="
+            relative
+            z-10
+            -mt-[100vh]
+            w-full
+          "
+        >
+          <div
+            className="
+              h-dvh
+              w-full
 
-          <div className="h-dvh w-full flex flex-col justify-between p-4 md:p-8 z-10">
+              flex
+              flex-col
+              justify-end
 
-            {/* NAV */}
+              p-4
+              md:p-8
+            "
+          >
 
-            <div className="z-[1000]">
-              <Navigation />
-            </div>
+            {/* =================================================
+                TITLE / MEDIA / CONTROLS
+            ================================================= */}
 
-            {/* HERO FOOTER */}
+            <div
+              className="
+                relative
+                w-full
 
-            <div className="w-full pb-0">
+                flex
+                flex-col
 
-              <div className="flex items-end justify-between w-full select-none">
+                md:flex-row
+                md:items-end
+                md:justify-between
 
-                <div className="flex flex-col-reverse space-y-4 font-sans tracking-tighter">
+                gap-8
+                md:gap-0
+              "
+            >
 
-                  <ExtrudedTextReveal
-                    text={project.title || ""}
-                  />
+              {/* =================================================
+                  PROJECT TITLE
+              ================================================= */}
 
-                  {totalVideos > 1 && (
-                    <span className="text-[10px] md:text-xs text-zinc-400 font-geist-mono tracking-normal">
-                      {String(
-                        currentVideoIndex + 1
-                      ).padStart(2, "0")}{" "}
-                      /{" "}
-                      {String(totalVideos).padStart(
-                        2,
-                        "0"
-                      )}
-                    </span>
-                  )}
+              <div
+                className="
+                  flex
+                  flex-col
+                  gap-3
 
-                </div>
+                  font-sans
+                  tracking-tighter
 
-                <div className="flex items-center gap-3">
+                  order-1
+                  md:order-none
+                "
+              >
+                <ExtrudedTextReveal
+                  text={project.title || ""}
+                  className="
+                    text-[clamp(4.5rem,12vw,7rem)]
+                    md:text-9xl
 
-                  {/* WATCH VIDEO */}
+                    text-ghost-white
 
-                  {activeSrc && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setIsPlayerOpen(true)
-                      }
-                      className="group relative overflow-hidden bg-black border border-eclipse text-white h-[4rem] px-5 md:px-7 flex items-center justify-center transition-colors duration-300 hover:bg-white hover:text-black rounded-full"
-                    >
-                      <span className="font-geist-mono text-[10px] md:text-xs tracking-widest uppercase relative z-10">
-                        Watch Video
-                      </span>
+                    tracking-tight
+                    md:tracking-[-7px]
 
-                      <span className="absolute bottom-0 left-0 w-full h-[1px] bg-white scale-x-0 origin-left transition-transform duration-500 group-hover:scale-x-100" />
-                    </button>
-                  )}
+                    leading-[90%]
+                  "
+                />
 
-                  {/* NEXT VIDEO */}
+                {totalVideos > 1 && (
+                  <span
+                    className="
+                      text-[10px]
+                      md:text-xs
 
+                      text-zinc-400
+
+                      font-geist-mono
+
+                      tracking-normal
+                    "
+                  >
+                    {String(
+                      currentVideoIndex + 1
+                    ).padStart(2, "0")}{" "}
+                    /{" "}
+                    {String(
+                      totalVideos
+                    ).padStart(2, "0")}
+                  </span>
+                )}
+              </div>
+
+              {/* =================================================
+                  MEDIA BY CLOUDHAUS
+              ================================================= */}
+
+              <div
+                className="
+                  md:absolute
+                  md:left-1/2
+                  md:bottom-0
+                  md:-translate-x-[40%]
+
+                  flex
+                  justify-start
+                  md:justify-center
+                  items-end
+
+                  w-full
+                  md:w-auto
+
+                  pointer-events-none
+
+                  order-2
+                  md:order-none
+                "
+              >
+                <ExtrudedTextReveal
+                  text="MEDIA BY CLOUDHAUS"
+                  delay={0.15}
+                  className="
+                    text-left
+                    md:text-center
+
+                    font-geist-mono
+
+                    text-[clamp(0.5rem,1.5vw,0.75rem)]
+
+
+                    uppercase
+                    tracking-[0px]
+
+                    text-zinc-400
+
+                    leading-none
+
+                    whitespace-nowrap
+                  "
+                />
+              </div>
+
+              {/* =================================================
+                  CONTROLS
+              ================================================= */}
+
+              <div
+                className="
+                  flex
+                  flex-row
+                  items-center
+                  gap-3
+
+                  w-full
+                  md:w-auto
+
+                  order-3
+                  md:order-none
+                "
+              >
+
+                {/* WATCH VIDEO */}
+
+                {activeSrc && (
                   <button
                     type="button"
-                    onClick={handleNext}
-                    disabled={
-                      isTransitioning ||
-                      totalVideos <= 1
+                    onClick={() =>
+                      setIsPlayerOpen(true)
                     }
-                    aria-label="Next project video"
-                    className={`bg-black border border-eclipse text-2xl w-[3.5rem] h-[4rem] flex items-center justify-center text-center transition-opacity duration-300 ${
+                    className="
+                      group
+                      relative
+                      overflow-hidden
+
+                      bg-black
+                      border
+                      border-eclipse
+                      text-white
+
+                      h-[4rem]
+
+                      px-5
+                      md:px-7
+
+                      flex
+                      shrink-0
+                      items-center
+                      justify-center
+
+                      transition-colors
+                      duration-300
+
+                      hover:bg-white
+                      hover:text-black
+
+                      rounded-full
+                    "
+                  >
+                    <span
+                      className="
+                        font-geist-mono
+
+                        text-[10px]
+                        md:text-xs
+
+                        tracking-widest
+                        uppercase
+
+                        relative
+                        z-10
+                      "
+                    >
+                      Watch Video
+                    </span>
+
+                    <span
+                      className="
+                        absolute
+                        bottom-0
+                        left-0
+                        w-full
+                        h-[1px]
+
+                        bg-white
+
+                        scale-x-0
+                        origin-left
+
+                        transition-transform
+                        duration-500
+
+                        group-hover:scale-x-100
+                      "
+                    />
+                  </button>
+                )}
+
+                {/* NEXT VIDEO */}
+
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={
+                    isTransitioning ||
+                    totalVideos <= 1
+                  }
+                  aria-label="Next project video"
+                  className={`
+                    bg-black
+
+                    border
+                    border-eclipse
+
+                    text-2xl
+
+                    w-[3.5rem]
+                    h-[4rem]
+
+                    flex
+                    shrink-0
+                    items-center
+                    justify-center
+
+                    text-center
+
+                    transition-opacity
+                    duration-300
+
+                    ${
                       isTransitioning ||
                       totalVideos <= 1
                         ? "opacity-40 cursor-not-allowed"
                         : "opacity-100 cursor-pointer"
-                    }`}
-                  >
-                    <span className="text-2xl leading-none">
-                      →
-                    </span>
-                  </button>
-
-                </div>
+                    }
+                  `}
+                >
+                  <span className="text-2xl leading-none">
+                    →
+                  </span>
+                </button>
 
               </div>
 
             </div>
-
           </div>
 
           {/* =================================================
@@ -656,36 +1010,109 @@ export default function CloudhausWorkDetail() {
 
           <div
             ref={projectInfoRef}
-            className="px-4 md:px-8 py-20"
+            className="
+              px-4
+              md:px-8
+              py-20
+            "
           >
+            <div
+              className="
+                grid
+                grid-cols-1
+                md:grid-cols-12
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-12 text-[11px] leading-relaxed uppercase tracking-wider text-zinc-300 font-geist-mono">
+                gap-12
+                md:gap-x-8
+                md:gap-y-12
 
-              {/* PROJECT OVERVIEW */}
+                text-[11px]
+                leading-relaxed
 
-              <div className="md:col-span-7 space-y-4">
+                uppercase
+                tracking-wider
 
-                <h2 className="text-white md:text-lg">
+                text-ghost-white
+
+                font-geist-mono
+              "
+            >
+
+              {/* =================================================
+                  PROJECT OVERVIEW
+              ================================================= */}
+
+              <div
+                className="
+                  md:col-span-7
+                  md:col-start-1
+                  md:row-start-1
+
+                  space-y-4
+                "
+              >
+                <h2
+                  className="
+                    text-zinc-600
+                    md:text-lg
+                  "
+                >
                   PROJECT OVERVIEW
                 </h2>
 
-                <p className="max-w-xl text-zinc-300 text-sm font-normal leading-5 uppercase">
+                <p
+                  className="
+                    max-w-xl
+
+                    text-ghost-white
+
+                    text-sm
+
+                    font-normal
+                    leading-5
+
+                    uppercase
+                  "
+                >
                   {project.overview ||
                     "NO PROJECT OVERVIEW AVAILABLE."}
                 </p>
-
               </div>
 
-              {/* WHAT WE DID */}
+              {/* =================================================
+                  WHAT WE DID
+              ================================================= */}
 
-              <div className="md:col-span-5 space-y-4">
+              <div
+                className="
+                  md:col-span-5
+                  md:col-start-8
+                  md:row-start-1
 
-                <h2 className="text-white md:text-lg">
+                  space-y-4
+                "
+              >
+                <h2
+                  className="
+                    text-zinc-600
+                    md:text-lg
+                  "
+                >
                   WHAT WE DID:
                 </h2>
 
                 {services.length > 0 ? (
-                  <ul className="space-y-1 text-zinc-300 text-sm uppercase">
+                  <ul
+                    className="
+                      space-y-1
+
+                      text-ghost-white
+
+                      text-sm
+
+                      uppercase
+                    "
+                  >
                     {services.map(
                       (service, index) => (
                         <li
@@ -697,134 +1124,268 @@ export default function CloudhausWorkDetail() {
                     )}
                   </ul>
                 ) : (
-                  <p className="text-zinc-600 text-sm">
+                  <p
+                    className="
+                      text-ghost-white
+                      text-sm
+                    "
+                  >
                     —
                   </p>
                 )}
-
               </div>
 
-              {/* CLIENT */}
+              {/* =================================================
+                  CLIENT + DATE
 
-              <div className="md:col-span-7 space-y-2 pt-2">
+                  MOBILE:
+                  FULL FLEX ROW
 
-                <h2 className="text-white md:text-lg">
-                  CLIENT
-                </h2>
+                  DESKTOP:
+                  RETURNS TO GRID
+              ================================================= */}
 
-                <p className="text-zinc-300 text-sm uppercase">
-                  {project.client || "—"}
-                </p>
+              <div
+                className="
+                  flex
+                  flex-row
+                  items-start
+                  justify-between
 
-              </div>
+                  w-full
 
-              {/* DATE */}
+                  md:contents
+                "
+              >
 
-              <div className="md:col-span-5 md:col-start-8 space-y-2 pt-2">
+                {/* =================================================
+                    CLIENT
+                ================================================= */}
 
-                <h2 className="text-white md:text-lg">
-                  DATE
-                </h2>
+                <div
+                  className="
+                    space-y-2
+                    pt-2
 
-                <p className="text-zinc-300 text-sm uppercase">
-                  {project.date || "—"}
-                </p>
+                    md:col-span-7
+                    md:col-start-1
+                    md:row-start-2
+                  "
+                >
+                  <h2
+                    className="
+                      text-zinc-600
+                      md:text-lg
+                    "
+                  >
+                    CLIENT
+                  </h2>
+
+                  <p
+                    className="
+                      text-ghost-white
+
+                      text-sm
+
+                      uppercase
+                    "
+                  >
+                    {project.client || "—"}
+                  </p>
+                </div>
+
+                {/* =================================================
+                    DATE
+                ================================================= */}
+
+                <div
+                  className="
+                    space-y-2
+                    pt-2
+
+                    md:col-span-5
+                    md:col-start-8
+                    md:row-start-2
+                  "
+                >
+                  <h2
+                    className="
+                      text-zinc-600
+                      md:text-lg
+                    "
+                  >
+                    DATE
+                  </h2>
+
+                  <p
+                    className="
+                      text-ghost-white
+
+                      text-sm
+
+                      uppercase
+                    "
+                  >
+                    {project.date || "—"}
+                  </p>
+                </div>
 
               </div>
 
             </div>
-
           </div>
 
         </div>
-
       </div>
 
       {/* =================================================
-          SIMPLE GALLERY
+          GALLERY
       ================================================= */}
 
-      <section className="relative z-20 w-full bg-black px-4 md:px-8 pt-20 md:pt-40 pb-20">
+      <section
+        className="
+          relative
+          z-20
+          w-full
+          bg-black
 
+          px-4
+          md:px-8
+
+          pt-20
+          md:pt-40
+
+          pb-20
+        "
+      >
         {gallery.length > 0 ? (
+          <div
+            className="
+              grid
+              grid-cols-1
+              md:grid-cols-2
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              gap-4
+              md:gap-6
+            "
+          >
+            {gallery.map(
+              (item, index) => {
+                const src = item.src;
 
-            {gallery.map((item, index) => {
+                const isVideo =
+                  item.mimeType?.startsWith(
+                    "video/"
+                  );
 
-              const src = item.src;
+                return (
+                  <div
+                    key={
+                      item._key ||
+                      `gallery-${index}`
+                    }
+                    className="
+                      relative
+                      w-full
+                      overflow-hidden
+                      bg-zinc-950
+                    "
+                  >
+                    {isVideo ? (
+                      <video
+                        src={src}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        preload="none"
 
-              const isVideo =
-                item.mimeType?.startsWith("video/");
+                        className="
+                          block
+                          w-full
+                          h-auto
+                          object-cover
 
-              return (
-                <div
-                  key={
-                    item._key ||
-                    `gallery-${index}`
-                  }
-                  className="relative w-full overflow-hidden bg-zinc-950"
-                >
+                          brightness-90
+                          hover:brightness-100
 
-                  {isVideo ? (
+                          transition-all
+                          duration-500
+                          ease-out
+                        "
 
-                    <video
-                      src={src}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      preload="metadata"
-                      className="block w-full h-auto object-cover brightness-90 hover:brightness-100 transition-all duration-500 ease-out"
-                      onError={() =>
-                        console.error(
-                          "Failed to load gallery video:",
-                          src
-                        )
-                      }
-                    />
+                        onError={() =>
+                          console.error(
+                            "Failed to load gallery video:",
+                            src
+                          )
+                        }
+                      />
+                    ) : (
+                      <Image
+                        src={src}
+                        alt={`${project.title || "Project"} media ${
+                          index + 1
+                        }`}
+                        width={2000}
+                        height={1400}
+                        priority={index < 2}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        quality={100}
 
-                  ) : (
+                        className="
+                          block
+                          w-full
+                          h-auto
+                          object-cover
 
-                    <Image
-                      src={src}
-                      alt={`${project.title || "Project"} media ${
-                        index + 1
-                      }`}
-                      width={2000}
-                      height={1400}
-                      priority={index < 2}
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                      quality={100}
-                      className="block w-full h-auto object-cover brightness-90 hover:brightness-100 transition-all duration-500 ease-out"
-                      onError={() =>
-                        console.error(
-                          "Failed to load gallery image:",
-                          src
-                        )
-                      }
-                    />
+                          brightness-90
+                          hover:brightness-100
 
-                  )}
+                          transition-all
+                          duration-500
+                          ease-out
+                        "
 
-                </div>
-              );
-            })}
-
+                        onError={() =>
+                          console.error(
+                            "Failed to load gallery image:",
+                            src
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              }
+            )}
           </div>
-
         ) : (
+          <div
+            className="
+              flex
+              items-center
+              justify-center
 
-          <div className="flex items-center justify-center py-32">
+              py-32
+            "
+          >
+            <p
+              className="
+                font-geist-mono
 
-            <p className="font-geist-mono text-xs uppercase tracking-widest text-zinc-700">
+                text-xs
+
+                uppercase
+                tracking-widest
+
+                text-zinc-700
+              "
+            >
               No gallery media
             </p>
-
           </div>
-
         )}
-
       </section>
 
       {/* =================================================
@@ -832,102 +1393,279 @@ export default function CloudhausWorkDetail() {
       ================================================= */}
 
       {nextProject && (
-
-        <section className="relative z-30 w-full bg-black border-t border-white/10">
-
+        <section
+          className="
+            relative
+            z-30
+            w-full
+            bg-black
+            border-t
+            border-white/10
+          "
+        >
           <TransitionLink
             href={`/Work/${nextProject.slug}`}
-            className="group block w-full px-4 md:px-8 py-24 md:py-40 overflow-hidden"
+            className="
+              group
+              block
+              w-full
+
+              px-4
+              md:px-8
+
+              py-24
+              md:py-40
+
+              overflow-hidden
+            "
           >
+            <div
+              className="
+                flex
+                items-center
+                justify-between
 
-            {/* TOP LABEL */}
+                mb-16
+                md:mb-24
+              "
+            >
+              <span
+                className="
+                  font-geist-mono
 
-            <div className="flex items-center justify-between mb-16 md:mb-24">
+                  text-[10px]
+                  md:text-xs
 
-              <span className="font-geist-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500">
+                  uppercase
+                  tracking-[0.2em]
+
+                  text-zinc-500
+                "
+              >
                 Next Project
               </span>
 
-              <span className="font-geist-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500 group-hover:text-white transition-colors duration-500">
+              <span
+                className="
+                  font-geist-mono
+
+                  text-[10px]
+                  md:text-xs
+
+                  uppercase
+                  tracking-[0.2em]
+
+                  text-zinc-500
+
+                  group-hover:text-white
+
+                  transition-colors
+                  duration-500
+                "
+              >
                 [View Project]
               </span>
-
             </div>
-
-            {/* HUGE TITLE */}
 
             <div className="overflow-hidden">
+              <h2
+                className="
+                  font-sans
 
-              <h2 className="font-sans text-[17vw] md:text-9xl leading-[115%] tracking-[-0.07em] text-white uppercase transition-transform duration-700">
+                  text-[17vw]
+                  md:text-9xl
+
+                  leading-[115%]
+
+                  tracking-[-0.07em]
+
+                  text-white
+                  uppercase
+
+                  transition-transform
+                  duration-700
+                "
+              >
                 {nextProject.title}
               </h2>
-
             </div>
 
-            {/* BOTTOM META */}
+            <div
+              className="
+                mt-16
+                md:mt-24
 
-            <div className="mt-16 md:mt-24 flex items-center justify-between">
+                flex
+                items-center
+                justify-between
+              "
+            >
+              <span
+                className="
+                  font-geist-mono
 
-              <span className="font-geist-mono text-[10px] md:text-xs uppercase tracking-widest text-zinc-600">
+                  text-[10px]
+                  md:text-xs
+
+                  uppercase
+                  tracking-widest
+
+                  text-zinc-600
+                "
+              >
                 Continue exploring
               </span>
 
-              <span className="flex items-center justify-center w-12 h-12 md:w-16 md:h-16 border border-white/30 text-white transition-all duration-500 group-hover:bg-white group-hover:text-black group-hover:border-white">
+              <span
+                className="
+                  flex
+                  items-center
+                  justify-center
 
-                <span className="text-xl md:text-2xl transition-transform duration-500 group-hover:translate-x-1">
+                  w-12
+                  h-12
+
+                  md:w-16
+                  md:h-16
+
+                  border
+                  border-white/30
+
+                  text-white
+
+                  transition-all
+                  duration-500
+
+                  group-hover:bg-white
+                  group-hover:text-black
+                  group-hover:border-white
+                "
+              >
+                <span
+                  className="
+                    text-xl
+                    md:text-2xl
+
+                    transition-transform
+                    duration-500
+
+                    group-hover:translate-x-1
+                  "
+                >
                   →
                 </span>
-
               </span>
-
             </div>
-
           </TransitionLink>
-
         </section>
-
       )}
 
-      {/* BOTTOM CONTENT */}
+      {/* =================================================
+          BOTTOM CONTENT
+      ================================================= */}
 
-      <div className="flex flex-col-reverse md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.3rem,2.5vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pb-4 px-2 md:px-4">
+      <div
+        className="
+          flex
+          flex-col-reverse
+          md:flex-row
 
-        {/* GROUPED 1st AND 2nd DIVS: Horizontal on mobile, inline with desktop row */}
+          items-start
+          md:items-end
 
-        <div className="flex flex-row md:contents justify-between w-full md:w-auto">
+          justify-between
 
-          <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
+          font-geist-mono
 
-            <h1>BASED IN ADELAIDE</h1>
-             <h1>TERMS & CONDITIONS</h1>
-           
+          text-ghost-white
 
+          text-[clamp(0.3rem,2.5vw,0.725rem)]
+
+          uppercase
+
+          w-full
+
+          gap-[clamp(0.55rem,0.8vw,1.5rem)]
+
+          pb-4
+
+          px-2
+          md:px-4
+        "
+      >
+        <div
+          className="
+            flex
+            flex-row
+            md:contents
+
+            justify-between
+
+            w-full
+            md:w-auto
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+              md:flex-row
+
+              space-y-0
+
+              space-x-[clamp(0.5rem,4.5vw,6rem)]
+            "
+          >
+            <h1>
+              BASED IN ADELAIDE
+            </h1>
+
+            <h1>
+              TERMS & CONDITIONS
+            </h1>
           </div>
 
-          <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
+          <div
+            className="
+              flex
+              flex-col
+              md:flex-row
 
-             <h1 className="">
+              space-y-0
+
+              space-x-[clamp(0.5rem,4.5vw,6rem)]
+            "
+          >
+            <h1>
               PRIVACY POLICY
             </h1>
 
-            <Link href="www.withzane.com" className="font-bold">
+            <Link
+              href="https://www.withzane.com"
+              className="font-bold"
+            >
               WEBSITE BY: ZANE
             </Link>
-
           </div>
-
         </div>
 
-        {/* 3rd DIV: Below on mobile, start-aligned */}
+        {/* BACK TO HOME */}
 
-        <div className="flex flex-row space-x-[clamp(0.5rem,4.5vw,6rem)]">
+        <div
+          className="
+            flex
+            flex-row
 
-          <TransitionLink href='/' className="font-bold">
+            space-x-[clamp(0.5rem,4.5vw,6rem)]
+          "
+        >
+          <TransitionLink
+            href="/"
+            className="font-bold"
+          >
             BACK TO HOME
           </TransitionLink>
-
         </div>
-
       </div>
 
       {/* =================================================
@@ -946,4 +1684,3 @@ export default function CloudhausWorkDetail() {
     </main>
   );
 }
-

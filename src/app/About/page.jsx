@@ -1,66 +1,80 @@
 'use client'
+
 import React, { useEffect, useRef } from 'react'
 import Navigation from '@/components/UI/Navigation'
 import Image from 'next/image'
 import Lenis from 'lenis'
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
+import Link from 'next/link'
+import TransitionLink from '@/components/PageTransitions/TransitionLink'
+import { useGSAP } from '@gsap/react'
 
 gsap.registerPlugin(SplitText)
 
+/* =========================================================
+   SPLIT LINES REVEAL
+   ========================================================= */
+
 function ExtrudedTextReveal({ text }) {
   const containerRef = useRef(null)
-  const textRef = useRef(null)
 
-  useEffect(() => {
-    if (!textRef.current) return
+  useGSAP(
+    () => {
+      const element = containerRef.current?.querySelector('[data-split-text]')
 
-    const ctx = gsap.context(() => {
-      const split = new SplitText(textRef.current, {
-        type: 'lines,words,chars',
+      if (!element || !text) return
+
+      // Split text strictly into line blocks
+      const split = new SplitText(element, {
+        type: 'lines',
         linesClass: 'sky-line relative block overflow-hidden py-[0.05em]',
-        wordsClass: 'sky-word relative inline-block whitespace-nowrap',
-        charsClass:
-          'sky-char relative inline-block will-change-[transform,opacity,filter] transform-gpu',
       })
 
-      const tl = gsap.timeline({
-        defaults: { ease: 'power3.out' },
+      // Set initial hidden transform & filter state
+      gsap.set(split.lines, {
+        opacity: 0,
+        yPercent: 120,
+        scaleY: 0.95,
+        filter: 'blur(10px)',
+        transformOrigin: '50% 100%',
+        force3D: true,
       })
 
-      // Extruded Elevation reveal running on component mount without ScrollTrigger
-      tl.fromTo(
-        split.chars,
-        {
-          opacity: 0,
-          yPercent: 120,
-          scaleY: 0.1,
-          scaleX: 0.9,
-          filter: 'blur(10px)',
-          transformOrigin: '50% 100%',
-          force3D: true,
-        },
-        {
-          opacity: 1,
-          yPercent: 0,
-          scaleY: 1,
-          scaleX: 1,
-          filter: 'blur(0px)',
-          stagger: 0.008,
-          duration: 0.8,
-          force3D: true,
-        }
-      )
-    }, containerRef)
+      // Sequential line reveal animation
+      gsap.to(split.lines, {
+        opacity: 1,
+        yPercent: 0,
+        scaleY: 1,
+        filter: 'blur(0px)',
+        duration: 0.9,
+        ease: 'power4.out',
+        stagger: 0.08,
+        force3D: true,
+      })
 
-    return () => ctx.revert()
-  }, [text])
+      return () => {
+        split.revert()
+      }
+    },
+    {
+      scope: containerRef,
+      dependencies: [text],
+    }
+  )
 
   return (
     <div ref={containerRef} className="w-full">
       <p
-        ref={textRef}
-        className="text-ghost-white w-full text-[clamp(1.25rem,2.8vw,2.5rem)] tracking-tight leading-[130%] uppercase"
+        data-split-text
+        className="
+          text-ghost-white
+          w-full
+          text-[clamp(1.25rem,2.8vw,2.5rem)]
+          tracking-tight
+          leading-[130%]
+          uppercase
+        "
       >
         {text}
       </p>
@@ -68,7 +82,110 @@ function ExtrudedTextReveal({ text }) {
   )
 }
 
+/* =========================================================
+   IMAGE REVEAL
+   ========================================================= */
+
+function ImageReveal() {
+  const imageContainerRef = useRef(null)
+  const imageRef = useRef(null)
+  const overlayRef = useRef(null)
+
+  useGSAP(
+    () => {
+      if (!imageContainerRef.current || !imageRef.current) return
+
+      gsap.set(imageRef.current, {
+        opacity: 0,
+        scale: 1.06,
+        filter: 'brightness(0.15) blur(3px)',
+        transformOrigin: 'center center',
+        force3D: true,
+      })
+
+      gsap.set(overlayRef.current, {
+        opacity: 1,
+      })
+
+      const tl = gsap.timeline({
+        defaults: {
+          ease: 'power3.out',
+        },
+      })
+
+      tl.to(imageRef.current, {
+        opacity: 1,
+        scale: 1,
+        filter: 'brightness(1) blur(0px)',
+        duration: 1,
+      }).to(
+        overlayRef.current,
+        {
+          opacity: 0,
+          duration: 0.8,
+          ease: 'power2.out',
+        },
+        '<0.05'
+      )
+    },
+    {
+      scope: imageContainerRef,
+    }
+  )
+
+  return (
+    <div
+      ref={imageContainerRef}
+      className="
+        relative
+        w-full
+        max-w-[220px]
+        lg:max-w-[460px]
+        h-[clamp(18rem,38vw,42rem)]
+        overflow-hidden
+      "
+    >
+      <Image
+        ref={imageRef}
+        src="/Images/JAKE.png"
+        alt="Jake McIntosh, founder and director of Cloudhaus"
+        fill
+        priority
+        quality={80}
+        sizes="
+          (max-width: 1023px) 220px,
+          460px
+        "
+        className="
+          object-cover
+          will-change-transform
+        "
+      />
+
+      {/* Dark reveal layer */}
+      <div
+        ref={overlayRef}
+        className="
+          absolute
+          inset-0
+          bg-black
+          pointer-events-none
+          z-10
+        "
+      />
+    </div>
+  )
+}
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
 export default function Page() {
+  /* =======================================================
+     LENIS
+     ======================================================= */
+
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -86,49 +203,124 @@ export default function Page() {
 
     frameId = requestAnimationFrame(raf)
 
-    // Cleanup when component unmounts
     return () => {
       cancelAnimationFrame(frameId)
       lenis.destroy()
     }
   }, [])
 
+  /* =======================================================
+     RENDER
+     ======================================================= */
+
   return (
-    <div className="w-full min-h-dvh bg-carbon-black p-4 md:p-8">
-      {/*NAVIGATION*/}
+    <div
+      className="
+        w-full
+        min-h-dvh
+        bg-carbon-black
+        p-4
+        md:p-8
+      "
+    >
+      {/* =================================================
+          NAVIGATION
+      ================================================= */}
+
       <Navigation />
 
-      {/*===============================Page content==========================================*/}
+      {/* =================================================
+          PAGE CONTENT
+      ================================================= */}
 
-      {/*Top Content*/}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 w-full pt-40 items-start">
+      <div
+        className="
+          grid
+          grid-cols-1
+          lg:grid-cols-12
+          gap-8
+          lg:gap-16
+          w-full
+          pt-40
+          items-start
+        "
+      >
+        {/* =================================================
+            LEFT CONTENT
+        ================================================= */}
 
-        {/*LEFT CONTENT (Span 7 columns on desktop) */}
-        <div className="flex flex-col space-y-18 lg:col-span-7 w-full">
+        <div
+          className="
+            flex
+            flex-col
+            space-y-18
+            lg:col-span-7
+            w-full
+          "
+        >
+          {/* =================================================
+              ABOUT CLOUDHAUS
+          ================================================= */}
 
           <div className="flex flex-col gap-y-6">
-            <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
-              <div className="w-2 h-2 bg-ghost-white text-zinc-800" />
+            <div
+              className="
+                font-mono
+                tracking-tight
+                text-[clamp(0.625rem,1vw,0.75rem)]
+                flex
+                items-center
+                gap-2
+                text-ghost-white
+              "
+            >
+              <div className="w-2 h-2 bg-ghost-white" />
+
               <h1>ABOUT CLOUDHAUS</h1>
             </div>
 
-            {/* EXTRUDED ELEVATION REVEAL (NO SCROLLTRIGGER) */}
-            <ExtrudedTextReveal 
-              text="Since 2019, Cloudhaus has created cinematic films and photography for high-end architecture and construction. Led by Jake McIntosh, the studio operates on the belief that exceptional work deserves to be documented with the same care and craftsmanship that brought it into being." 
-            />
-          </div> 
+            {/* SPLIT LINE REVEAL */}
 
-          {/*LINKS AND MORE INFO*/}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full">
-            {/*COL 1: CONTACT */}
+            <ExtrudedTextReveal
+              text="Since 2019, Cloudhaus has created cinematic films and photography for high-end architecture and construction. Led by Jake McIntosh, the studio operates on the belief that exceptional work deserves to be documented with the same care and craftsmanship that brought it into being."
+            />
+          </div>
+
+          {/* =================================================
+              LINKS AND MORE INFO
+          ================================================= */}
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-8 w-full">
+            {/* CONTACT */}
+
             <div className="flex flex-col space-y-4">
-              <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
-                <div className="w-2 h-2 bg-ghost-white text-ghost-white" />
-                <h2 className="text-zinc-700">CONTACT</h2>
+              <div
+                className="
+                  font-mono
+                  tracking-tight
+                  text-[clamp(0.625rem,1vw,0.75rem)]
+                  flex
+                  items-center
+                  gap-2
+                  text-ghost-white
+                "
+              >
+                <div className="w-2 h-2 bg-ghost-white" />
+
+                <h2 className="text-zinc-600">CONTACT</h2>
               </div>
-              
+
               <div className="flex flex-col space-y-3 w-full">
-                <div className="flex flex-col font-sans text-ghost-white text-[clamp(0.75rem,1.2vw,1rem)] uppercase">
+                <div
+                  className="
+                    flex
+                    flex-col
+                    font-sans
+                    text-ghost-white
+                    text-[clamp(0.85rem,1.2vw,1rem)]
+                    uppercase
+                  "
+                >
                   <p>0404 104 360</p>
                   <p>ADELAIDE, SOUTH AUSTRALIA</p>
                   <p>info@cloudhaus.com.au</p>
@@ -136,15 +328,36 @@ export default function Page() {
               </div>
             </div>
 
-            {/*COL 2: SERVICES */}
+            {/* SERVICES */}
+
             <div className="flex flex-col space-y-4">
-              <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
-                <div className="w-2 h-2 bg-ghost-white text-eclipse" />
-                <h2 className="text-zinc-700">SERVICES</h2>
+              <div
+                className="
+                  font-mono
+                  tracking-tight
+                  text-[clamp(0.625rem,1vw,0.75rem)]
+                  flex
+                  items-center
+                  gap-2
+                  text-ghost-white
+                "
+              >
+                <div className="w-2 h-2 bg-ghost-white" />
+
+                <h2 className="text-zinc-600">SERVICES</h2>
               </div>
-              
+
               <div className="flex flex-col space-y-3 w-full">
-                <div className="flex flex-col font-sans text-ghost-white text-[clamp(0.75rem,1.2vw,1rem)] uppercase">
+                <div
+                  className="
+                    flex
+                    flex-col
+                    font-sans
+                    text-ghost-white
+                    text-[clamp(0.85rem,1.2vw,1rem)]
+                    uppercase
+                  "
+                >
                   <p>PRE-PRODUCTION</p>
                   <p>PRODUCTION</p>
                   <p>POST-PRODUCTION</p>
@@ -154,58 +367,200 @@ export default function Page() {
             </div>
           </div>
 
-          {/*COL 3: SOCIALS */}
+          {/* =================================================
+              SOCIALS
+          ================================================= */}
+
           <div className="flex flex-col space-y-4">
-            <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
-              <div className="w-2 h-2 bg-ghost-white text-eclipse" />
-              <h2 className="text-zinc-700">SOCIALS</h2>
+            <div
+              className="
+                tracking-tight
+                text-[clamp(0.625rem,1vw,0.75rem)]
+                flex
+                items-center
+                gap-2
+                text-ghost-white
+              "
+            >
+              <div className="w-2 h-2 bg-ghost-white" />
+
+              <h2 className="text-zinc-600 font-mono">SOCIALS</h2>
             </div>
-            
-            <div className="flex flex-col space-y-3 w-full">
-              <div className="flex flex-row gap-6 sm:flex-row sm:gap-x-8 font-geist-mono text-ghost-white text-[clamp(0.75rem,1.2vw,1rem)] uppercase">
-                <p>INSTAGRAM</p>
-                <p>FACEBOOK</p>
-                <p>VIMEO</p>
+
+            <div className="flex flex-col space-y-3 w-full font-sans">
+              <div
+                className="
+                  flex
+                  flex-row
+                  gap-6
+                  sm:flex-row
+                  sm:gap-x-8
+                  font-sans
+                  text-ghost-white
+                  text-[clamp(0.85rem,1.2vw,1rem)]
+                  uppercase
+                "
+              >
+                <a
+                  href="https://www.instagram.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-60 transition-opacity duration-300"
+                >
+                  INSTAGRAM
+                </a>
+
+                <a
+                  href="https://www.facebook.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-60 transition-opacity duration-300"
+                >
+                  FACEBOOK
+                </a>
+
+                <a
+                  href="https://vimeo.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:opacity-60 transition-opacity duration-300"
+                >
+                  VIMEO
+                </a>
               </div>
             </div>
           </div>
-
         </div>
 
-        {/*RIGHT IMAGE (Span 5 columns on desktop) */}
-        <div className="flex flex-col gap-3 lg:col-span-5 w-full items-start lg:items-end lg:pr-4">
-           <div className="w-full max-w-[220px] lg:max-w-[460px] h-[clamp(18rem,38vw,42rem)] relative">
-             <Image 
-               src="/Images/JAKE.png" 
-               alt="Jake McIntosh, founder and director of Cloudhaus" 
-               fill 
-               className="object-cover rounded-none"
-             />
-           </div>
-           <h1 className="font-geist-mono font-medium text-[clamp(0.6rem,1vw,0.85rem)] text-zinc-400 tracking-tight text-left lg:text-left w-full max-w-[420px] lg:max-w-[460px]">
+        {/* =================================================
+            RIGHT IMAGE
+        ================================================= */}
+
+        <div
+          className="
+            flex
+            flex-col
+            gap-3
+            lg:col-span-5
+            w-full
+            items-start
+            lg:items-end
+            lg:pr-4
+          "
+        >
+          <ImageReveal />
+
+          <h1
+            className="
+              font-geist-mono
+              font-medium
+              text-[clamp(0.6rem,1vw,0.85rem)]
+              text-zinc-400
+              tracking-tight
+              text-left
+              lg:text-left
+              w-full
+              max-w-[420px]
+              lg:max-w-[460px]
+            "
+          >
             JAKE MCINTOSH - FOUNDER & DIRECTOR OF CLOUDHAUS
-           </h1>
+          </h1>
         </div>
-
       </div>
-      
-      {/* BOTTOM CONTENT */}
-      <div className="flex flex-col-reverse md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.3rem,2.5vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-16 md:pt-48 px-2 md:px-4">
-        {/* GROUPED 1st AND 2nd DIVS: Horizontal on mobile, inline with desktop row */}
-        <div className="flex flex-row md:contents justify-between w-full md:w-auto">
-          <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
+
+      {/* =================================================
+          BOTTOM CONTENT
+      ================================================= */}
+
+      <div
+        className="
+          flex
+          flex-col-reverse
+          md:flex-row
+          items-start
+          md:items-end
+          justify-between
+          font-geist-mono
+          text-ghost-white
+          text-[clamp(0.3rem,2.5vw,0.725rem)]
+          uppercase
+          w-full
+          gap-[clamp(0.55rem,0.8vw,1.5rem)]
+          pt-16
+          md:pt-48
+          px-2
+          md:px-4
+        "
+      >
+        <div
+          className="
+            flex
+            flex-row
+            md:contents
+            justify-between
+            w-full
+            md:w-auto
+          "
+        >
+          <div
+            className="
+              flex
+              flex-col
+              md:flex-row
+              space-y-0
+              space-x-[clamp(0.5rem,4.5vw,6rem)]
+            "
+          >
             <h1>BASED IN ADELAIDE</h1>
-            <h1 className="">PRIVACY POLICY</h1>
+
+            <a
+              href="/privacy-policy"
+              className="hover:opacity-60 transition-opacity duration-300"
+            >
+              PRIVACY POLICY
+            </a>
           </div>
-          <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
-            <h1>PRIVACY POLICY</h1>
-            <h1 className="font-bold">WEBSITE BY: ZANI</h1>
+
+          <div
+            className="
+              flex
+              flex-col
+              md:flex-row
+              space-y-0
+              space-x-[clamp(0.5rem,4.5vw,6rem)]
+            "
+          >
+            <a
+              href="/privacy-policy"
+              className="hover:opacity-60 transition-opacity duration-300"
+            >
+              PRIVACY POLICY
+            </a>
+
+            <a
+              href="https://www.withzane.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold hover:opacity-60 transition-opacity duration-300"
+            >
+              WEBSITE BY: ZANE
+            </a>
           </div>
         </div>
 
-        {/* 3rd DIV: Below on mobile, start-aligned */}
-        <div className="flex flex-row space-x-[clamp(0.5rem,4.5vw,6rem)]">
-          <h1 className="font-bold">BACK TO HOME</h1>
+        {/* BACK TO HOME */}
+
+        <div
+          className="
+            flex
+            flex-row
+            space-x-[clamp(0.5rem,4.5vw,6rem)]
+          "
+        >
+          <TransitionLink href="/" className="font-bold">
+            BACK TO HOME
+          </TransitionLink>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, {
@@ -20,8 +21,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import Footer from '@/components/Sections/Footer'
 
+import Footer from "@/components/Sections/Footer";
 import Navigation from "@/components/UI/Navigation";
 import { client } from "@/lib/client";
 
@@ -255,12 +256,7 @@ const getVideoUrl = (video) => {
     return video;
   }
 
-  return (
-    video.src ||
-    video.url ||
-    video.secure_url ||
-    null
-  );
+  return video.src || video.url || video.secure_url || null;
 };
 
 const formatTime = (seconds) => {
@@ -283,18 +279,16 @@ function WorkCard({
   containerClassName,
   heightClassName,
   onHoverChange,
+  fullBleedVideo = false,
 }) {
-  const [currentTime, setCurrentTime] =
-    useState("00:00");
+  const [currentTime, setCurrentTime] = useState("00:00");
 
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const noiseRef = useRef(null);
   const videoRef = useRef(null);
 
-  const videoUrl = getVideoUrl(
-    video?.heroVideos?.[0]
-  );
+  const videoUrl = getVideoUrl(video?.heroVideos?.[0]);
 
   // --------------------------------------------------
   // RANDOM VIDEO START
@@ -321,9 +315,7 @@ function WorkCard({
     const videoEl = e.currentTarget;
 
     if (videoEl) {
-      setCurrentTime(
-        formatTime(videoEl.currentTime)
-      );
+      setCurrentTime(formatTime(videoEl.currentTime));
     }
   };
 
@@ -369,25 +361,10 @@ function WorkCard({
 
     if (!containerRef.current) return;
 
-    const topL =
-      containerRef.current.querySelector(
-        ".corner-tl"
-      );
-
-    const topR =
-      containerRef.current.querySelector(
-        ".corner-tr"
-      );
-
-    const botL =
-      containerRef.current.querySelector(
-        ".corner-bl"
-      );
-
-    const botR =
-      containerRef.current.querySelector(
-        ".corner-br"
-      );
+    const topL = containerRef.current.querySelector(".corner-tl");
+    const topR = containerRef.current.querySelector(".corner-tr");
+    const botL = containerRef.current.querySelector(".corner-bl");
+    const botR = containerRef.current.querySelector(".corner-br");
 
     gsap.to(topL, {
       opacity: 0,
@@ -439,13 +416,13 @@ function WorkCard({
   return (
     <TransitionLink
       href={`/Work/${video.slug}`}
-      className={`flex flex-col space-y-2 w-full block group ${
+      className={`flex flex-col w-full ${
         containerClassName || ""
       }`}
     >
       {/* TOP INFO */}
 
-      <div className="flex flex-row items-center justify-between w-full px-1">
+      <div className="flex flex-row items-center justify-between w-full px-1 pb-2">
         <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
           {video.date || "—"}
         </h1>
@@ -461,9 +438,11 @@ function WorkCard({
         ref={containerRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`relative overflow-hidden cursor-none ${
-          heightClassName || ""
-        }`}
+        className={`relative overflow-hidden cursor-pointer ${
+          fullBleedVideo
+            ? "-mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]"
+            : "w-full"
+        } ${heightClassName || ""}`}
       >
         {videoUrl ? (
           <video
@@ -474,16 +453,12 @@ function WorkCard({
             muted
             playsInline
             preload="metadata"
-            onLoadedMetadata={
-              handleLoadedMetadata
-            }
-            onTimeUpdate={
-              handleTimeUpdate
-            }
-            className="w-full h-full object-cover brightness-90 contrast-105 transition-[filter] duration-500 ease-out group-hover:brightness-90"
+            onLoadedMetadata={handleLoadedMetadata}
+            onTimeUpdate={handleTimeUpdate}
+            className="block w-full aspect-video object-cover brightness-90 contrast-105"
           />
         ) : (
-          <div className="w-full h-full bg-zinc-900 flex flex-col items-center justify-center gap-2">
+          <div className="w-full aspect-video bg-zinc-900 flex flex-col items-center justify-center gap-2">
             <span className="font-geist-mono text-xs text-zinc-500 uppercase">
               No Preview
             </span>
@@ -505,21 +480,21 @@ function WorkCard({
         {/* CORNERS */}
 
         <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
-          <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t-1 border-l-1 border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
+          <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t border-l border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
 
-          <div className="corner-tr absolute top-4 right-4 w-8 h-8 border-t-1 border-r-1 border-white opacity-0 scale-90 translate-x-3 -translate-y-3 mix-blend-difference" />
+          <div className="corner-tr absolute top-4 right-4 w-8 h-8 border-t border-r border-white opacity-0 scale-90 translate-x-3 -translate-y-3 mix-blend-difference" />
 
-          <div className="corner-bl absolute bottom-4 left-4 w-8 h-8 border-b-1 border-l-1 border-white opacity-0 scale-90 -translate-x-3 translate-y-3 mix-blend-difference" />
+          <div className="corner-bl absolute bottom-4 left-4 w-8 h-8 border-b border-l border-white opacity-0 scale-90 -translate-x-3 translate-y-3 mix-blend-difference" />
 
-          <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b-1 border-r-1 border-white opacity-0 scale-90 translate-x-3 translate-y-3 mix-blend-difference" />
+          <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b border-r border-white opacity-0 scale-90 translate-x-3 translate-y-3 mix-blend-difference" />
         </div>
       </div>
 
       {/* BOTTOM INFO */}
 
       <div className="flex flex-row items-baseline justify-between w-full px-1 pt-2 text-ghost-white">
-        <div className="flex flex-col">
-          <p className="font-geist-mono text-[clamp(0.75rem,1vw,0.575rem)] text-zinc-400 tracking-tight">
+        <div className="flex flex-col min-w-0">
+          <p className="font-geist-mono text-[clamp(0.6875rem,1vw,0.75rem)] text-zinc-400 tracking-tight">
             {video.client || "—"}
           </p>
 
@@ -581,10 +556,7 @@ function ListItemRow({
       ease: "power3.out",
       overwrite: "auto",
     });
-  }, [
-    onHoverStart,
-    project,
-  ]);
+  }, [onHoverStart, project]);
 
   const deactivateRow = useCallback(() => {
     onHoverEnd();
@@ -641,10 +613,7 @@ function ListItemRow({
     });
 
     return () => mm.revert();
-  }, [
-    activateRow,
-    deactivateRow,
-  ]);
+  }, [activateRow, deactivateRow]);
 
   return (
     <div
@@ -659,21 +628,21 @@ function ListItemRow({
       >
         <span
           ref={titleRef}
-          className="font-sans text-sm md:text-sm font-light uppercase text-ghost-white inline-block"
+          className="font-sans text-xs sm:text-sm md:text-sm font-light uppercase text-ghost-white inline-block"
         >
           {project.client}
         </span>
 
         <span
           ref={subtitleRef}
-          className="font-geist-mono text-xs md:text-4xl text-start uppercase tracking-wider text-zinc-400 inline-block"
+          className="font-geist-mono text-sm sm:text-base md:text-xl lg:text-2xl text-start uppercase tracking-wide text-zinc-400 inline-block truncate pr-4"
         >
           {project.title}
         </span>
 
         <span
           ref={dateRef}
-          className="font-geist-mono text-sm md:text-base text-right text-zinc-500 inline-block"
+          className="font-geist-mono text-xs sm:text-sm md:text-base text-right text-zinc-500 inline-block"
         >
           {project.date}
         </span>
@@ -687,32 +656,22 @@ function ListItemRow({
 // ----------------------------------------------------------------------
 
 export default function AllWorksSection() {
-  const cursorRef = useRef(null);
   const containerRef = useRef(null);
   const listPreviewRef = useRef(null);
   const listContainerRef = useRef(null);
   const bgVideoRef = useRef(null);
 
-  const [viewMode, setViewMode] =
-    useState("grid");
+  const [viewMode, setViewMode] = useState("grid");
 
-  const [visibleCount, setVisibleCount] =
-    useState(13);
+  const [visibleCount, setVisibleCount] = useState(13);
 
-  const [projects, setProjects] =
-    useState([]);
+  const [projects, setProjects] = useState([]);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [hoveredProject, setHoveredProject] =
-    useState(null);
+  const [hoveredProject, setHoveredProject] = useState(null);
 
-  const [displayProject, setDisplayProject] =
-    useState(null);
-
-  const [isHoveringVideo, setIsHoveringVideo] =
-    useState(false);
+  const [displayProject, setDisplayProject] = useState(null);
 
   // --------------------------------------------------
   // FETCH PROJECTS
@@ -735,17 +694,10 @@ export default function AllWorksSection() {
           }
         );
 
-        console.log(
-          "SANITY WORKS:",
-          data
-        );
+        console.log("SANITY WORKS:", data);
 
         if (!cancelled) {
-          setProjects(
-            Array.isArray(data)
-              ? data
-              : []
-          );
+          setProjects(Array.isArray(data) ? data : []);
         }
       } catch (error) {
         console.error(
@@ -775,14 +727,8 @@ export default function AllWorksSection() {
   // --------------------------------------------------
 
   const activeProjects = useMemo(() => {
-    return projects.slice(
-      0,
-      visibleCount
-    );
-  }, [
-    projects,
-    visibleCount,
-  ]);
+    return projects.slice(0, visibleCount);
+  }, [projects, visibleCount]);
 
   // --------------------------------------------------
   // VIEW TOGGLE
@@ -820,10 +766,7 @@ export default function AllWorksSection() {
 
   const handleLoadMore = () => {
     setVisibleCount((prev) =>
-      Math.min(
-        prev + 5,
-        projects.length
-      )
+      Math.min(prev + 5, projects.length)
     );
   };
 
@@ -837,11 +780,7 @@ export default function AllWorksSection() {
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [
-    viewMode,
-    visibleCount,
-    activeProjects,
-  ]);
+  }, [viewMode, visibleCount, activeProjects]);
 
   // --------------------------------------------------
   // HOVERED PROJECT
@@ -849,36 +788,23 @@ export default function AllWorksSection() {
 
   useEffect(() => {
     if (hoveredProject) {
-      setDisplayProject(
-        hoveredProject
-      );
+      setDisplayProject(hoveredProject);
     }
-  }, [
-    hoveredProject,
-  ]);
+  }, [hoveredProject]);
 
   // --------------------------------------------------
   // PLAY BACKGROUND VIDEO
   // --------------------------------------------------
 
   useEffect(() => {
-    if (
-      hoveredProject &&
-      bgVideoRef.current
-    ) {
-      const playPromise =
-        bgVideoRef.current.play();
+    if (hoveredProject && bgVideoRef.current) {
+      const playPromise = bgVideoRef.current.play();
 
-      if (
-        playPromise !== undefined
-      ) {
+      if (playPromise !== undefined) {
         playPromise.catch(() => {});
       }
     }
-  }, [
-    displayProject,
-    hoveredProject,
-  ]);
+  }, [displayProject, hoveredProject]);
 
   // --------------------------------------------------
   // LIST STAGGER
@@ -892,276 +818,90 @@ export default function AllWorksSection() {
       return;
     }
 
-    const ctx =
-      gsap.context(() => {
-        const listItems =
-          listContainerRef.current.querySelectorAll(
-            ".list-item-row"
-          );
+    const ctx = gsap.context(() => {
+      const listItems =
+        listContainerRef.current.querySelectorAll(
+          ".list-item-row"
+        );
 
-        gsap.fromTo(
-          listItems,
-          {
-            opacity: 0,
-            y: 40,
+      gsap.fromTo(
+        listItems,
+        {
+          opacity: 0,
+          y: 40,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.08,
+          ease: "power3.out",
+
+          scrollTrigger: {
+            trigger: listContainerRef.current,
+            start: "top 85%",
+            toggleActions: "play none none reset",
           },
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.6,
-            stagger: 0.08,
-            ease: "power3.out",
-
-            scrollTrigger: {
-              trigger:
-                listContainerRef.current,
-              start: "top 85%",
-              toggleActions:
-                "play none none reset",
-            },
-          }
-        );
-      }, listContainerRef);
+        }
+      );
+    }, listContainerRef);
 
     return () => ctx.revert();
-  }, [
-    viewMode,
-    activeProjects,
-  ]);
-
-  // --------------------------------------------------
-  // CURSOR
-  // --------------------------------------------------
-
-  useEffect(() => {
-    const cursor =
-      cursorRef.current;
-
-    const preview =
-      listPreviewRef.current;
-
-    const ctx =
-      gsap.context(() => {
-        if (cursor) {
-          gsap.set(cursor, {
-            xPercent: -50,
-            yPercent: -50,
-          });
-        }
-
-        if (preview) {
-          gsap.set(preview, {
-            xPercent: -50,
-            yPercent: -50,
-            x:
-              window.innerWidth / 2,
-            y:
-              window.innerHeight / 2,
-          });
-        }
-
-        const xToCursor =
-          cursor
-            ? gsap.quickTo(
-                cursor,
-                "x",
-                {
-                  duration: 0.2,
-                  ease: "power3",
-                }
-              )
-            : null;
-
-        const yToCursor =
-          cursor
-            ? gsap.quickTo(
-                cursor,
-                "y",
-                {
-                  duration: 0.2,
-                  ease: "power3",
-                }
-              )
-            : null;
-
-        const xToPreview =
-          preview
-            ? gsap.quickTo(
-                preview,
-                "x",
-                {
-                  duration: 0.35,
-                  ease: "power3.out",
-                }
-              )
-            : null;
-
-        const yToPreview =
-          preview
-            ? gsap.quickTo(
-                preview,
-                "y",
-                {
-                  duration: 0.35,
-                  ease: "power3.out",
-                }
-              )
-            : null;
-
-        const movePointer = (e) => {
-          xToCursor?.(e.clientX);
-          yToCursor?.(e.clientY);
-
-          xToPreview?.(e.clientX);
-          yToPreview?.(e.clientY);
-        };
-
-        window.addEventListener(
-          "mousemove",
-          movePointer
-        );
-
-        return () => {
-          window.removeEventListener(
-            "mousemove",
-            movePointer
-          );
-        };
-      });
-
-    return () => ctx.revert();
-  }, [
-    viewMode,
-  ]);
-
-  // --------------------------------------------------
-  // CURSOR VISIBILITY
-  // --------------------------------------------------
-
-  useEffect(() => {
-    const cursor =
-      cursorRef.current;
-
-    if (!cursor) return;
-
-    gsap.to(cursor, {
-      scale:
-        isHoveringVideo
-          ? 1
-          : 0,
-
-      opacity:
-        isHoveringVideo
-          ? 1
-          : 0,
-
-      duration:
-        isHoveringVideo
-          ? 0.25
-          : 0.2,
-
-      ease:
-        isHoveringVideo
-          ? "power2.out"
-          : "power2.in",
-    });
-  }, [
-    isHoveringVideo,
-  ]);
+  }, [viewMode, activeProjects]);
 
   // --------------------------------------------------
   // PREVIEW TAG
   // --------------------------------------------------
 
   useEffect(() => {
-    const preview =
-      listPreviewRef.current;
+    const preview = listPreviewRef.current;
 
     if (!preview) return;
 
     gsap.to(preview, {
-      scale:
-        hoveredProject
-          ? 1
-          : 0.85,
+      scale: hoveredProject ? 1 : 0.85,
 
-      opacity:
-        hoveredProject
-          ? 1
-          : 0,
+      opacity: hoveredProject ? 1 : 0,
 
-      duration:
-        hoveredProject
-          ? 0.35
-          : 0.25,
+      duration: hoveredProject ? 0.35 : 0.25,
 
-      ease:
-        hoveredProject
-          ? "power3.out"
-          : "power3.in",
+      ease: hoveredProject
+        ? "power3.out"
+        : "power3.in",
     });
-  }, [
-    hoveredProject,
-  ]);
-
-  // --------------------------------------------------
-  // GRID HOVER
-  // --------------------------------------------------
-
-  const handleHoverChange =
-    useCallback(
-      (isHovered) => {
-        setIsHoveringVideo(
-          isHovered
-        );
-      },
-      []
-    );
+  }, [hoveredProject]);
 
   // --------------------------------------------------
   // LENIS
   // --------------------------------------------------
 
   useEffect(() => {
-    const lenis =
-      new Lenis({
-        duration: 1.2,
+    const lenis = new Lenis({
+      duration: 1.2,
 
-        easing: (t) =>
-          Math.min(
-            1,
-            1.001 -
-              Math.pow(
-                2,
-                -10 * t
-              )
-          ),
+      easing: (t) =>
+        Math.min(
+          1,
+          1.001 - Math.pow(2, -10 * t)
+        ),
 
-        smoothWheel: true,
+      smoothWheel: true,
 
-        touchMultiplier: 2,
-      });
+      touchMultiplier: 2,
+    });
 
     let frameId;
 
     function raf(time) {
       lenis.raf(time);
 
-      frameId =
-        requestAnimationFrame(
-          raf
-        );
+      frameId = requestAnimationFrame(raf);
     }
 
-    frameId =
-      requestAnimationFrame(
-        raf
-      );
+    frameId = requestAnimationFrame(raf);
 
     return () => {
-      cancelAnimationFrame(
-        frameId
-      );
+      cancelAnimationFrame(frameId);
 
       lenis.destroy();
     };
@@ -1186,9 +926,11 @@ export default function AllWorksSection() {
   // --------------------------------------------------
 
   return (
-    <div className="bg-black w-full min-h-screen py-6 px-4 md:py-22 md:px-4 relative overflow-x-hidden">
+    <div className="bg-black w-full min-h-screen px-4 py-6 md:px-4 md:pt-22 relative overflow-x-hidden">
 
-      {/* BACKGROUND VIDEO */}
+      {/* --------------------------------------------------
+          BACKGROUND VIDEO
+      -------------------------------------------------- */}
 
       <div
         className={`fixed inset-0 z-0 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out ${
@@ -1203,12 +945,8 @@ export default function AllWorksSection() {
               displayProject.heroVideos?.[0]
             ) && (
               <video
-                key={
-                  displayProject._id
-                }
-                ref={
-                  bgVideoRef
-                }
+                key={displayProject._id}
+                ref={bgVideoRef}
                 src={getVideoUrl(
                   displayProject.heroVideos?.[0]
                 )}
@@ -1225,20 +963,15 @@ export default function AllWorksSection() {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
+      {/* --------------------------------------------------
+          NAVIGATION
+      -------------------------------------------------- */}
+
       <Navigation />
 
-      {/* CUSTOM CURSOR */}
-
-      <div
-        ref={cursorRef}
-        className="fixed top-0 left-0 pointer-events-none z-[100] hidden md:block scale-0 opacity-0 mix-blend-difference text-white"
-      >
-        <span className="font-geist-mono text-xl font-medium tracking-tight">
-          [ CLICK ]
-        </span>
-      </div>
-
-      {/* PLAY VIDEO TAG */}
+      {/* --------------------------------------------------
+          PLAY VIDEO TAG
+      -------------------------------------------------- */}
 
       <div
         ref={listPreviewRef}
@@ -1249,7 +982,9 @@ export default function AllWorksSection() {
         </span>
       </div>
 
-      {/* HEADER */}
+      {/* --------------------------------------------------
+          HEADER
+      -------------------------------------------------- */}
 
       <div className="relative z-10 flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
 
@@ -1257,6 +992,7 @@ export default function AllWorksSection() {
 
           <div className="opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
             <div className="w-2 h-2 bg-zinc-300" />
+
             <h1>
               SELECTED WORKS
             </h1>
@@ -1268,13 +1004,15 @@ export default function AllWorksSection() {
 
         </div>
 
-        {/* TITLE / CONTROLS */}
+        {/* --------------------------------------------------
+            TITLE / CONTROLS
+        -------------------------------------------------- */}
 
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-6 sm:gap-0 pb-6">
 
-          <div className="flex flex-row items-start gap-4 sm:gap-6 font-monot">
+          <div className="flex flex-row items-start gap-4 sm:gap-6">
 
-            <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%] font-light leading-none uppercase">
+            <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%]  font-monot leading-none uppercase">
               Works
             </h1>
 
@@ -1294,13 +1032,10 @@ export default function AllWorksSection() {
 
               <button
                 onClick={() =>
-                  handleToggleView(
-                    "grid"
-                  )
+                  handleToggleView("grid")
                 }
                 className={`transition-colors cursor-pointer ${
-                  viewMode ===
-                  "grid"
+                  viewMode === "grid"
                     ? "text-white font-bold"
                     : "text-zinc-500 hover:text-white"
                 }`}
@@ -1314,13 +1049,10 @@ export default function AllWorksSection() {
 
               <button
                 onClick={() =>
-                  handleToggleView(
-                    "list"
-                  )
+                  handleToggleView("list")
                 }
                 className={`transition-colors cursor-pointer ${
-                  viewMode ===
-                  "list"
+                  viewMode === "list"
                     ? "text-white font-bold"
                     : "text-zinc-500 hover:text-white"
                 }`}
@@ -1339,7 +1071,9 @@ export default function AllWorksSection() {
 
         </div>
 
-        {/* CONTENT */}
+        {/* --------------------------------------------------
+            CONTENT
+        -------------------------------------------------- */}
 
         <div
           ref={containerRef}
@@ -1352,24 +1086,21 @@ export default function AllWorksSection() {
 
               {/* ------------------------------------------------
                   FIRST 3 PROJECTS
+                  ZERO GAP BETWEEN VIDEOS
               ------------------------------------------------ */}
 
               {activeProjects.length > 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-4 text-lavender">
+                <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-0 text-lavender">
 
                   {activeProjects
                     .slice(0, 3)
                     .map((project) => (
                       <WorkCard
-                        key={
-                          project._id
-                        }
-                        video={
-                          project
-                        }
-                        heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
+                        key={project._id}
+                        video={project}
+                        heightClassName="w-full aspect-video"
                         onHoverChange={
-                          handleHoverChange
+                          () => {}
                         }
                       />
                     ))}
@@ -1379,19 +1110,18 @@ export default function AllWorksSection() {
 
               {/* ------------------------------------------------
                   FOURTH PROJECT
+                  VIDEO BLEEDS EDGE TO EDGE
+                  METADATA STAYS INSIDE CONTAINER
               ------------------------------------------------ */}
 
               {activeProjects.length >= 4 && (
-                <div className="-mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]">
+                <div className="w-full">
 
                   <WorkCard
-                    video={
-                      activeProjects[3]
-                    }
-                    heightClassName="w-full h-[55vh] lg:h-[97vh]"
-                    onHoverChange={
-                      handleHoverChange
-                    }
+                    video={activeProjects[3]}
+                    fullBleedVideo
+                    heightClassName="w-full"
+                    onHoverChange={() => {}}
                   />
 
                 </div>
@@ -1407,28 +1137,20 @@ export default function AllWorksSection() {
                   <div className="lg:col-span-5">
 
                     <WorkCard
-                      video={
-                        activeProjects[4]
-                      }
-                      heightClassName="w-full aspect-video h-[18rem] lg:h-[26rem]"
-                      onHoverChange={
-                        handleHoverChange
-                      }
+                      video={activeProjects[4]}
+                      heightClassName="w-full aspect-video"
+                      onHoverChange={() => {}}
                     />
 
                   </div>
 
                   {activeProjects.length >= 6 && (
-                    <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-12 md:translate-x-18">
+                    <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-12">
 
                       <WorkCard
-                        video={
-                          activeProjects[5]
-                        }
-                        heightClassName="w-full aspect-video h-[20rem] lg:h-[32rem]"
-                        onHoverChange={
-                          handleHoverChange
-                        }
+                        video={activeProjects[5]}
+                        heightClassName="w-full aspect-video"
+                        onHoverChange={() => {}}
                       />
 
                     </div>
@@ -1445,24 +1167,16 @@ export default function AllWorksSection() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 text-lavender md:pt-30">
 
                   <WorkCard
-                    video={
-                      activeProjects[6]
-                    }
-                    heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
-                    onHoverChange={
-                      handleHoverChange
-                    }
+                    video={activeProjects[6]}
+                    heightClassName="w-full aspect-video"
+                    onHoverChange={() => {}}
                   />
 
                   {activeProjects.length >= 8 && (
                     <WorkCard
-                      video={
-                        activeProjects[7]
-                      }
-                      heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
-                      onHoverChange={
-                        handleHoverChange
-                      }
+                      video={activeProjects[7]}
+                      heightClassName="w-full aspect-video"
+                      onHoverChange={() => {}}
                     />
                   )}
 
@@ -1480,16 +1194,10 @@ export default function AllWorksSection() {
                     .slice(8, 11)
                     .map((project) => (
                       <WorkCard
-                        key={
-                          project._id
-                        }
-                        video={
-                          project
-                        }
-                        heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
-                        onHoverChange={
-                          handleHoverChange
-                        }
+                        key={project._id}
+                        video={project}
+                        heightClassName="w-full aspect-video"
+                        onHoverChange={() => {}}
                       />
                     ))}
 
@@ -1507,16 +1215,10 @@ export default function AllWorksSection() {
                     .slice(11, 13)
                     .map((project) => (
                       <WorkCard
-                        key={
-                          project._id
-                        }
-                        video={
-                          project
-                        }
-                        heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
-                        onHoverChange={
-                          handleHoverChange
-                        }
+                        key={project._id}
+                        video={project}
+                        heightClassName="w-full aspect-video"
+                        onHoverChange={() => {}}
                       />
                     ))}
 
@@ -1534,16 +1236,10 @@ export default function AllWorksSection() {
                     .slice(13)
                     .map((project) => (
                       <WorkCard
-                        key={
-                          project._id
-                        }
-                        video={
-                          project
-                        }
-                        heightClassName="w-full aspect-video h-[18rem]"
-                        onHoverChange={
-                          handleHoverChange
-                        }
+                        key={project._id}
+                        video={project}
+                        heightClassName="w-full aspect-video"
+                        onHoverChange={() => {}}
                       />
                     ))}
 
@@ -1556,9 +1252,11 @@ export default function AllWorksSection() {
 
               {activeProjects.length === 0 && (
                 <div className="flex items-center justify-center py-32">
+
                   <span className="font-geist-mono text-xs text-zinc-600 uppercase tracking-widest">
                     No projects found
                   </span>
+
                 </div>
               )}
 
@@ -1566,12 +1264,16 @@ export default function AllWorksSection() {
 
           ) : (
 
+            /* ------------------------------------------------
+               LIST VIEW
+            ------------------------------------------------ */
+
             <div
               ref={listContainerRef}
-              className="relative w-full pt-8 pb-16"
+              className="relative w-full pt-8 pb-8"
             >
 
-              <div className="grid grid-cols-3 items-center text-zinc-500 font-geist-mono text-xs uppercase tracking-wider pb-4 border-b border-zinc-800">
+              <div className="grid grid-cols-3 items-center text-zinc-500 font-geist-mono text-[0.65rem] md:text-xs uppercase tracking-wider pb-4 border-b border-zinc-800">
 
                 <span className="text-left">
                   CLIENT
@@ -1589,37 +1291,24 @@ export default function AllWorksSection() {
 
               <div className="flex flex-col divide-y divide-zinc-800/60">
 
-                {activeProjects.map(
-                  (project) => (
-                    <ListItemRow
-                      key={
-                        project._id
-                      }
-                      project={
-                        project
-                      }
-                      onHoverStart={
-                        setHoveredProject
-                      }
-                      onHoverEnd={() =>
-                        setHoveredProject(
-                          null
-                        )
-                      }
-                    />
-                  )
-                )}
+                {activeProjects.map((project) => (
+                  <ListItemRow
+                    key={project._id}
+                    project={project}
+                    onHoverStart={setHoveredProject}
+                    onHoverEnd={() =>
+                      setHoveredProject(null)
+                    }
+                  />
+                ))}
 
               </div>
 
-              {visibleCount <
-                projects.length && (
+              {visibleCount < projects.length && (
                 <div className="flex justify-center pt-12">
 
                   <button
-                    onClick={
-                      handleLoadMore
-                    }
+                    onClick={handleLoadMore}
                     className="font-geist-mono text-xs tracking-widest uppercase border border-zinc-700 text-ghost-white hover:bg-ghost-white hover:text-carbon-black px-6 py-3 rounded-full transition-colors duration-300"
                   >
                     LOAD MORE
@@ -1634,7 +1323,14 @@ export default function AllWorksSection() {
 
         </div>
       </div>
+
+      {/* --------------------------------------------------
+          FOOTER
+      -------------------------------------------------- */}
+
       <Footer />
+
     </div>
   );
 }
+
