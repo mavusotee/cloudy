@@ -56,11 +56,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
   }, []);
 
   /* =======================================================
-     MAIN GSAP CONTEXT
-     
-     EVERYTHING GSAP-RELATED LIVES INSIDE THIS CONTEXT.
-     When Navigation unmounts, useGSAP automatically reverts
-     the animations and ScrollTrigger instances.
+     MOBILE MENU SETUP
   ======================================================= */
 
   useGSAP(
@@ -98,7 +94,6 @@ function Navigation({ isMuted = true, onToggleSound }) {
           end: "bottom bottom",
 
           onEnter: () => {
-            // Kill any existing tweens before starting new ones.
             gsap.killTweensOf([logo, links, rightActions]);
 
             gsap.to(links, {
@@ -155,23 +150,20 @@ function Navigation({ isMuted = true, onToggleSound }) {
 
       if (!overlay || !menuContent) return;
 
-      const linkItems = menuContent.querySelectorAll("a");
+      const linkItems = menuContent.querySelectorAll(".menu-link");
 
-      /* -----------------------------------------------------
-         INITIAL OVERLAY STATE
-
-         Important:
-         We hide the overlay immediately with GSAP.
-         This prevents the menu from flashing during mount.
-      ----------------------------------------------------- */
+      /* =====================================================
+         INITIAL MENU STATE
+      ===================================================== */
 
       gsap.set(overlay, {
         display: "none",
+        pointerEvents: "none",
         clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
       });
 
       gsap.set(linkItems, {
-        yPercent: 100,
+        yPercent: 110,
         opacity: 0,
       });
 
@@ -181,14 +173,23 @@ function Navigation({ isMuted = true, onToggleSound }) {
 
       const openTl = gsap.timeline({
         paused: true,
+
+        onStart: () => {
+          gsap.set(overlay, {
+            display: "flex",
+            pointerEvents: "auto",
+          });
+        },
       });
 
       openTl
         .set(overlay, {
           display: "flex",
+          pointerEvents: "auto",
         })
         .to(overlay, {
-          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+          clipPath:
+            "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
           duration: 0.75,
           ease: "power3.inOut",
         })
@@ -197,12 +198,12 @@ function Navigation({ isMuted = true, onToggleSound }) {
           {
             yPercent: 0,
             opacity: 1,
-            duration: 0.95,
+            duration: 0.8,
             stagger: 0.08,
             ease: "power3.out",
             overwrite: true,
           },
-          "-=0.5",
+          "-=0.45",
         );
 
       /* =====================================================
@@ -217,11 +218,13 @@ function Navigation({ isMuted = true, onToggleSound }) {
 
           gsap.set(overlay, {
             display: "none",
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+            pointerEvents: "none",
+            clipPath:
+              "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
           });
 
           gsap.set(linkItems, {
-            yPercent: 100,
+            yPercent: 110,
             xPercent: 0,
             opacity: 0,
           });
@@ -234,10 +237,10 @@ function Navigation({ isMuted = true, onToggleSound }) {
 
       closeTl
         .to(linkItems, {
-          yPercent: -100,
+          yPercent: -110,
           xPercent: -8,
           opacity: 0,
-          duration: 0.8,
+          duration: 0.55,
           stagger: -0.04,
           ease: "power3.in",
           overwrite: true,
@@ -245,11 +248,12 @@ function Navigation({ isMuted = true, onToggleSound }) {
         .to(
           overlay,
           {
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+            clipPath:
+              "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
             duration: 0.65,
             ease: "power3.inOut",
           },
-          "-=0.2",
+          "-=0.15",
         );
 
       menuOpenTimelineRef.current = openTl;
@@ -263,46 +267,53 @@ function Navigation({ isMuted = true, onToggleSound }) {
   );
 
   /* =======================================================
-     MOBILE MENU TOGGLE
+     OPEN MENU
   ======================================================= */
 
-  const toggleMobileMenu = useCallback(() => {
+  const openMobileMenu = useCallback(() => {
     const openTl = menuOpenTimelineRef.current;
     const closeTl = menuCloseTimelineRef.current;
 
     if (!openTl || !closeTl) return;
 
-    /* -----------------------------------------------------
-       OPEN
-    ----------------------------------------------------- */
+    closeTl.pause(0);
 
-    if (!isMobileMenuOpen) {
-      // Kill whatever the opposite timeline is doing.
-      closeTl.pause(0);
+    setIsMobileMenuOpen(true);
 
-      setIsMobileMenuOpen(true);
+    lockBodyScroll();
 
-      lockBodyScroll();
+    openTl.restart();
+  }, [lockBodyScroll]);
 
-      // Make sure the menu starts from a clean state.
-      openTl.restart();
-      return;
-    }
+  /* =======================================================
+     CLOSE MENU
+  ======================================================= */
 
-    /* -----------------------------------------------------
-       CLOSE
-    ----------------------------------------------------- */
+  const closeMobileMenu = useCallback(() => {
+    const openTl = menuOpenTimelineRef.current;
+    const closeTl = menuCloseTimelineRef.current;
+
+    if (!openTl || !closeTl) return;
 
     openTl.pause();
 
     closeTl.restart();
-  }, [isMobileMenuOpen, lockBodyScroll]);
+  }, []);
 
   /* =======================================================
-     CLEANUP / UNMOUNT
+     MENU TOGGLE
+  ======================================================= */
 
-     useGSAP handles GSAP cleanup, but we also explicitly
-     clean the refs and body state.
+  const toggleMobileMenu = useCallback(() => {
+    if (isMobileMenuOpen) {
+      closeMobileMenu();
+    } else {
+      openMobileMenu();
+    }
+  }, [isMobileMenuOpen, closeMobileMenu, openMobileMenu]);
+
+  /* =======================================================
+     CLEANUP
   ======================================================= */
 
   useGSAP(
@@ -401,19 +412,27 @@ function Navigation({ isMuted = true, onToggleSound }) {
           "
         >
           <BlurFlicker>
-            <TransitionLink href="/About">ABOUT</TransitionLink>
+            <TransitionLink href="/About">
+              ABOUT
+            </TransitionLink>
           </BlurFlicker>
 
           <BlurFlicker>
-            <TransitionLink href="/All-Works">WORK</TransitionLink>
+            <TransitionLink href="/All-Works">
+              WORK
+            </TransitionLink>
           </BlurFlicker>
 
           <BlurFlicker>
-            <TransitionLink href="/Weddings">MORE</TransitionLink>
+            <TransitionLink href="/Weddings">
+              MORE
+            </TransitionLink>
           </BlurFlicker>
 
           <BlurFlicker>
-            <TransitionLink href="/#footer">CONTACT</TransitionLink>
+            <TransitionLink href="/#footer">
+              CONTACT
+            </TransitionLink>
           </BlurFlicker>
         </div>
 
@@ -470,7 +489,11 @@ function Navigation({ isMuted = true, onToggleSound }) {
             type="button"
             onClick={toggleMobileMenu}
             aria-expanded={isMobileMenuOpen}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-label={
+              isMobileMenuOpen
+                ? "Close menu"
+                : "Open menu"
+            }
             className="
               flex
               md:hidden
@@ -507,7 +530,8 @@ function Navigation({ isMuted = true, onToggleSound }) {
         ref={menuOverlayRef}
         className="
           fixed
-          inset-0
+          inset-x-0
+          top-0
           z-[110]
           bg-black
           flex
@@ -521,6 +545,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         "
         style={{
           display: "none",
+          pointerEvents: "none",
         }}
       >
         {/* =================================================
@@ -538,9 +563,8 @@ function Navigation({ isMuted = true, onToggleSound }) {
         >
           <Link
             href="/"
-            onClick={() => {
-              toggleMobileMenu();
-            }}
+            onClick={closeMobileMenu}
+            className="relative z-[1]"
           >
             <Image
               src={Logo}
@@ -554,8 +578,10 @@ function Navigation({ isMuted = true, onToggleSound }) {
 
           <button
             type="button"
-            onClick={toggleMobileMenu}
+            onClick={closeMobileMenu}
             className="
+              relative
+              z-[1]
               bg-ghost-white
               text-carbon-black
               px-4
@@ -568,6 +594,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
               flex
               items-center
               justify-center
+              cursor-pointer
             "
           >
             Close
@@ -580,58 +607,103 @@ function Navigation({ isMuted = true, onToggleSound }) {
 
         <div
           ref={menuContentRef}
-          className=" flex flex-col font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6 "
+          className="
+            flex
+            flex-col
+            font-sans
+            text-6xl
+            uppercase
+            font-medium
+            my-auto
+            tracking-[-6%]
+            p-6
+          "
         >
-          {" "}
           <div className="overflow-hidden">
-            {" "}
             <Link
               href="/About"
-              onClick={toggleMobileMenu}
-              className=" block hover:text-zinc-400 transition-colors leading-none "
+              onClick={closeMobileMenu}
+              className="
+                menu-link
+                block
+                hover:text-zinc-400
+                transition-colors
+                leading-none
+                cursor-pointer
+              "
             >
-              {" "}
-              ABOUT{" "}
-            </Link>{" "}
-          </div>{" "}
+              ABOUT
+            </Link>
+          </div>
+
           <div className="overflow-hidden mt-3">
-            {" "}
             <Link
               href="/All-Works"
-              onClick={toggleMobileMenu}
-              className=" block hover:text-zinc-400 transition-colors leading-none "
+              onClick={closeMobileMenu}
+              className="
+                menu-link
+                block
+                hover:text-zinc-400
+                transition-colors
+                leading-none
+                cursor-pointer
+              "
             >
-              {" "}
-              WORK{" "}
-            </Link>{" "}
-          </div>{" "}
+              WORK
+            </Link>
+          </div>
+
           <div className="overflow-hidden mt-3">
-            {" "}
             <Link
               href="/Weddings"
-              onClick={toggleMobileMenu}
-              className=" block hover:text-zinc-400 transition-colors leading-none "
+              onClick={closeMobileMenu}
+              className="
+                menu-link
+                block
+                hover:text-zinc-400
+                transition-colors
+                leading-none
+                cursor-pointer
+              "
             >
-              {" "}
-              MORE{" "}
-            </Link>{" "}
-          </div>{" "}
-          {/* MEDIA BY CLOUDHAUS */}{" "}
-          <div className=" mt-3 ml-1 font-geist-mono text-[9px] uppercase tracking-[0.18em] text-zinc-600 leading-none ">
-            {" "}
-            MEDIA BY CLOUDHAUS{" "}
-          </div>{" "}
+              MORE
+            </Link>
+          </div>
+
+          {/* MEDIA BY CLOUDHAUS */}
+
+          <div
+            className="
+              mt-3
+              ml-1
+              font-geist-mono
+              text-[9px]
+              uppercase
+              tracking-[0.18em]
+              text-zinc-600
+              leading-none
+              pointer-events-none
+            "
+          >
+            MEDIA BY CLOUDHAUS
+          </div>
+
           <div className="overflow-hidden mt-6">
-            {" "}
             <Link
               href="/#footer"
-              onClick={toggleMobileMenu}
-              className=" block hover:text-zinc-400 transition-colors leading-none "
+              onClick={closeMobileMenu}
+              className="
+                menu-link
+                block
+                hover:text-zinc-400
+                transition-colors
+                leading-none
+                cursor-pointer
+              "
             >
-              {" "}
-              CONTACT{" "}
-            </Link>{" "}
-          </div>{" "}
+              CONTACT
+            </Link>
+          </div>
         </div>
 
         {/* =================================================
