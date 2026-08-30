@@ -54,11 +54,11 @@ function Footer() {
           <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
             <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
               <div className="w-2 h-2 bg-ghost-white" />
-              <span className="text-zinc-800 text-[clamp(0.65rem,1.1vw,1rem)]">
+              <span className="text-zinc-600 text-[clamp(0.65rem,1.1vw,1rem)]">
                 NAVIGATION
               </span>
             </div>
-            <div className="flex flex-col space-y-1 font-sans text-ghost-white text-[clamp(0.325rem,3.0vw,1.225rem)] uppercase">
+            <div className="flex flex-col space-y-1 font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
               <TransitionLink href="/About" className="hover:opacity-70 transition-opacity">ABOUT</TransitionLink>
               <a href="#services" className="hover:opacity-70 transition-opacity">SERVICES</a>
               <TransitionLink href="/All-Works" className="hover:opacity-70 transition-opacity">WORK</TransitionLink>
@@ -70,11 +70,11 @@ function Footer() {
           <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
             <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
               <div className="w-2 h-2 bg-ghost-white" />
-              <span className="text-zinc-800 text-[clamp(0.65rem,1.1vw,1rem)]">
+              <span className="text-zinc-600 text-[clamp(0.65rem,1.1vw,1rem)]">
                 CONTACT
               </span>
             </div>
-            <div className="flex flex-col space-y-1 md:space-y-0 font-sans text-ghost-white text-[clamp(0.325rem,3.0vw,1.225rem)] uppercase">
+            <div className="flex flex-col space-y-1 md:space-y-0 font-sans font-medium text-ghost-white text-[clamp(0.325rem,3.0vw,1.225rem)] uppercase">
               <span>0404 104 360</span>
               <span>ADELAIDE, SOUTH AUSTRALIA</span>
               <span>info@cloudhaus.com.au</span>
@@ -86,12 +86,12 @@ function Footer() {
         <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)]">
           {/* DYNAMIC TIME & GEOGRAPHIC DATA */}
           <div className="flex flex-col space-y-[clamp(0.35rem,1vw,0.5rem)] items-start justify-start w-full pt-2 font-geist-mono uppercase">
-            <div className="flex items-center gap-2 text-[clamp(0.65rem,1.1vw,1rem)] text-ghost-white">
+            <div className="flex items-center gap-2 text-[clamp(0.625rem,4.5vw,1.025rem)] text-ghost-white">
               <span className="text-zinc-100 tabular-nums">
                 ADL {time || "00:00:00"}
               </span>
             </div>
-            <div className="text-[clamp(0.6rem,0.9vw,1.2rem)] text-zinc-400 flex flex-col space-y-0.5 tracking-tight font-sans">
+            <div className="text-[clamp(0.625rem,4.5vw,1.025rem)] text-zinc-400 flex flex-col space-y-0.5 tracking-tight font-sans">
               <span>34.9285° S, 138.6007° E</span>
               <span>ELEV. 50M • ACDT/ACST</span>
             </div>
@@ -102,11 +102,11 @@ function Footer() {
             <div className="flex flex-col space-y-[clamp(0.25rem,1vw,0.5rem)] items-start justify-start w-full">
               <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
                 <div className="w-2 h-2 bg-ghost-white" />
-                <span className="text-zinc-800 text-[clamp(0.65rem,1.1vw,1rem)]">
+                <span className="text-zinc-600 text-[clamp(0.65rem,1.1vw,1rem)]">
                   SOCIALS
                 </span>
               </div>
-              <div className="flex flex-col items-start justify-start w-full lg:flex-row space-x-[clamp(1.5rem,1.5vw,1rem)] font-sans text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
+              <div className="flex flex-col items-start justify-start w-full lg:flex-row space-x-[clamp(1.5rem,1.5vw,1rem)] font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
                 <a 
                   href="https://www.instagram.com/itsjmvisuals?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw==" 
                   target="_blank" 
