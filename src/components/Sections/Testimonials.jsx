@@ -8,32 +8,38 @@ import { SplitText } from 'gsap/SplitText';
 
 gsap.registerPlugin(SplitText);
 
+
+
 const testimonialsData = [
   {
     company: "Spero Koulianos",
     role: "Neu Built Founder",
     quote:
-      "We’ve worked with Jake from Cloudhaus across a number of our projects, and their work consistently exceeds expectations. Cloudhaus understands architecture, construction and design, and knows exactly how to capture the details that matter. His eye for natural light, composition and the subtle beauty of space allows every project to be showcased exactly as it was intended.",
+      "We’ve worked with Jake from Cloudhaus across a number of our projects, and his work consistently exceeds expectations. He understands architecture, construction and design, and knows exactly how to capture the details that matter. His eye for natural light, composition and the subtle beauty of space allows every project to be showcased exactly as it was intended.",
   },
   {
     company: "Nerida Box",
     role: "Co-Founder & Director of The Building Company",
     quote:
-      "We've worked with Jake since 2020, and he's consistently delivered exactly what we've needed - great quality, varying scope of clips, quick turnaround, flexible and always reliable. These are qualities that make him a pleasure to work with, time and time again.",
+      "We've worked with Jake since 2020, and he's consistently delivered exactly what we've needed — great quality, varying scope of clips, quick turnaround, flexibility and reliability. These are qualities that make him a pleasure to work with, time and time again.",
   },
   {
     company: "Matt Cates",
     role: "Director 4LIFE Construction",
     quote:
-      "We've had the pleasure of working with Jake from Cloudhaus on several projects, and he has consistently been professional, reliable, easy to work with, and highly creative. From the initial planning through to the final delivery, the process has always been seamless. Jake has a great eye for detail and storytelling, capturing the quality and craftsmanship of our builds and helping us present our work professionally.",
+      "We've had the pleasure of working with Jake from Cloudhaus on several projects, and he has consistently been professional, reliable, easy to work with, and highly creative. He has a great eye for detail and storytelling, capturing the quality and craftsmanship of our builds and helping us present our work professionally.",
   },
   {
     company: "Penny Morgan",
     role: "Morgan Build",
     quote:
-      "We’ve worked with Jake for over seven years now and he’s been such a big part of capturing our projects over that time.He’s incredibly talented, has a great eye for detail and always seems to know exactly what to capture. He understands our style and the things that matter to us, which makes the whole process really easy.On top of that, he’s just a genuinely great person to work with. He is very easygoing, reliable and always professional.We’ve loved working with Jake over the years and wouldn’t hesitate to recommend him.",
+      "We’ve worked with Jake for over seven years and he’s been a big part of capturing our projects. He has an incredible eye for detail, understands our style and always knows what to capture. He’s reliable, professional and genuinely great to work with. We wouldn’t hesitate to recommend him.",
   },
 ];
+
+
+
+
 
 const AUTOPLAY_DURATION = 8;
 

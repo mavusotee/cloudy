@@ -33,18 +33,6 @@ gsap.registerPlugin(ScrollTrigger);
 // ----------------------------------------------------------------------
 // SANITY WORKS QUERY
 // ----------------------------------------------------------------------
-//
-// Pull the first 5 case studies from Sanity.
-//
-// The existing homepage design expects:
-//
-// title    = client
-// subtitle = project title
-// url      = first hero video
-//
-// We normalize the Sanity data into that shape below so the existing
-// WorkCard and layout do not need to change.
-// ----------------------------------------------------------------------
 
 const SELECTED_WORKS_QUERY = `
   *[
@@ -194,9 +182,7 @@ function TVNoisePlane({ opacityRef }) {
 
   return (
     <mesh>
-      <planeGeometry
-        args={[2, 2]}
-      />
+      <planeGeometry args={[2, 2]} />
 
       <primitive
         object={material}
@@ -213,10 +199,9 @@ function TVNoisePlane({ opacityRef }) {
 
 const R3FTVNoise = forwardRef(
   (props, ref) => {
-    const opacityRef =
-      useRef({
-        value: 0,
-      });
+    const opacityRef = useRef({
+      value: 0,
+    });
 
     useImperativeHandle(
       ref,
@@ -251,20 +236,16 @@ const R3FTVNoise = forwardRef(
 
     return (
       <div className="absolute inset-0 pointer-events-none mix-blend-screen z-20 overflow-hidden">
-
         <Canvas
           camera={{
             position: [0, 0, 1],
           }}
           gl={{
-            preserveDrawingBuffer:
-              true,
+            preserveDrawingBuffer: true,
 
-            alpha:
-              true,
+            alpha: true,
 
-            antialias:
-              false,
+            antialias: false,
 
             powerPreference:
               "low-power",
@@ -272,12 +253,9 @@ const R3FTVNoise = forwardRef(
           className="w-full h-full pointer-events-none"
         >
           <TVNoisePlane
-            opacityRef={
-              opacityRef
-            }
+            opacityRef={opacityRef}
           />
         </Canvas>
-
       </div>
     );
   }
@@ -287,26 +265,18 @@ R3FTVNoise.displayName =
   "R3FTVNoise";
 
 // ----------------------------------------------------------------------
-// 2. SMALL BUTTON COMPONENT WITH GSAP BLUR PULSE
+// 2. SMALL BUTTON COMPONENT
 // ----------------------------------------------------------------------
 
 const SmallButton = forwardRef(
-  (
-    {
-      isOpen,
-    },
-    ref
-  ) => {
-    const buttonRef =
-      useRef(null);
+  ({ isOpen }, ref) => {
+    const buttonRef = useRef(null);
 
     useImperativeHandle(
       ref,
       () => ({
         triggerBlur: () => {
-          if (
-            !buttonRef.current
-          ) {
+          if (!buttonRef.current) {
             return;
           }
 
@@ -320,27 +290,21 @@ const SmallButton = forwardRef(
               filter:
                 "blur(22px) brightness(1.5)",
 
-              scale:
-                0.92,
+              scale: 0.92,
 
-              opacity:
-                0.5,
+              opacity: 0.5,
             },
             {
               filter:
                 "blur(0px) brightness(1)",
 
-              scale:
-                1,
+              scale: 1,
 
-              opacity:
-                1,
+              opacity: 1,
 
-              duration:
-                0.45,
+              duration: 0.45,
 
-              ease:
-                "back.out(1.7)",
+              ease: "back.out(1.7)",
             }
           );
         },
@@ -371,52 +335,28 @@ SmallButton.displayName =
 // 3. HELPERS
 // ----------------------------------------------------------------------
 
-const formatTime = (
-  seconds
-) => {
-  if (
-    isNaN(seconds)
-  ) {
+const formatTime = (seconds) => {
+  if (isNaN(seconds)) {
     return "00:00";
   }
 
-  const mins =
-    Math.floor(
-      seconds / 60
-    );
+  const mins = Math.floor(
+    seconds / 60
+  );
 
-  const secs =
-    Math.floor(
-      seconds % 60
-    );
+  const secs = Math.floor(
+    seconds % 60
+  );
 
   return `${
-    mins < 10
-      ? "0"
-      : ""
+    mins < 10 ? "0" : ""
   }${mins}:${
-    secs < 10
-      ? "0"
-      : ""
+    secs < 10 ? "0" : ""
   }${secs}`;
 };
 
 // ----------------------------------------------------------------------
 // NORMALIZE SANITY PROJECT
-// ----------------------------------------------------------------------
-//
-// We deliberately preserve the exact data shape your old WorkCard used:
-//
-// {
-//   id,
-//   date,
-//   url,
-//   title,
-//   subtitle,
-//   slug
-// }
-//
-// This means the UI itself stays untouched.
 // ----------------------------------------------------------------------
 
 const normalizeProject = (
@@ -448,14 +388,10 @@ const normalizeProject = (
       firstHeroVideo?.src ||
       null,
 
-    // Old UI called this "title",
-    // but visually it is the client.
     title:
       project.client ||
       "",
 
-    // Old UI called this "subtitle",
-    // but visually it is the project title.
     subtitle:
       project.title ||
       "",
@@ -479,8 +415,7 @@ function WorkCard({
   const [
     currentTime,
     setCurrentTime,
-  ] =
-    useState("00:00");
+  ] = useState("00:00");
 
   const containerRef =
     useRef(null);
@@ -560,26 +495,19 @@ function WorkCard({
       gsap.to(
         brackets,
         {
-          opacity:
-            1,
+          opacity: 1,
 
-          scale:
-            1,
+          scale: 1,
 
-          x:
-            0,
+          x: 0,
 
-          y:
-            0,
+          y: 0,
 
-          duration:
-            0.35,
+          duration: 0.35,
 
-          ease:
-            "power2.out",
+          ease: "power2.out",
 
-          overwrite:
-            "auto",
+          overwrite: "auto",
         }
       );
 
@@ -631,106 +559,68 @@ function WorkCard({
           ".corner-br"
         );
 
-      gsap.to(
-        topL,
-        {
-          opacity:
-            0,
+      gsap.to(topL, {
+        opacity: 0,
 
-          scale:
-            0.9,
+        scale: 0.9,
 
-          x:
-            -12,
+        x: -12,
 
-          y:
-            -12,
+        y: -12,
 
-          duration:
-            0.75,
+        duration: 0.75,
 
-          ease:
-            "power4.inOut",
-        }
-      );
+        ease: "power4.inOut",
+      });
 
-      gsap.to(
-        topR,
-        {
-          opacity:
-            0,
+      gsap.to(topR, {
+        opacity: 0,
 
-          scale:
-            0.9,
+        scale: 0.9,
 
-          x:
-            12,
+        x: 12,
 
-          y:
-            -12,
+        y: -12,
 
-          duration:
-            0.75,
+        duration: 0.75,
 
-          ease:
-            "power4.inOut",
-        }
-      );
+        ease: "power4.inOut",
+      });
 
-      gsap.to(
-        botL,
-        {
-          opacity:
-            0,
+      gsap.to(botL, {
+        opacity: 0,
 
-          scale:
-            0.9,
+        scale: 0.9,
 
-          x:
-            -12,
+        x: -12,
 
-          y:
-            12,
+        y: 12,
 
-          duration:
-            0.75,
+        duration: 0.75,
 
-          ease:
-            "power4.inOut",
-        }
-      );
+        ease: "power4.inOut",
+      });
 
-      gsap.to(
-        botR,
-        {
-          opacity:
-            0,
+      gsap.to(botR, {
+        opacity: 0,
 
-          scale:
-            0.9,
+        scale: 0.9,
 
-          x:
-            12,
+        x: 12,
 
-          y:
-            12,
+        y: 12,
 
-          duration:
-            0.75,
+        duration: 0.75,
 
-          ease:
-            "power4.inOut",
-        }
-      );
+        ease: "power4.inOut",
+      });
 
       if (
         videoRef.current
       ) {
         videoRef.current
           .play()
-          .catch(
-            () => {}
-          );
+          .catch(() => {});
       }
     };
 
@@ -738,9 +628,7 @@ function WorkCard({
   // SAFETY
   // --------------------------------------------------
 
-  if (
-    !video
-  ) {
+  if (!video) {
     return null;
   }
 
@@ -748,8 +636,7 @@ function WorkCard({
     <TransitionLink
       href={`/Work/${video.slug}`}
       className={`flex flex-col space-y-2 w-full block group ${
-        containerClassName ||
-        ""
+        containerClassName || ""
       }`}
     >
 
@@ -770,9 +657,7 @@ function WorkCard({
       {/* VIDEO */}
 
       <div
-        ref={
-          containerRef
-        }
+        ref={containerRef}
         onMouseEnter={
           handleMouseEnter
         }
@@ -783,14 +668,9 @@ function WorkCard({
       >
 
         {video.url ? (
-
           <video
-            ref={
-              videoRef
-            }
-            src={
-              video.url
-            }
+            ref={videoRef}
+            src={video.url}
             autoPlay
             loop
             muted
@@ -804,9 +684,7 @@ function WorkCard({
             }
             className="w-full h-full object-cover brightness-90 contrast-105 transition-[filter] duration-500 ease-out group-hover:brightness-90"
           />
-
         ) : (
-
           <div className="w-full h-full bg-zinc-900 flex items-center justify-center">
 
             <span className="font-geist-mono text-[10px] text-zinc-600 uppercase tracking-widest">
@@ -814,18 +692,15 @@ function WorkCard({
             </span>
 
           </div>
-
         )}
 
         <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-10" />
 
         <R3FTVNoise
-          ref={
-            noiseRef
-          }
+          ref={noiseRef}
         />
 
-        {/* Corner Brackets Overlay */}
+        {/* CORNER BRACKETS */}
 
         <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
 
@@ -852,17 +727,13 @@ function WorkCard({
           </p>
 
           <SmudgyTitleReveal
-            text={
-              video.subtitle
-            }
+            text={video.subtitle}
           />
 
         </div>
 
         <SmallButton
-          ref={
-            buttonRef
-          }
+          ref={buttonRef}
         />
 
       </div>
@@ -885,8 +756,7 @@ export default function Page() {
   const [
     isHoveringVideo,
     setIsHoveringVideo,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   // --------------------------------------------------------------------
   // SANITY PROJECT STATE
@@ -895,28 +765,23 @@ export default function Page() {
   const [
     selectedWorks,
     setSelectedWorks,
-  ] =
-    useState([]);
+  ] = useState([]);
 
   const [
     isLoadingWorks,
     setIsLoadingWorks,
-  ] =
-    useState(true);
+  ] = useState(true);
 
   // --------------------------------------------------------------------
   // FETCH SELECTED WORKS FROM SANITY
   // --------------------------------------------------------------------
 
   useEffect(() => {
-    let cancelled =
-      false;
+    let cancelled = false;
 
     async function fetchSelectedWorks() {
       try {
-        setIsLoadingWorks(
-          true
-        );
+        setIsLoadingWorks(true);
 
         const data =
           await client.fetch(
@@ -924,22 +789,17 @@ export default function Page() {
             {},
             {
               next: {
-                revalidate:
-                  60,
+                revalidate: 60,
               },
             }
           );
 
-        if (
-          cancelled
-        ) {
+        if (cancelled) {
           return;
         }
 
         const normalized =
-          Array.isArray(
-            data
-          )
+          Array.isArray(data)
             ? data
                 .map(
                   (
@@ -951,36 +811,24 @@ export default function Page() {
                       index
                     )
                 )
-                .filter(
-                  Boolean
-                )
+                .filter(Boolean)
             : [];
 
         setSelectedWorks(
           normalized
         );
-      } catch (
-        error
-      ) {
+      } catch (error) {
         console.error(
           "Failed to fetch selected works from Sanity:",
           error
         );
 
-        if (
-          !cancelled
-        ) {
-          setSelectedWorks(
-            []
-          );
+        if (!cancelled) {
+          setSelectedWorks([]);
         }
       } finally {
-        if (
-          !cancelled
-        ) {
-          setIsLoadingWorks(
-            false
-          );
+        if (!cancelled) {
+          setIsLoadingWorks(false);
         }
       }
     }
@@ -988,8 +836,7 @@ export default function Page() {
     fetchSelectedWorks();
 
     return () => {
-      cancelled =
-        true;
+      cancelled = true;
     };
   }, []);
 
@@ -999,20 +846,13 @@ export default function Page() {
 
   useEffect(() => {
     const timer =
-      setTimeout(
-        () => {
-          ScrollTrigger.refresh();
-        },
-        150
-      );
+      setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 150);
 
     return () =>
-      clearTimeout(
-        timer
-      );
-  }, [
-    selectedWorks,
-  ]);
+      clearTimeout(timer);
+  }, [selectedWorks]);
 
   // --------------------------------------------------------------------
   // GSAP CUSTOM CURSOR TRACKER
@@ -1027,69 +867,54 @@ export default function Page() {
     }
 
     const ctx =
-      gsap.context(
-        () => {
-          gsap.set(
-            cursor,
-            {
-              xPercent:
-                -50,
+      gsap.context(() => {
+        gsap.set(cursor, {
+          xPercent: -50,
 
-              yPercent:
-                -50,
+          yPercent: -50,
+        });
+
+        const xTo =
+          gsap.quickTo(
+            cursor,
+            "x",
+            {
+              duration: 0.2,
+
+              ease: "power3",
             }
           );
 
-          const xTo =
-            gsap.quickTo(
-              cursor,
-              "x",
-              {
-                duration:
-                  0.2,
+        const yTo =
+          gsap.quickTo(
+            cursor,
+            "y",
+            {
+              duration: 0.2,
 
-                ease:
-                  "power3",
-              }
-            );
+              ease: "power3",
+            }
+          );
 
-          const yTo =
-            gsap.quickTo(
-              cursor,
-              "y",
-              {
-                duration:
-                  0.2,
+        const moveCursor =
+          (e) => {
+            xTo(e.clientX);
 
-                ease:
-                  "power3",
-              }
-            );
+            yTo(e.clientY);
+          };
 
-          const moveCursor =
-            (e) => {
-              xTo(
-                e.clientX
-              );
+        window.addEventListener(
+          "mousemove",
+          moveCursor
+        );
 
-              yTo(
-                e.clientY
-              );
-            };
-
-          window.addEventListener(
+        return () => {
+          window.removeEventListener(
             "mousemove",
             moveCursor
           );
-
-          return () => {
-            window.removeEventListener(
-              "mousemove",
-              moveCursor
-            );
-          };
-        }
-      );
+        };
+      });
 
     return () =>
       ctx.revert();
@@ -1107,39 +932,32 @@ export default function Page() {
       return;
     }
 
-    gsap.to(
-      cursor,
-      {
-        scale:
-          isHoveringVideo
-            ? 1
-            : 0,
+    gsap.to(cursor, {
+      scale:
+        isHoveringVideo
+          ? 1
+          : 0,
 
-        opacity:
-          isHoveringVideo
-            ? 1
-            : 0,
+      opacity:
+        isHoveringVideo
+          ? 1
+          : 0,
 
-        duration:
-          isHoveringVideo
-            ? 0.25
-            : 0.2,
+      duration:
+        isHoveringVideo
+          ? 0.25
+          : 0.2,
 
-        ease:
-          isHoveringVideo
-            ? "power2.out"
-            : "power2.in",
-      }
-    );
-  }, [
-    isHoveringVideo,
-  ]);
+      ease:
+        isHoveringVideo
+          ? "power2.out"
+          : "power2.in",
+    });
+  }, [isHoveringVideo]);
 
   const handleHoverChange =
     useCallback(
-      (
-        isHovered
-      ) => {
+      (isHovered) => {
         setIsHoveringVideo(
           isHovered
         );
@@ -1154,12 +972,10 @@ export default function Page() {
   return (
     <div className="bg-black w-full min-h-screen py-6 px-4 md:px-6 flex flex-col space-y-16 lg:space-y-32 relative overflow-x-hidden">
 
-      {/* CUSTOM CURSOR OVERLAY */}
+      {/* CUSTOM CURSOR */}
 
       <div
-        ref={
-          cursorRef
-        }
+        ref={cursorRef}
         className="fixed top-0 left-0 pointer-events-none z-50 hidden md:block scale-0 opacity-0 mix-blend-difference text-white"
       >
         <span className="font-geist-mono text-xl font-medium tracking-tight">
@@ -1216,7 +1032,7 @@ export default function Page() {
 
         </div>
 
-        {/* HEADER & WORKS SECTION */}
+        {/* HEADER & WORKS */}
 
         <div className="flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
 
@@ -1250,8 +1066,7 @@ export default function Page() {
 
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
                 [
-                {selectedWorks.length <
-                10
+                {selectedWorks.length < 10
                   ? `0${selectedWorks.length}`
                   : selectedWorks.length}
                 ]
@@ -1286,11 +1101,13 @@ export default function Page() {
               </div>
             )}
 
-            {/* ROW 1 (FIXED CONTAINMENT) */}
+            {/* ---------------------------------------------------------
+                ROW 1
+                CINEMATIC 16:9
+            --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
-              selectedWorks.length >
-                0 && (
+              selectedWorks.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-8 lg:gap-0 text-lavender">
 
                   {selectedWorks[0] && (
@@ -1298,7 +1115,7 @@ export default function Page() {
                       video={
                         selectedWorks[0]
                       }
-                      heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
+                      heightClassName="w-full aspect-video"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1310,7 +1127,7 @@ export default function Page() {
                       video={
                         selectedWorks[1]
                       }
-                      heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
+                      heightClassName="w-full aspect-video"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1320,7 +1137,10 @@ export default function Page() {
                 </div>
               )}
 
-            {/* ROW 2 - FEATURED (FULL WIDTH) */}
+            {/* ---------------------------------------------------------
+                ROW 2 - FEATURED
+                LEFT EXACTLY AS BEFORE
+            --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
               selectedWorks[2] && (
@@ -1335,11 +1155,13 @@ export default function Page() {
                 />
               )}
 
-            {/* ROW 3 (ASYMMETRIC GRID) */}
+            {/* ---------------------------------------------------------
+                ROW 3
+                CINEMATIC 16:9
+            --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
-              selectedWorks.length >
-                3 && (
+              selectedWorks.length > 3 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-8 lg:gap-12 text-lavender pb-12 lg:pb-24 items-start">
 
                   {selectedWorks[3] && (
@@ -1347,7 +1169,7 @@ export default function Page() {
                       video={
                         selectedWorks[3]
                       }
-                      heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem]"
+                      heightClassName="w-full aspect-video"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1360,7 +1182,7 @@ export default function Page() {
                         selectedWorks[4]
                       }
                       containerClassName="lg:translate-y-24"
-                      heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem]"
+                      heightClassName="w-full aspect-video"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1373,8 +1195,7 @@ export default function Page() {
             {/* EMPTY CMS STATE */}
 
             {!isLoadingWorks &&
-              selectedWorks.length ===
-                0 && (
+              selectedWorks.length === 0 && (
                 <div className="py-24 flex items-center justify-center">
 
                   <span className="font-geist-mono text-[10px] uppercase tracking-widest text-zinc-700">
@@ -1397,26 +1218,16 @@ export default function Page() {
       {/* STICKY FOOTER WRAPPER */}
 
       <div
-        ref={
-          footerContainerRef
-        }
+        ref={footerContainerRef}
         className="relative w-full"
       >
 
-        {/* Top Content Layer */}
-
         <div className="relative z-10 bg-carbon-black">
-
           <ClientsSection />
-
         </div>
 
-        {/* Sticky Footer Layer */}
-
         <div className="sticky bottom-0 w-full z-0 overflow-hidden">
-
           <Footer />
-
         </div>
 
       </div>

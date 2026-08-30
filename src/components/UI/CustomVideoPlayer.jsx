@@ -441,7 +441,7 @@ export default function CustomVideoPlayer({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 md:p-8"
+      className="fixed inset-0 z-[100001] bg-black/95 backdrop-blur-md flex items-center justify-center p-3 md:p-8"
       onMouseDown={(event) => {
         if (event.target === overlayRef.current) {
           closePlayer();
