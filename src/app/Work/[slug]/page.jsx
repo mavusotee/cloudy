@@ -4,10 +4,10 @@
 import React, { useEffect, useRef, useState } from "react";
 
 import Image from "next/image";
+import Link from "next/link";
 import Navigation from "@/components/UI/Navigation";
 import HeroCanvas from "@/components/react-three/HeroCanvas";
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
-
 import { useParams } from "next/navigation";
 
 import Lenis from "lenis";
@@ -17,6 +17,7 @@ import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
 import { client } from "@/lib/client";
+import TransitionLink from "@/components/PageTransitions/TransitionLink";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -62,6 +63,23 @@ const PROJECT_QUERY = `
       "src": asset->url,
       "mimeType": asset->mimeType
     }
+  }
+`;
+
+// =========================================================
+// ALL PROJECTS QUERY
+// =========================================================
+
+const ALL_PROJECTS_QUERY = `
+  *[
+    _type == "caseStudy" &&
+    defined(slug.current)
+  ]
+  | order(_createdAt asc)
+  {
+    _id,
+    title,
+    "slug": slug.current
   }
 `;
 
@@ -127,7 +145,7 @@ function ExtrudedTextReveal({ text }) {
     <div ref={containerRef} className="w-[99.6%]">
       <h1
         ref={textRef}
-        className="text-5xl md:text-9xl text-ghost-white tracking-tight md:tracking-[-7px] leading-[90%]"
+        className="text-4xl md:text-9xl text-ghost-white tracking-tight md:tracking-[-7px] leading-[90%]"
       >
         {text}
       </h1>
@@ -146,10 +164,11 @@ export default function CloudhausWorkDetail() {
     typeof params?.slug === "string"
       ? params.slug
       : Array.isArray(params?.slug)
-      ? params.slug[0]
-      : null;
+        ? params.slug[0]
+        : null;
 
   const [project, setProject] = useState(null);
+  const [allProjects, setAllProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -165,6 +184,12 @@ export default function CloudhausWorkDetail() {
 
   const projectInfoRef = useRef(null);
   const heroDimmingRef = useRef(null);
+
+  // =======================================================
+  // SCROLL PROGRESS
+  // =======================================================
+
+  const scrollProgressRef = useRef(null);
 
   // =======================================================
   // FETCH PROJECT
@@ -183,24 +208,38 @@ export default function CloudhausWorkDetail() {
         setIsLoading(true);
         setError(null);
 
-        const data = await client.fetch(
-          PROJECT_QUERY,
-          { slug },
-          {
-            next: {
-              revalidate: 60,
-            },
-          }
-        );
+        const [data, projects] = await Promise.all([
+          client.fetch(
+            PROJECT_QUERY,
+            { slug },
+            {
+              next: {
+                revalidate: 60,
+              },
+            }
+          ),
+
+          client.fetch(
+            ALL_PROJECTS_QUERY,
+            {},
+            {
+              next: {
+                revalidate: 60,
+              },
+            }
+          ),
+        ]);
 
         if (cancelled) return;
 
         if (!data) {
           setProject(null);
+          setAllProjects(projects || []);
           return;
         }
 
         setProject(data);
+        setAllProjects(projects || []);
       } catch (err) {
         console.error(
           "Failed to fetch Sanity project:",
@@ -224,6 +263,23 @@ export default function CloudhausWorkDetail() {
       cancelled = true;
     };
   }, [slug]);
+
+  // =======================================================
+  // NEXT PROJECT
+  // =======================================================
+
+  const currentProjectIndex = allProjects.findIndex(
+    (item) => item.slug === slug
+  );
+
+  const nextProject =
+    allProjects.length > 1 &&
+    currentProjectIndex !== -1
+      ? allProjects[
+          (currentProjectIndex + 1) %
+            allProjects.length
+        ]
+      : null;
 
   // =======================================================
   // HERO VIDEOS
@@ -303,7 +359,41 @@ export default function CloudhausWorkDetail() {
       touchMultiplier: 2,
     });
 
+    // -------------------------------------------------------
+    // SCROLL PROGRESS
+    // -------------------------------------------------------
+
+    const updateScrollProgress = ({ scroll }) => {
+      const documentHeight =
+        document.documentElement.scrollHeight -
+        window.innerHeight;
+
+      if (documentHeight <= 0) {
+        if (scrollProgressRef.current) {
+          scrollProgressRef.current.style.transform =
+            "scaleX(0)";
+        }
+
+        return;
+      }
+
+      const progress = Math.min(
+        1,
+        Math.max(0, scroll / documentHeight)
+      );
+
+      if (scrollProgressRef.current) {
+        scrollProgressRef.current.style.transform =
+          `scaleX(${progress})`;
+      }
+    };
+
     lenis.on("scroll", ScrollTrigger.update);
+    lenis.on("scroll", updateScrollProgress);
+
+    updateScrollProgress({
+      scroll: lenis.scroll,
+    });
 
     const raf = (time) => {
       lenis.raf(time * 1000);
@@ -313,6 +403,9 @@ export default function CloudhausWorkDetail() {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      lenis.off("scroll", ScrollTrigger.update);
+      lenis.off("scroll", updateScrollProgress);
+
       gsap.ticker.remove(raf);
       lenis.destroy();
     };
@@ -416,6 +509,23 @@ export default function CloudhausWorkDetail() {
     <main className="min-h-dvh bg-black text-zinc-300 font-geist-mono selection:bg-white selection:text-black">
 
       {/* =================================================
+          SCROLL PROGRESS
+      ================================================= */}
+
+      <div
+        className="fixed top-0 left-0 w-full h-[2px] bg-white/10 z-[9999] pointer-events-none"
+        aria-hidden="true"
+      >
+        <div
+          ref={scrollProgressRef}
+          className="absolute top-0 left-0 h-full w-full bg-white origin-left will-change-transform"
+          style={{
+            transform: "scaleX(0)",
+          }}
+        />
+      </div>
+
+      {/* =================================================
           HERO
       ================================================= */}
 
@@ -446,6 +556,7 @@ export default function CloudhausWorkDetail() {
             ref={heroDimmingRef}
             className="absolute inset-0 z-[2] bg-black pointer-events-none"
           />
+
         </div>
 
         <div className="relative z-10 -mt-[100vh] w-full">
@@ -454,7 +565,7 @@ export default function CloudhausWorkDetail() {
               HERO CONTENT
           ================================================= */}
 
-          <div className="h-dvh w-full flex flex-col justify-between p-4 md:p-8">
+          <div className="h-dvh w-full flex flex-col justify-between p-4 md:p-8 z-10">
 
             {/* NAV */}
 
@@ -486,6 +597,7 @@ export default function CloudhausWorkDetail() {
                       )}
                     </span>
                   )}
+
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -498,7 +610,7 @@ export default function CloudhausWorkDetail() {
                       onClick={() =>
                         setIsPlayerOpen(true)
                       }
-                      className="group relative overflow-hidden bg-black border border-white/40 text-white h-[4rem] px-5 md:px-7 flex items-center justify-center transition-colors duration-300 hover:bg-white hover:text-black"
+                      className="group relative overflow-hidden bg-black border border-eclipse text-white h-[4rem] px-5 md:px-7 flex items-center justify-center transition-colors duration-300 hover:bg-white hover:text-black rounded-full"
                     >
                       <span className="font-geist-mono text-[10px] md:text-xs tracking-widest uppercase relative z-10">
                         Watch Video
@@ -531,8 +643,11 @@ export default function CloudhausWorkDetail() {
                   </button>
 
                 </div>
+
               </div>
+
             </div>
+
           </div>
 
           {/* =================================================
@@ -543,11 +658,13 @@ export default function CloudhausWorkDetail() {
             ref={projectInfoRef}
             className="px-4 md:px-8 py-20"
           >
+
             <div className="grid grid-cols-1 md:grid-cols-12 gap-12 text-[11px] leading-relaxed uppercase tracking-wider text-zinc-300 font-geist-mono">
 
               {/* PROJECT OVERVIEW */}
 
               <div className="md:col-span-7 space-y-4">
+
                 <h2 className="text-white md:text-lg">
                   PROJECT OVERVIEW
                 </h2>
@@ -556,11 +673,13 @@ export default function CloudhausWorkDetail() {
                   {project.overview ||
                     "NO PROJECT OVERVIEW AVAILABLE."}
                 </p>
+
               </div>
 
               {/* WHAT WE DID */}
 
               <div className="md:col-span-5 space-y-4">
+
                 <h2 className="text-white md:text-lg">
                   WHAT WE DID:
                 </h2>
@@ -582,11 +701,13 @@ export default function CloudhausWorkDetail() {
                     —
                   </p>
                 )}
+
               </div>
 
               {/* CLIENT */}
 
               <div className="md:col-span-7 space-y-2 pt-2">
+
                 <h2 className="text-white md:text-lg">
                   CLIENT
                 </h2>
@@ -594,11 +715,13 @@ export default function CloudhausWorkDetail() {
                 <p className="text-zinc-300 text-sm uppercase">
                   {project.client || "—"}
                 </p>
+
               </div>
 
               {/* DATE */}
 
               <div className="md:col-span-5 md:col-start-8 space-y-2 pt-2">
+
                 <h2 className="text-white md:text-lg">
                   DATE
                 </h2>
@@ -606,11 +729,15 @@ export default function CloudhausWorkDetail() {
                 <p className="text-zinc-300 text-sm uppercase">
                   {project.date || "—"}
                 </p>
+
               </div>
 
             </div>
+
           </div>
+
         </div>
+
       </div>
 
       {/* =================================================
@@ -624,6 +751,7 @@ export default function CloudhausWorkDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
 
             {gallery.map((item, index) => {
+
               const src = item.src;
 
               const isVideo =
@@ -639,6 +767,7 @@ export default function CloudhausWorkDetail() {
                 >
 
                   {isVideo ? (
+
                     <video
                       src={src}
                       autoPlay
@@ -654,7 +783,9 @@ export default function CloudhausWorkDetail() {
                         )
                       }
                     />
+
                   ) : (
+
                     <Image
                       src={src}
                       alt={`${project.title || "Project"} media ${
@@ -673,6 +804,7 @@ export default function CloudhausWorkDetail() {
                         )
                       }
                     />
+
                   )}
 
                 </div>
@@ -684,14 +816,119 @@ export default function CloudhausWorkDetail() {
         ) : (
 
           <div className="flex items-center justify-center py-32">
+
             <p className="font-geist-mono text-xs uppercase tracking-widest text-zinc-700">
               No gallery media
             </p>
+
           </div>
 
         )}
 
       </section>
+
+      {/* =================================================
+          NEXT PROJECT
+      ================================================= */}
+
+      {nextProject && (
+
+        <section className="relative z-30 w-full bg-black border-t border-white/10">
+
+          <TransitionLink
+            href={`/Work/${nextProject.slug}`}
+            className="group block w-full px-4 md:px-8 py-24 md:py-40 overflow-hidden"
+          >
+
+            {/* TOP LABEL */}
+
+            <div className="flex items-center justify-between mb-16 md:mb-24">
+
+              <span className="font-geist-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500">
+                Next Project
+              </span>
+
+              <span className="font-geist-mono text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500 group-hover:text-white transition-colors duration-500">
+                [View Project]
+              </span>
+
+            </div>
+
+            {/* HUGE TITLE */}
+
+            <div className="overflow-hidden">
+
+              <h2 className="font-sans text-[17vw] md:text-9xl leading-[115%] tracking-[-0.07em] text-white uppercase transition-transform duration-700">
+                {nextProject.title}
+              </h2>
+
+            </div>
+
+            {/* BOTTOM META */}
+
+            <div className="mt-16 md:mt-24 flex items-center justify-between">
+
+              <span className="font-geist-mono text-[10px] md:text-xs uppercase tracking-widest text-zinc-600">
+                Continue exploring
+              </span>
+
+              <span className="flex items-center justify-center w-12 h-12 md:w-16 md:h-16 border border-white/30 text-white transition-all duration-500 group-hover:bg-white group-hover:text-black group-hover:border-white">
+
+                <span className="text-xl md:text-2xl transition-transform duration-500 group-hover:translate-x-1">
+                  →
+                </span>
+
+              </span>
+
+            </div>
+
+          </TransitionLink>
+
+        </section>
+
+      )}
+
+      {/* BOTTOM CONTENT */}
+
+      <div className="flex flex-col-reverse md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.3rem,2.5vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pb-4 px-2 md:px-4">
+
+        {/* GROUPED 1st AND 2nd DIVS: Horizontal on mobile, inline with desktop row */}
+
+        <div className="flex flex-row md:contents justify-between w-full md:w-auto">
+
+          <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
+
+            <h1>BASED IN ADELAIDE</h1>
+             <h1>TERMS & CONDITIONS</h1>
+           
+
+          </div>
+
+          <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
+
+             <h1 className="">
+              PRIVACY POLICY
+            </h1>
+
+            <Link href="www.withzane.com" className="font-bold">
+              WEBSITE BY: ZANE
+            </Link>
+
+          </div>
+
+        </div>
+
+        {/* 3rd DIV: Below on mobile, start-aligned */}
+
+        <div className="flex flex-row space-x-[clamp(0.5rem,4.5vw,6rem)]">
+
+          <TransitionLink href='/' className="font-bold">
+            BACK TO HOME
+          </TransitionLink>
+
+        </div>
+
+      </div>
 
       {/* =================================================
           EXTERNAL CUSTOM VIDEO PLAYER
