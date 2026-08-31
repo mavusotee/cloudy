@@ -1011,24 +1011,24 @@ export default function Page() {
 
         <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-12 lg:gap-8">
 
-          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1.1vw,0.875rem)] w-[43%] md:w-[13%]">
-            YOU BUILT FROM THE GROUND UP. WE SHOW THE STORY FROM ABOVE.
+          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1vw,0.775rem)] w-[43%] md:w-[15%]">
+           IT ALL STARTS WITH AN IDEA.
           </h1>
 
-          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full md:w-[50%] lg:translate-x-[clamp(0rem,15vw,3.5rem)] font-medium">
+          <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full md:w-[50%] md:translate-x-[clamp(0rem,8vw,2rem)] lg:translate-x-[clamp(0rem,10vw,0.5rem)] font-medium">
 
-            <SmudgyTextReveal
-              text="The work is already high-end. The story should rise to it. We uncover the thinking, craft and details that make it worth seeing."
-            />
+  <SmudgyTextReveal
+    text="The work is already high-end. The story should rise to it. We uncover the thinking, craft and details that make it worth seeing."
+  />
 
-            <BlurFlicker>
-              <Button
-                text="Meet Cloudhaus"
-                href="/About"
-              />
-            </BlurFlicker>
+  <BlurFlicker>
+    <Button
+      text="Meet Cloudhaus"
+      href="/About"
+    />
+  </BlurFlicker>
 
-          </div>
+</div>
 
         </div>
 
@@ -1075,11 +1075,12 @@ export default function Page() {
             </div>
 
             <div className="flex flex-col items-start sm:items-end justify-end sm:self-end w-full sm:w-auto">
-
+              <BlurFlicker>
               <Button
                 text="VIEW ALL WORKS"
                 href="/All-Works"
               />
+              </BlurFlicker>
 
             </div>
 

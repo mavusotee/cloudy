@@ -58,9 +58,6 @@ export default function ExtrudedElevationReveal({ text = "" }) {
               },
             });
 
-            // Extrusive Elevation:
-            // Characters start flattened down (scaleY: 0.1), dropped down (yPercent: 120),
-            // and softly blurred, extruding upward into sharp high-contrast letters.
             tl.fromTo(
               chars,
               {
@@ -101,7 +98,21 @@ export default function ExtrudedElevationReveal({ text = "" }) {
     >
       <p
         ref={textRef}
-        className="w-full leading-[105%] font-medium text-[clamp(1.5rem,5.2vw,3.20rem)] tracking-tight uppercase select-none text-white"
+        className="
+          w-full
+          leading-[105%]
+          font-medium
+          text-[1.5rem]
+          sm:text-[1.75rem]
+          md:text-[2rem]
+          lg:text-[2.25rem]
+          xl:text-[2.75rem]
+          2xl:text-[3.20rem]
+          tracking-tight
+          uppercase
+          select-none
+          text-white
+        "
       >
         {text}
       </p>

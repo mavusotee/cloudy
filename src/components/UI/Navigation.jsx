@@ -615,6 +615,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
             uppercase
             font-medium
             my-auto
+            text-white
             tracking-[-6%]
             p-6
           "
@@ -629,6 +630,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
                 hover:text-zinc-400
                 transition-colors
                 leading-none
+                text-white
                 cursor-pointer
               "
             >
