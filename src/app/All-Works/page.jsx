@@ -1062,11 +1062,7 @@ export default function AllWorksSection() {
 
             </div>
 
-            <Button
-              text="VIEW ALL PROJECTS"
-              href="/Works"
-            />
-
+            
           </div>
 
         </div>

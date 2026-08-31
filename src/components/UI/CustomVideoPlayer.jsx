@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { Play, Pause } from "lucide-react";
 
 // =========================================================
 // HELPER
@@ -53,6 +54,7 @@ export default function CustomVideoPlayer({
   const [isMuted, setIsMuted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
 
   // =========================================================
   // PRELOAD VIDEO
@@ -111,46 +113,159 @@ export default function CustomVideoPlayer({
       document.body.style.overflow = "hidden";
 
       // -----------------------------------------------------
+      // GRAB INNER ELEMENTS FOR A STAGGERED CHROME REVEAL
+      // (structure is fixed: video, topGradient, topBar,
+      // playButton, bottomGradient, controls)
+      // -----------------------------------------------------
+
+      const topGradient = player.children[1];
+      const topBar = player.children[2];
+      const playButton = player.children[3];
+      const bottomGradient = player.children[4];
+      const controls = player.children[5];
+
+      // -----------------------------------------------------
       // INITIAL STATE
       // -----------------------------------------------------
 
       gsap.set(overlay, {
         opacity: 0,
+        filter: "brightness(3)",
       });
 
       gsap.set(player, {
         opacity: 0,
-        scale: 0.88,
-        y: 40,
-        filter: "blur(18px)",
+        scale: 0.72,
+        y: 70,
+        rotationX: -18,
+        transformPerspective: 1400,
+        transformOrigin: "50% 50%",
+        filter: "blur(30px)",
+        clipPath: "inset(50% 0% 50% 0%)",
         force3D: true,
       });
 
+      if (topGradient) {
+        gsap.set(topGradient, {
+          scaleY: 0,
+          transformOrigin: "top",
+        });
+      }
+
+      if (bottomGradient) {
+        gsap.set(bottomGradient, {
+          scaleY: 0,
+          transformOrigin: "bottom",
+        });
+      }
+
+      if (topBar) {
+        gsap.set(topBar, {
+          opacity: 0,
+          y: -24,
+        });
+      }
+
+      if (playButton) {
+        gsap.set(playButton, {
+          opacity: 0,
+          scale: 0.3,
+          rotate: -200,
+        });
+      }
+
+      if (controls) {
+        gsap.set(controls, {
+          opacity: 0,
+          y: 28,
+        });
+      }
+
       // -----------------------------------------------------
-      // ORIGINAL ANIMATION
+      // DRAMATIC REVEAL TIMELINE
       // -----------------------------------------------------
 
       const tl = gsap.timeline();
 
       animationRef.current = tl;
 
+      // FLASH + OVERLAY IN
       tl.to(overlay, {
         opacity: 1,
-        duration: 0.35,
+        filter: "brightness(1)",
+        duration: 0.5,
         ease: "power2.out",
-      }).to(
-        player,
-        {
-          opacity: 1,
-          scale: 1,
-          y: 0,
-          filter: "blur(0px)",
-          duration: 0.8,
-          ease: "power4.out",
-          force3D: true,
-        },
-        "-=0.15"
-      );
+      })
+
+        // CURTAIN / SLAM ENTRANCE
+        .to(
+          player,
+          {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            rotationX: 0,
+            filter: "blur(0px)",
+            clipPath: "inset(0% 0% 0% 0%)",
+            duration: 1.1,
+            ease: "expo.out",
+            force3D: true,
+          },
+          "-=0.3"
+        )
+
+        // LETTERBOX BARS WIPE OPEN
+        .to(
+          [topGradient, bottomGradient].filter(Boolean),
+          {
+            scaleY: 1,
+            duration: 0.7,
+            ease: "power3.out",
+          },
+          "-=0.85"
+        )
+
+        // CHROME PUNCH-IN
+        .to(
+          topBar,
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: "power3.out",
+          },
+          "-=0.55"
+        )
+        .to(
+          playButton,
+          {
+            opacity: 1,
+            scale: 1,
+            rotate: 0,
+            duration: 0.75,
+            ease: "back.out(2.4)",
+          },
+          "-=0.5"
+        )
+        .to(
+          controls,
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: "power3.out",
+          },
+          "-=0.55"
+        )
+
+        // FINAL IMPACT PUNCH
+        .to(player, {
+          scale: 1.015,
+          duration: 0.12,
+          ease: "power1.inOut",
+          yoyo: true,
+          repeat: 1,
+        });
 
       // -----------------------------------------------------
       // START VIDEO
@@ -454,6 +569,8 @@ export default function CustomVideoPlayer({
         style={{
           willChange: "transform, opacity, filter",
         }}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       >
         {/* =================================================
             VIDEO
@@ -512,10 +629,8 @@ export default function CustomVideoPlayer({
         <button
           type="button"
           onClick={togglePlay}
-          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-16 h-16 md:w-20 md:h-20 rounded-full border border-white/60 bg-black/30 backdrop-blur-sm flex items-center justify-center text-white transition-all duration-300 ${
-            isPlaying
-              ? "opacity-0 hover:opacity-100"
-              : "opacity-100"
+          className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-16 h-16 md:w-20 md:h-20 rounded-full border border-white/60 bg-black/30 backdrop-blur-sm flex items-center justify-center text-white transition-opacity duration-300 ${
+            isHovering ? "opacity-100" : "opacity-0"
           }`}
           aria-label={
             isPlaying
@@ -523,9 +638,11 @@ export default function CustomVideoPlayer({
               : "Play video"
           }
         >
-          <span className="text-xl ml-1">
-            {isPlaying ? "Ⅱ" : "▶"}
-          </span>
+          {isPlaying ? (
+            <Pause className="w-6 h-6 md:w-7 md:h-7" fill="currentColor" />
+          ) : (
+            <Play className="w-6 h-6 md:w-7 md:h-7 ml-0.5" fill="currentColor" />
+          )}
         </button>
 
         {/* =================================================

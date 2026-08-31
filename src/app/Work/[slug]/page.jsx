@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, {
@@ -10,21 +9,18 @@ import React, {
 
 import Image from "next/image";
 import Link from "next/link";
-
 import Navigation from "@/components/UI/Navigation";
 import HeroCanvas from "@/components/react-three/HeroCanvas";
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
-
 import { useParams } from "next/navigation";
-
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
-
 import { client } from "@/lib/client";
 import TransitionLink from "@/components/PageTransitions/TransitionLink";
+import { useLayoutEffect } from "react";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -67,12 +63,10 @@ const PROJECT_QUERY = `
     overview,
     date,
     services,
-
     heroVideos[]{
       _key,
       "src": asset->url
     },
-
     gallery[]{
       _key,
       "src": asset->url,
@@ -102,6 +96,9 @@ const ALL_PROJECTS_QUERY = `
 // EXTRUDED TEXT REVEAL
 // =========================================================
 
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 function ExtrudedTextReveal({
   text,
   className = "",
@@ -110,21 +107,33 @@ function ExtrudedTextReveal({
   const containerRef = useRef(null);
   const textRef = useRef(null);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!textRef.current || !text) return;
 
     const ctx = gsap.context(() => {
       const split = new SplitText(textRef.current, {
         type: "lines,words,chars",
-
         linesClass:
           "sky-line relative block overflow-hidden py-[0.05em]",
-
         wordsClass:
           "sky-word relative inline-block whitespace-nowrap",
-
         charsClass:
           "sky-char relative inline-block will-change-[transform,opacity,filter] transform-gpu",
+      });
+
+      // Reveal the parent h1 (it starts hidden via inline style to
+      // prevent a pre-split flash), then hide the individual chars
+      // so the reveal animation controls visibility from here on.
+      gsap.set(textRef.current, { opacity: 1 });
+
+      gsap.set(split.chars, {
+        opacity: 0,
+        yPercent: 120,
+        scaleY: 0.1,
+        scaleX: 0.8,
+        filter: "blur(15px)",
+        transformOrigin: "50% 100%",
+        force3D: true,
       });
 
       const tl = gsap.timeline({
@@ -134,28 +143,16 @@ function ExtrudedTextReveal({
         delay,
       });
 
-      tl.fromTo(
-        split.chars,
-        {
-          opacity: 0,
-          yPercent: 120,
-          scaleY: 0.1,
-          scaleX: 0.8,
-          filter: "blur(15px)",
-          transformOrigin: "50% 100%",
-          force3D: true,
-        },
-        {
-          opacity: 1,
-          yPercent: 0,
-          scaleY: 1,
-          scaleX: 1,
-          filter: "blur(0px)",
-          stagger: 0.008,
-          duration: 0.8,
-          force3D: true,
-        }
-      );
+      tl.to(split.chars, {
+        opacity: 1,
+        yPercent: 0,
+        scaleY: 1,
+        scaleX: 1,
+        filter: "blur(0px)",
+        stagger: 0.008,
+        duration: 0.8,
+        force3D: true,
+      });
     }, containerRef);
 
     return () => {
@@ -168,7 +165,7 @@ function ExtrudedTextReveal({
       ref={containerRef}
       className={`w-[99.6%] ${className}`}
     >
-      <h1 ref={textRef} className="m-0">
+      <h1 ref={textRef} className="m-0" style={{ opacity: 0 }}>
         {text}
       </h1>
     </div>
@@ -195,7 +192,6 @@ export default function CloudhausWorkDetail() {
 
   const [project, setProject] = useState(null);
   const [allProjects, setAllProjects] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -361,7 +357,6 @@ export default function CloudhausWorkDetail() {
     link.rel = "preload";
     link.as = "video";
     link.href = activeSrc;
-
     link.dataset.videoPreload = activeSrc;
 
     document.head.appendChild(link);
@@ -476,7 +471,6 @@ export default function CloudhausWorkDetail() {
     };
 
     gsap.ticker.add(raf);
-
     gsap.ticker.lagSmoothing(0);
 
     return () => {
@@ -491,7 +485,6 @@ export default function CloudhausWorkDetail() {
       );
 
       gsap.ticker.remove(raf);
-
       lenis.destroy();
     };
   }, []);
@@ -517,10 +510,8 @@ export default function CloudhausWorkDetail() {
 
         scrollTrigger: {
           trigger: section,
-
           start: "top 85%",
           end: "bottom 35%",
-
           scrub: true,
         },
       });
@@ -664,13 +655,8 @@ export default function CloudhausWorkDetail() {
       ================================================= */}
 
       <section className="relative w-full bg-black">
-
         {/* =================================================
             STICKY HERO BACKGROUND
-
-            IMPORTANT:
-            The sticky element is now isolated from the
-            scrolling content. There is NO negative margin.
         ================================================= */}
 
         <div
@@ -734,7 +720,6 @@ export default function CloudhausWorkDetail() {
         ================================================= */}
 
         <div className="relative z-10">
-
           {/* =================================================
               HERO INTRO
           ================================================= */}
@@ -763,7 +748,6 @@ export default function CloudhausWorkDetail() {
                 md:gap-0
               "
             >
-
               {/* =================================================
                   PROJECT TITLE
               ================================================= */}
@@ -777,6 +761,9 @@ export default function CloudhausWorkDetail() {
                   tracking-tighter
                   order-1
                   md:order-none
+
+                  translate-y-6
+                  md:translate-y-0
                 "
               >
                 <ExtrudedTextReveal
@@ -866,7 +853,6 @@ export default function CloudhausWorkDetail() {
                   md:order-none
                 "
               >
-
                 {/* WATCH VIDEO */}
 
                 {activeSrc && (
@@ -953,7 +939,6 @@ export default function CloudhausWorkDetail() {
                     text-center
                     transition-opacity
                     duration-300
-
                     ${
                       isTransitioning ||
                       totalVideos <= 1
@@ -999,7 +984,6 @@ export default function CloudhausWorkDetail() {
                 font-geist-mono
               "
             >
-
               {/* =================================================
                   PROJECT OVERVIEW
               ================================================= */}
@@ -1102,7 +1086,6 @@ export default function CloudhausWorkDetail() {
                   md:contents
                 "
               >
-
                 {/* CLIENT */}
 
                 <div
@@ -1164,7 +1147,6 @@ export default function CloudhausWorkDetail() {
                     {project.date || "—"}
                   </p>
                 </div>
-
               </div>
             </div>
           </div>
@@ -1372,18 +1354,30 @@ export default function CloudhausWorkDetail() {
               </span>
             </div>
 
+            {/* =================================================
+                NEXT PROJECT TITLE
+
+                Mobile only:
+                translate-y-6 = 24px downward
+
+                Desktop:
+                translate-y-0 = original position
+            ================================================= */}
+
             <div className="overflow-hidden">
               <h2
                 className="
                   font-sans
-                  text-[17vw]
+                  text-[12vw]
                   md:text-9xl
                   leading-[115%]
                   tracking-[-0.07em]
                   text-white
-                  uppercase
                   transition-transform
                   duration-700
+
+                  
+                  md:translate-y-0
                 "
               >
                 {nextProject.title}
@@ -1554,4 +1548,3 @@ export default function CloudhausWorkDetail() {
     </main>
   );
 }
-

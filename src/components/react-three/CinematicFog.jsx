@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, {
@@ -22,7 +23,7 @@ function useIsClient() {
 
 /* =========================================================
    ERROR BOUNDARY
-   ========================================================= */
+========================================================= */
 
 class WebGLSceneErrorBoundary extends React.Component {
   constructor(props) {
@@ -40,8 +41,6 @@ class WebGLSceneErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error) {
-    // Prevent the Three.js/R3F error from crashing
-    // the entire React application.
     console.error("WebGL scene error:", error);
   }
 
@@ -125,20 +124,11 @@ function RadialVaporRing() {
 
     scrollState.target = actualScrollY;
 
-    /*
-     * Smoothly follow the actual page scroll.
-     *
-     * No wheel velocity.
-     * No impulse.
-     * No spring-back.
-     */
-
     smoothScroll.current +=
       (scrollState.target - smoothScroll.current) *
       Math.min(1, delta * 15);
 
-    scrollState.current =
-      smoothScroll.current;
+    scrollState.current = smoothScroll.current;
 
     /* =======================================================
        DOCUMENT PROGRESS
@@ -168,23 +158,6 @@ function RadialVaporRing() {
        CONTROLLED CLOUD PULL
     ======================================================= */
 
-    /*
-     * This is the important part.
-     *
-     * We DO move the clouds toward the camera.
-     *
-     * But the movement is bounded.
-     *
-     * This prevents:
-     *
-     *  - clouds disappearing
-     *  - clouds becoming enormous
-     *  - clouds filling the entire screen
-     *
-     * The cloud field starts deeper and gradually moves
-     * forward as the user scrolls.
-     */
-
     const maxPull = 5.6;
 
     const targetDepth =
@@ -200,23 +173,6 @@ function RadialVaporRing() {
     /* =======================================================
        CONTROLLED ZOOM
     ======================================================= */
-
-    /*
-     * The zoom is permanently connected to scroll progress.
-     *
-     * It does NOT depend on wheel velocity.
-     *
-     * Therefore:
-     *
-     * scroll ↓
-     *     clouds pull toward you
-     *
-     * stop
-     *     clouds remain there
-     *
-     * scroll ↓
-     *     clouds continue pulling
-     */
 
     const maxZoom = 1.56;
 
@@ -236,11 +192,6 @@ function RadialVaporRing() {
        SUBTLE LATERAL MOVEMENT
     ======================================================= */
 
-    /*
-     * A tiny amount of movement prevents the cloud field
-     * from feeling like a static object being zoomed.
-     */
-
     const lateral =
       progress * Math.PI * 1.25;
 
@@ -253,12 +204,6 @@ function RadialVaporRing() {
     /* =======================================================
        SUBTLE ROTATION
     ======================================================= */
-
-    /*
-     * Slow atmospheric rotation.
-     *
-     * This is intentionally NOT tied to velocity.
-     */
 
     const time =
       state.clock.elapsedTime;
@@ -277,12 +222,14 @@ function RadialVaporRing() {
         frustumCulled={false}
         texture={CLOUD_URL}
       >
+
         {/* =================================================
-            TOP LEFT
+            TOP ATMOSPHERE
+            Suspended around the upper edge.
         ================================================= */}
 
         <group
-          position={[-4.5, 3.0, -1.6]}
+          position={[-4.5, 5.2, -1.6]}
         >
           <Cloud
             seed={12}
@@ -296,12 +243,8 @@ function RadialVaporRing() {
           />
         </group>
 
-        {/* =================================================
-            TOP RIGHT
-        ================================================= */}
-
         <group
-          position={[4.5, 3.0, -1.8]}
+          position={[4.5, 5.2, -1.8]}
         >
           <Cloud
             seed={34}
@@ -310,55 +253,19 @@ function RadialVaporRing() {
             color="#e8e8e8"
             opacity={0.37}
             fade={65}
-            speed={0.50}
-            growth={3}
+            speed={0.30}
+            growth={2.2}
           />
         </group>
 
         {/* =================================================
-            BOTTOM LEFT
+            TOP CENTER ATMOSPHERE
+
+            Kept high enough to avoid filling the middle.
         ================================================= */}
 
         <group
-          position={[-5.0, -2.8, -1.2]}
-        >
-          <Cloud
-            seed={56}
-            scale={3.0}
-            volume={12}
-            color="#d0d0d0"
-            opacity={0.14}
-            fade={75}
-            speed={0.28}
-            growth={2}
-          />
-        </group>
-
-        {/* =================================================
-            BOTTOM RIGHT
-        ================================================= */}
-
-        <group
-          position={[5.0, -2.8, -1.4]}
-        >
-          <Cloud
-            seed={78}
-            scale={3.2}
-            volume={14}
-            color="#ffffff"
-            opacity={0.15}
-            fade={75}
-            speed={0.12}
-            growth={3}
-          />
-        </group>
-
-        {/* =================================================
-            CENTER BACK ATMOSPHERE
-        ================================================= */}
-
-        <group
-          position={[0, 3.8, -3.4]}
+          position={[0, 5.8, -3.4]}
         >
           <Cloud
             seed={91}
@@ -373,11 +280,48 @@ function RadialVaporRing() {
         </group>
 
         {/* =================================================
-            CENTER LOWER ATMOSPHERE
+            BOTTOM ATMOSPHERE
+            Suspended around the lower edge.
         ================================================= */}
 
         <group
-          position={[0, -4.0, -3.2]}
+          position={[-5.0, -5.0, -1.2]}
+        >
+          <Cloud
+            seed={56}
+            scale={3.0}
+            volume={10}
+            color="#d0d0d0"
+            opacity={0.14}
+            fade={75}
+            speed={0.2}
+            growth={1.5}
+          />
+        </group>
+
+        <group
+          position={[5.0, -5.0, -1.4]}
+        >
+          <Cloud
+            seed={78}
+            scale={3.2}
+            volume={14}
+            color="#ffffff"
+            opacity={0.15}
+            fade={75}
+            speed={0.12}
+            growth={3}
+          />
+        </group>
+
+        {/* =================================================
+            BOTTOM CENTER ATMOSPHERE
+
+            Kept low to preserve the central opening.
+        ================================================= */}
+
+        <group
+          position={[0, -5.8, -3.2]}
         >
           <Cloud
             seed={103}
@@ -390,6 +334,7 @@ function RadialVaporRing() {
             growth={3}
           />
         </group>
+
       </Clouds>
     </group>
   );
@@ -433,13 +378,6 @@ export default function GlobalCinematicFog() {
               0,
               1
             );
-
-          /*
-           * Keep the atmosphere present, but restrained.
-           *
-           * This is especially important against a black
-           * website background.
-           */
 
           const fade =
             0.42 +
@@ -535,3 +473,4 @@ export default function GlobalCinematicFog() {
     </div>
   );
 }
+

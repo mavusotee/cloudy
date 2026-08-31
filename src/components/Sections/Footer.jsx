@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import Button from "../UI/Button";
 import BlurFlicker from "../Animations/BlurFlicker";
@@ -29,10 +30,10 @@ function Footer() {
   return (
     <div
       id="footer"
-      className="w-full min-h-[100vh] flex flex-col items-start gap-[clamp(7rem,12vh,12rem)] pt-[clamp(2.5rem,8vw,5.5rem)] px-0 bg-black"
+      className="w-full min-h-[100vh] flex flex-col items-start gap-[clamp(7rem,25vh,18rem)] pt-[clamp(8.5rem,9vw,6.5rem)] px-0 bg-black"
     >
       {/* TOP DIV HOUSING ALL THREE COLUMNS */}
-      <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(3rem,4vw,3rem)] md:pt-20">
+      <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(3rem,4vw,3rem)] md:pt-20 ">
         {/* 1. LEFT BLOCK */}
         <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,3vw,2rem)]">
           <div className="flex flex-col space-y-[clamp(1.2rem,2vw,1.3rem)]">
@@ -115,14 +116,14 @@ function Footer() {
         {/* ROW 2 ON MOBILE/TABLET: TIME/TELEMETRY & SOCIALS */}
         <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)]">
           {/* DYNAMIC TIME & GEOGRAPHIC DATA */}
-          <div className="flex flex-col space-y-[clamp(0.25rem,1vw,0.5rem)] items-start justify-start w-full pt-2 font-geist-mono uppercase">
-            <div className="flex items-center gap-2 text-[clamp(0.625rem,4.5vw,1.025rem)] text-ghost-white">
+          <div className="flex flex-col space-y-[clamp(0.25rem,0.5vw,0.5rem)] items-start justify-start w-full pt-2 font-geist-mono uppercase">
+            <div className="flex items-center gap-2 text-[clamp(0.325rem,3.0vw,1.025rem)] text-ghost-white">
               <span className="text-zinc-100 tabular-nums">
                 ADL {time || "00:00:00"}
               </span>
             </div>
 
-            <div className="text-[clamp(0.325rem,4.5vw,1.025rem)] text-zinc-400 flex flex-col space-y-0.5 tracking-tight font-sans">
+            <div className="text-[clamp(0.325rem,3.0vw,1.025rem)] text-zinc-600 flex flex-col -space-y-0.5 tracking-tight font-sans">
               <span>34.9285° S, 138.6007° E</span>
               <span>ELEV. 50M • ACDT/ACST</span>
             </div>
@@ -172,7 +173,7 @@ function Footer() {
       </div>
 
       {/* BOTTOM SECTION CONTAINER */}
-      <div className="w-full flex flex-col justify-end pb-1 md:pb-0">
+      <div className="w-full mt-auto flex flex-col justify-end pb-0">
         {/* CLOUDHAUS SVG LOGO */}
         <div className="w-full select-none pointer-events-none flex items-center justify-center -mb-1 md:mb-4">
           <svg
@@ -199,8 +200,8 @@ function Footer() {
               fill="white"
             />
             <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
+              fillRule="evenodd"
+              clipRule="evenodd"
               d="M41.0538 0.38585V32.8691C41.0538 33.0816 40.8588 33.254 40.6186 33.254H27.6422C27.402 33.254 27.207 33.0816 27.207 32.8691V0.38585C27.207 0.1734 27.402 0.000976562 27.6422 0.000976562H40.6186C40.8588 0.000976562 41.0538 0.1734 41.0538 0.38585Z"
               fill="white"
             />
@@ -221,14 +222,14 @@ function Footer() {
               fill="white"
             />
             <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
+              fillRule="evenodd"
+              clipRule="evenodd"
               d="M152.752 0.384868V32.8683C152.752 33.0805 152.542 33.2532 152.284 33.2532H139.372C139.113 33.2532 138.904 33.0805 138.904 32.8683V0.384868C138.904 0.172428 139.113 0 139.372 0H152.284C152.542 0 152.752 0.172428 152.752 0.384868Z"
               fill="white"
             />
             <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
+              fillRule="evenodd"
+              clipRule="evenodd"
               d="M172.142 0.384868V32.8683C172.142 33.0805 171.932 33.2532 171.674 33.2532H158.763C158.505 33.2532 158.295 33.0805 158.295 32.8683V0.384868C158.295 0.172428 158.505 0 158.763 0H171.674C171.932 0 172.142 0.172428 172.142 0.384868Z"
               fill="white"
             />
@@ -276,3 +277,4 @@ function Footer() {
 }
 
 export default Footer;
+

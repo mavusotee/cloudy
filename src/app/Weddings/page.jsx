@@ -11,20 +11,15 @@ import React, {
   useCallback,
 } from "react";
 
-import TransitionLink from "@/components/PageTransitions/TransitionLink";
 import Button from "@/components/UI/Button";
 import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
-
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-
 import Navigation from "@/components/UI/Navigation";
-
 import { groq } from "next-sanity";
 import { client } from "@/lib/client";
 
@@ -251,13 +246,13 @@ const SmallButton = forwardRef(({ isOpen = false }, ref) => {
   return (
     <div
       ref={buttonRef}
-      className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(7.5rem,10vw,8.6875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
+      className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(6.5rem,10vw,6.6875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
         isOpen
           ? "bg-ghost-white text-carbon-black border-ghost-white hover:bg-zinc-300"
           : "bg-carbon-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
       }`}
     >
-      {isOpen ? "CLOSE" : "CLICK TO VIEW"}
+      {isOpen ? "CLOSE" : "WATCH FILM"}
     </div>
   );
 });
@@ -275,8 +270,7 @@ function WorkCard({
   onHoverChange,
   onOpen,
 }) {
-  const [currentTime, setCurrentTime] =
-    useState("00:00");
+  const [currentTime, setCurrentTime] = useState("00:00");
 
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
@@ -439,7 +433,9 @@ function WorkCard({
         ref={containerRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`relative overflow-hidden cursor-pointer ${heightClassName}`}
+        className={`relative overflow-hidden cursor-pointer aspect-video ${
+          heightClassName || ""
+        }`}
       >
         <video
           ref={videoRef}
@@ -577,10 +573,8 @@ function ListItemRow({
         trigger: rowRef.current,
         start: "top 50%",
         end: "bottom 50%",
-
         onEnter: activateRow,
         onEnterBack: activateRow,
-
         onLeave: deactivateRow,
         onLeaveBack: deactivateRow,
       });
@@ -634,16 +628,12 @@ export default function WeddingsSection() {
   const bgVideoRef = useRef(null);
 
   const [weddings, setWeddings] = useState([]);
-  const [isLoading, setIsLoading] =
-    useState(true);
-  const [fetchError, setFetchError] =
-    useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
 
-  const [viewMode, setViewMode] =
-    useState("grid");
+  const [viewMode, setViewMode] = useState("grid");
 
-  const [visibleCount, setVisibleCount] =
-    useState(13);
+  const [visibleCount, setVisibleCount] = useState(13);
 
   const [hoveredProject, setHoveredProject] =
     useState(null);
@@ -1141,9 +1131,9 @@ export default function WeddingsSection() {
     };
   }, []);
 
-  /* ==========================================================
+  /* ============================================================
      RENDER
-  ========================================================== */
+  ============================================================ */
 
   return (
     <>
@@ -1163,7 +1153,7 @@ export default function WeddingsSection() {
         onClose={closePlayer}
       />
 
-      <div className="bg-carbon-black w-full min-h-screen py-6 px-4 md:py-2 md:px-4 relative overflow-x-hidden">
+      <div className="bg-black w-full min-h-screen py-6 px-4 md:py-2 md:px-4 relative overflow-hidden pb-40">
 
         {/* ======================================================
             FULL-BLEED HOVER VIDEO BACKGROUND
@@ -1207,9 +1197,9 @@ export default function WeddingsSection() {
             INTRO
         ====================================================== */}
 
-        <div className="flex w-full h-[45vh] items-center px-2">
-          <h1 className="font-sans tracking-tight md:text-5xl w-[590px] text-ghost-white">
-            LEGACY CAPTURED
+        <div className="flex w-full min-h-[55vh] items-center justify-start px-2 pt-10 md:pt-20">
+          <h1 className="font-sans tracking-tight text-3xl md:text-5xl w-[250px] md:w-[590px] text-ghost-white leading-tight">
+            MOMENTS WORTH REMEMBERING
           </h1>
         </div>
 
@@ -1232,10 +1222,10 @@ export default function WeddingsSection() {
 
         <div
           ref={listPreviewRef}
-          className="fixed top-0 left-0 pointer-events-none z-[100] hidden md:block scale-85 opacity-0"
+          className="fixed top-0 left-0 pointer-events-none z-[100] hidden  scale-85 opacity-0"
         >
           <span className="font-geist-mono text-[0.65rem] tracking-widest uppercase bg-ghost-white text-carbon-black px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap">
-            Play Video
+            Play Film
           </span>
         </div>
 
@@ -1243,23 +1233,23 @@ export default function WeddingsSection() {
             HEADER
         ====================================================== */}
 
-        <div className="relative z-10 flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
+        <div className="relative z-10 flex flex-col space-y-6 pt-14 md:pt-10 lg:pt-30">
 
           <div className="flex flex-row items-center justify-between w-full text-zinc-300">
 
             <div className="opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
               <div className="w-2 h-2 bg-zinc-300" />
-
-              <h1>WORKS</h1>
+              <h1>WEDDINGS</h1>
             </div>
 
             <h1 className="font-geist-mono font-semibold tracking-tight text-ghost-white text-[clamp(0.5rem,0.8vw,0.825rem)]">
               [CLOUD_9]
             </h1>
+
           </div>
 
           {/* ==================================================
-              WORKS HEADER
+              WEDDINGS HEADER
           ================================================== */}
 
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-6 sm:gap-0 pb-6">
@@ -1267,17 +1257,17 @@ export default function WeddingsSection() {
             <div className="flex flex-row items-start gap-4 sm:gap-6 font-monot">
 
               <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%] font-light leading-none uppercase">
-                WORKS
+                WEDDINGS
               </h1>
 
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
                 [
-                {activeProjects.length <
-                10
+                {activeProjects.length < 10
                   ? `0${activeProjects.length}`
                   : activeProjects.length}
                 ]
               </sup>
+
             </div>
 
             <div className="flex flex-col items-start sm:items-end justify-end space-y-4 w-full sm:w-auto">
@@ -1291,8 +1281,7 @@ export default function WeddingsSection() {
                     )
                   }
                   className={`transition-colors cursor-pointer ${
-                    viewMode ===
-                    "grid"
+                    viewMode === "grid"
                       ? "text-white font-bold"
                       : "text-zinc-500 hover:text-white"
                   }`}
@@ -1311,21 +1300,20 @@ export default function WeddingsSection() {
                     )
                   }
                   className={`transition-colors cursor-pointer ${
-                    viewMode ===
-                    "list"
+                    viewMode === "list"
                       ? "text-white font-bold"
                       : "text-zinc-500 hover:text-white"
                   }`}
                 >
                   LIST
                 </button>
+
               </div>
 
-              <Button
-                text="VIEW ALL PROJECTS"
-                href="/Works"
-              />
+             
+
             </div>
+
           </div>
 
           {/* ==================================================
@@ -1336,11 +1324,12 @@ export default function WeddingsSection() {
             ref={containerRef}
             className="w-full transition-all duration-300"
           >
+
             {isLoading ? (
 
               <div className="w-full py-20 flex justify-center">
                 <p className="font-geist-mono text-xs tracking-widest uppercase text-zinc-500">
-                  Loading weddings...
+                 
                 </p>
               </div>
 
@@ -1352,8 +1341,7 @@ export default function WeddingsSection() {
                 </p>
               </div>
 
-            ) : activeProjects.length ===
-              0 ? (
+            ) : activeProjects.length === 0 ? (
 
               <div className="w-full py-20 flex justify-center">
                 <p className="font-geist-mono text-xs tracking-widest uppercase text-zinc-500">
@@ -1361,25 +1349,23 @@ export default function WeddingsSection() {
                 </p>
               </div>
 
-            ) : viewMode ===
-              "grid" ? (
+            ) : viewMode === "grid" ? (
 
               /* =================================================
                  GRID VIEW
               ================================================= */
 
-              <div className="flex flex-col space-y-8 lg:space-y-14 pt-4">
+              <div className="flex flex-col space-y-16 lg:space-y-28 pt-4">
 
-                {activeProjects.length >=
-                  3 && (
+                {/* ROW 1 */}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-4 text-lavender">
+                {activeProjects.length >= 3 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full gap-6 md:gap-4 text-lavender">
 
                     <WorkCard
                       wedding={
                         activeProjects[0]
                       }
-                      heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1392,7 +1378,7 @@ export default function WeddingsSection() {
                       wedding={
                         activeProjects[1]
                       }
-                      heightClassName="w-full aspect-video h-[18rem] lg:h-[28rem]"
+                      containerClassName="lg:translate-y-16"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1405,7 +1391,6 @@ export default function WeddingsSection() {
                       wedding={
                         activeProjects[2]
                       }
-                      heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1417,16 +1402,15 @@ export default function WeddingsSection() {
                   </div>
                 )}
 
-                {activeProjects.length >=
-                  4 && (
+                {/* FEATURED WEDDING */}
 
+                {activeProjects.length >= 4 && (
                   <div className="-mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]">
 
                     <WorkCard
                       wedding={
                         activeProjects[3]
                       }
-                      heightClassName="w-full h-[55vh] lg:h-[97vh]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1438,18 +1422,16 @@ export default function WeddingsSection() {
                   </div>
                 )}
 
-                {activeProjects.length >=
-                  6 && (
+                {/* ROW 3 */}
 
+                {activeProjects.length >= 6 && (
                   <div className="grid grid-cols-1 lg:grid-cols-12 w-full gap-8 items-start py-2">
 
                     <div className="lg:col-span-5">
-
                       <WorkCard
                         wedding={
                           activeProjects[4]
                         }
-                        heightClassName="w-full aspect-video h-[18rem] lg:h-[26rem]"
                         onHoverChange={
                           handleHoverChange
                         }
@@ -1457,16 +1439,13 @@ export default function WeddingsSection() {
                           openPlayer
                         }
                       />
-
                     </div>
 
-                    <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-12 md:translate-x-18">
-
+                    <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-20">
                       <WorkCard
                         wedding={
                           activeProjects[5]
                         }
-                        heightClassName="w-full aspect-video h-[20rem] lg:h-[32rem]"
                         onHoverChange={
                           handleHoverChange
                         }
@@ -1474,22 +1453,20 @@ export default function WeddingsSection() {
                           openPlayer
                         }
                       />
-
                     </div>
 
                   </div>
                 )}
 
-                {activeProjects.length >=
-                  8 && (
+                {/* ROW 4 */}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 text-lavender md:pt-30">
+                {activeProjects.length >= 8 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 text-lavender lg:pt-20">
 
                     <WorkCard
                       wedding={
                         activeProjects[6]
                       }
-                      heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1502,7 +1479,6 @@ export default function WeddingsSection() {
                       wedding={
                         activeProjects[7]
                       }
-                      heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1514,16 +1490,15 @@ export default function WeddingsSection() {
                   </div>
                 )}
 
-                {activeProjects.length >=
-                  11 && (
+                {/* ROW 5 */}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-2 text-lavender md:pt-30">
+                {activeProjects.length >= 11 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-2 text-lavender lg:pt-20">
 
                     <WorkCard
                       wedding={
                         activeProjects[8]
                       }
-                      heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1536,7 +1511,6 @@ export default function WeddingsSection() {
                       wedding={
                         activeProjects[9]
                       }
-                      heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1549,7 +1523,6 @@ export default function WeddingsSection() {
                       wedding={
                         activeProjects[10]
                       }
-                      heightClassName="w-full aspect-video h-[18rem] lg:h-[24rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1561,16 +1534,15 @@ export default function WeddingsSection() {
                   </div>
                 )}
 
-                {activeProjects.length >=
-                  13 && (
+                {/* ROW 6 */}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 md:gap-3 text-lavender md:pt-30">
+                {activeProjects.length >= 13 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 md:gap-3 text-lavender lg:pt-20">
 
                     <WorkCard
                       wedding={
                         activeProjects[11]
                       }
-                      heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1583,7 +1555,6 @@ export default function WeddingsSection() {
                       wedding={
                         activeProjects[12]
                       }
-                      heightClassName="w-full aspect-video h-[20rem] lg:h-[28rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1595,18 +1566,15 @@ export default function WeddingsSection() {
                   </div>
                 )}
 
-                {activeProjects.length >
-                  13 && (
+                {/* REMAINING WEDDINGS */}
 
+                {activeProjects.length > 13 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
 
                     {activeProjects
                       .slice(13)
                       .map(
-                        (
-                          wedding
-                        ) => (
-
+                        (wedding) => (
                           <WorkCard
                             key={
                               wedding._id
@@ -1614,7 +1582,6 @@ export default function WeddingsSection() {
                             wedding={
                               wedding
                             }
-                            heightClassName="w-full aspect-video h-[18rem]"
                             onHoverChange={
                               handleHoverChange
                             }
@@ -1622,7 +1589,6 @@ export default function WeddingsSection() {
                               openPlayer
                             }
                           />
-
                         )
                       )}
 
@@ -1664,7 +1630,6 @@ export default function WeddingsSection() {
 
                   {activeProjects.map(
                     (wedding) => (
-
                       <ListItemRow
                         key={
                           wedding._id
@@ -1684,7 +1649,6 @@ export default function WeddingsSection() {
                           openPlayer
                         }
                       />
-
                     )
                   )}
 
@@ -1694,7 +1658,6 @@ export default function WeddingsSection() {
 
                 {visibleCount <
                   weddings.length && (
-
                   <div className="flex justify-center pt-12">
 
                     <button
@@ -1707,11 +1670,11 @@ export default function WeddingsSection() {
                     </button>
 
                   </div>
-
                 )}
 
               </div>
             )}
+
           </div>
         </div>
       </div>
