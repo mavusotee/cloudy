@@ -13,8 +13,8 @@ import React, {
 
 import TransitionLink from "@/components/PageTransitions/TransitionLink";
 import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
-import Lenis from "lenis";
 
+import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -23,6 +23,7 @@ import * as THREE from "three";
 
 import Footer from "@/components/Sections/Footer";
 import Navigation from "@/components/UI/Navigation";
+
 import { client } from "@/lib/client";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -43,7 +44,6 @@ const WORKS_QUERY = `
     client,
     date,
     "slug": slug.current,
-
     heroVideos[] {
       _key,
       "src": asset->url
@@ -255,7 +255,12 @@ const getVideoUrl = (video) => {
     return video;
   }
 
-  return video.src || video.url || video.secure_url || null;
+  return (
+    video.src ||
+    video.url ||
+    video.secure_url ||
+    null
+  );
 };
 
 const formatTime = (seconds) => {
@@ -280,14 +285,69 @@ function WorkCard({
   onHoverChange,
   fullBleedVideo = false,
 }) {
-  const [currentTime, setCurrentTime] = useState("00:00");
+  const [currentTime, setCurrentTime] =
+    useState("00:00");
+
+  const [shouldLoadVideo, setShouldLoadVideo] =
+    useState(false);
 
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
   const noiseRef = useRef(null);
   const videoRef = useRef(null);
 
-  const videoUrl = getVideoUrl(video?.heroVideos?.[0]);
+  const videoUrl = getVideoUrl(
+    video?.heroVideos?.[0]
+  );
+
+  // --------------------------------------------------
+  // VIDEO LAZY LOADING
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (!containerRef.current || !videoUrl) {
+      return;
+    }
+
+    const element = containerRef.current;
+
+    // If IntersectionObserver isn't available,
+    // load the video normally.
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoadVideo(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+
+        if (entry.isIntersecting) {
+          setShouldLoadVideo(true);
+
+          // Once the video has been marked for loading,
+          // we no longer need to observe this card.
+          observer.disconnect();
+        }
+      },
+      {
+        // Start loading before the card actually enters
+        // the viewport so playback is ready in advance.
+        rootMargin: "500px 0px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [videoUrl]);
+
+  // --------------------------------------------------
+  // VIDEO METADATA
+  // --------------------------------------------------
 
   const handleLoadedMetadata = (e) => {
     const videoEl = e.currentTarget;
@@ -302,13 +362,23 @@ function WorkCard({
     }
   };
 
+  // --------------------------------------------------
+  // VIDEO TIME
+  // --------------------------------------------------
+
   const handleTimeUpdate = (e) => {
     const videoEl = e.currentTarget;
 
     if (videoEl) {
-      setCurrentTime(formatTime(videoEl.currentTime));
+      setCurrentTime(
+        formatTime(videoEl.currentTime)
+      );
     }
   };
+
+  // --------------------------------------------------
+  // HOVER ENTER
+  // --------------------------------------------------
 
   const handleMouseEnter = () => {
     onHoverChange(true);
@@ -339,19 +409,34 @@ function WorkCard({
     buttonRef.current?.triggerBlur?.();
   };
 
+  // --------------------------------------------------
+  // HOVER LEAVE
+  // --------------------------------------------------
+
   const handleMouseLeave = () => {
     onHoverChange(false);
 
     if (!containerRef.current) return;
 
     const topL =
-      containerRef.current.querySelector(".corner-tl");
+      containerRef.current.querySelector(
+        ".corner-tl"
+      );
+
     const topR =
-      containerRef.current.querySelector(".corner-tr");
+      containerRef.current.querySelector(
+        ".corner-tr"
+      );
+
     const botL =
-      containerRef.current.querySelector(".corner-bl");
+      containerRef.current.querySelector(
+        ".corner-bl"
+      );
+
     const botR =
-      containerRef.current.querySelector(".corner-br");
+      containerRef.current.querySelector(
+        ".corner-br"
+      );
 
     gsap.to(topL, {
       opacity: 0,
@@ -407,6 +492,7 @@ function WorkCard({
         containerClassName || ""
       }`}
     >
+      {/* TOP META */}
       <div className="flex flex-row items-center justify-between w-full px-1 pb-2">
         <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
           {video.date || "—"}
@@ -417,6 +503,7 @@ function WorkCard({
         </h2>
       </div>
 
+      {/* VIDEO */}
       <div
         ref={containerRef}
         onMouseEnter={handleMouseEnter}
@@ -428,19 +515,24 @@ function WorkCard({
         } ${heightClassName || ""}`}
       >
         {videoUrl ? (
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="none"
-            lazy="true"
-            onLoadedMetadata={handleLoadedMetadata}
-            onTimeUpdate={handleTimeUpdate}
-            className="block w-full aspect-video object-cover brightness-90 contrast-105"
-          />
+          shouldLoadVideo ? (
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="metadata"
+              onLoadedMetadata={
+                handleLoadedMetadata
+              }
+              onTimeUpdate={handleTimeUpdate}
+              className="block w-full aspect-video object-cover brightness-90 contrast-105"
+            />
+          ) : (
+            <div className="w-full aspect-video bg-zinc-900" />
+          )
         ) : (
           <div className="w-full aspect-video bg-zinc-900 flex flex-col items-center justify-center gap-2">
             <span className="font-geist-mono text-xs text-zinc-500 uppercase">
@@ -453,10 +545,13 @@ function WorkCard({
           </div>
         )}
 
+        {/* DARK OVERLAY */}
         <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-10" />
 
+        {/* TV NOISE */}
         <R3FTVNoise ref={noiseRef} />
 
+        {/* CORNERS */}
         <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
           <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t border-l border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
 
@@ -468,6 +563,7 @@ function WorkCard({
         </div>
       </div>
 
+      {/* BOTTOM META */}
       <div className="flex flex-row items-baseline justify-between w-full px-1 pt-2 text-ghost-white">
         <div className="flex flex-col min-w-0">
           <p className="font-geist-mono text-[clamp(0.6875rem,1vw,0.75rem)] text-zinc-400 tracking-tight">
@@ -475,7 +571,10 @@ function WorkCard({
           </p>
 
           <SmudgyTitleReveal
-            text={video.title || "Untitled Project"}
+            text={
+              video.title ||
+              "Untitled Project"
+            }
           />
         </div>
 
@@ -614,7 +713,8 @@ function ClientFilter({
   selectedClient,
   onClientFilter,
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] =
+    useState(false);
 
   const filterRef = useRef(null);
   const optionsRef = useRef(null);
@@ -627,7 +727,8 @@ function ClientFilter({
   useEffect(() => {
     if (!optionsRef.current) return;
 
-    const items = optionItemsRef.current.filter(Boolean);
+    const items =
+      optionItemsRef.current.filter(Boolean);
 
     gsap.set(optionsRef.current, {
       width: 0,
@@ -653,7 +754,8 @@ function ClientFilter({
     requestAnimationFrame(() => {
       if (!optionsRef.current) return;
 
-      const items = optionItemsRef.current.filter(Boolean);
+      const items =
+        optionItemsRef.current.filter(Boolean);
 
       gsap.killTweensOf([
         optionsRef.current,
@@ -689,7 +791,8 @@ function ClientFilter({
       return;
     }
 
-    const items = optionItemsRef.current.filter(Boolean);
+    const items =
+      optionItemsRef.current.filter(Boolean);
 
     gsap.killTweensOf([
       optionsRef.current,
@@ -779,7 +882,9 @@ function ClientFilter({
           ref={(el) => {
             optionItemsRef.current[0] = el;
           }}
-          onClick={() => onClientFilter("ALL")}
+          onClick={() =>
+            onClientFilter("ALL")
+          }
           className={`font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase transition-colors duration-300 cursor-pointer ${
             selectedClient === "ALL"
               ? "text-white font-bold"
@@ -789,34 +894,45 @@ function ClientFilter({
           ALL
         </button>
 
-        {clientFilters.map((clientName, index) => (
-          <React.Fragment key={clientName}>
-            <span
-              ref={(el) => {
-                optionItemsRef.current[index * 2 + 1] = el;
-              }}
-              className="text-zinc-800 font-geist-mono text-[0.65rem] md:text-xs"
+        {clientFilters.map(
+          (clientName, index) => (
+            <React.Fragment
+              key={clientName}
             >
-              /
-            </span>
+              <span
+                ref={(el) => {
+                  optionItemsRef.current[
+                    index * 2 + 1
+                  ] = el;
+                }}
+                className="text-zinc-800 font-geist-mono text-[0.65rem] md:text-xs"
+              >
+                /
+              </span>
 
-            <button
-              ref={(el) => {
-                optionItemsRef.current[index * 2 + 2] = el;
-              }}
-              onClick={() =>
-                onClientFilter(clientName)
-              }
-              className={`font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase transition-colors duration-300 cursor-pointer ${
-                selectedClient === clientName
-                  ? "text-white font-bold"
-                  : "text-zinc-600 hover:text-zinc-300"
-              }`}
-            >
-              {clientName}
-            </button>
-          </React.Fragment>
-        ))}
+              <button
+                ref={(el) => {
+                  optionItemsRef.current[
+                    index * 2 + 2
+                  ] = el;
+                }}
+                onClick={() =>
+                  onClientFilter(
+                    clientName
+                  )
+                }
+                className={`font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase transition-colors duration-300 cursor-pointer ${
+                  selectedClient ===
+                  clientName
+                    ? "text-white font-bold"
+                    : "text-zinc-600 hover:text-zinc-300"
+                }`}
+              >
+                {clientName}
+              </button>
+            </React.Fragment>
+          )
+        )}
       </div>
     </div>
   );
@@ -828,17 +944,21 @@ function ClientFilter({
 
 export default function AllWorksSection() {
   const containerRef = useRef(null);
-  const listContainerRef = useRef(null);
+  const listContainerRef =
+    useRef(null);
   const bgVideoRef = useRef(null);
 
-  const [viewMode, setViewMode] = useState("grid");
+  const [viewMode, setViewMode] =
+    useState("grid");
 
   const [visibleCount, setVisibleCount] =
     useState(13);
 
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] =
+    useState([]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] =
+    useState(true);
 
   const [hoveredProject, setHoveredProject] =
     useState(null);
@@ -870,11 +990,16 @@ export default function AllWorksSection() {
           }
         );
 
-        console.log("SANITY WORKS:", data);
+        console.log(
+          "SANITY WORKS:",
+          data
+        );
 
         if (!cancelled) {
           setProjects(
-            Array.isArray(data) ? data : []
+            Array.isArray(data)
+              ? data
+              : []
           );
         }
       } catch (error) {
@@ -908,7 +1033,8 @@ export default function AllWorksSection() {
     const clientCounts = {};
 
     projects.forEach((project) => {
-      const clientName = project.client?.trim();
+      const clientName =
+        project.client?.trim();
 
       if (!clientName) return;
 
@@ -922,12 +1048,18 @@ export default function AllWorksSection() {
         };
       }
 
-      clientCounts[normalizedName].count += 1;
+      clientCounts[
+        normalizedName
+      ].count += 1;
     });
 
     return Object.values(clientCounts)
-      .filter((client) => client.count >= 2)
-      .map((client) => client.name);
+      .filter(
+        (client) => client.count >= 2
+      )
+      .map(
+        (client) => client.name
+      );
   }, [projects]);
 
   // --------------------------------------------------
@@ -941,10 +1073,17 @@ export default function AllWorksSection() {
 
     return projects.filter(
       (project) =>
-        project.client?.trim().toLowerCase() ===
-        selectedClient.trim().toLowerCase()
+        project.client
+          ?.trim()
+          .toLowerCase() ===
+        selectedClient
+          .trim()
+          .toLowerCase()
     );
-  }, [projects, selectedClient]);
+  }, [
+    projects,
+    selectedClient,
+  ]);
 
   // --------------------------------------------------
   // VISIBLE PROJECTS
@@ -955,7 +1094,10 @@ export default function AllWorksSection() {
       0,
       visibleCount
     );
-  }, [filteredProjects, visibleCount]);
+  }, [
+    filteredProjects,
+    visibleCount,
+  ]);
 
   // --------------------------------------------------
   // RESET VISIBLE COUNT
@@ -982,12 +1124,15 @@ export default function AllWorksSection() {
         onComplete: () => {
           setViewMode(mode);
 
-          gsap.to(containerRef.current, {
-            opacity: 1,
-            y: 0,
-            duration: 0.35,
-            ease: "power2.out",
-          });
+          gsap.to(
+            containerRef.current,
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.35,
+              ease: "power2.out",
+            }
+          );
         },
       });
     } else {
@@ -999,8 +1144,14 @@ export default function AllWorksSection() {
   // CLIENT FILTER
   // --------------------------------------------------
 
-  const handleClientFilter = (clientName) => {
-    if (clientName === selectedClient) return;
+  const handleClientFilter = (
+    clientName
+  ) => {
+    if (
+      clientName === selectedClient
+    ) {
+      return;
+    }
 
     if (containerRef.current) {
       gsap.to(containerRef.current, {
@@ -1010,14 +1161,19 @@ export default function AllWorksSection() {
         ease: "power2.in",
 
         onComplete: () => {
-          setSelectedClient(clientName);
+          setSelectedClient(
+            clientName
+          );
 
-          gsap.to(containerRef.current, {
-            opacity: 1,
-            y: 0,
-            duration: 0.35,
-            ease: "power2.out",
-          });
+          gsap.to(
+            containerRef.current,
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.35,
+              ease: "power2.out",
+            }
+          );
         },
       });
     } else {
@@ -1061,7 +1217,9 @@ export default function AllWorksSection() {
 
   useEffect(() => {
     if (hoveredProject) {
-      setDisplayProject(hoveredProject);
+      setDisplayProject(
+        hoveredProject
+      );
     }
   }, [hoveredProject]);
 
@@ -1077,11 +1235,16 @@ export default function AllWorksSection() {
       const playPromise =
         bgVideoRef.current.play();
 
-      if (playPromise !== undefined) {
+      if (
+        playPromise !== undefined
+      ) {
         playPromise.catch(() => {});
       }
     }
-  }, [displayProject, hoveredProject]);
+  }, [
+    displayProject,
+    hoveredProject,
+  ]);
 
   // --------------------------------------------------
   // LIST STAGGER
@@ -1120,7 +1283,8 @@ export default function AllWorksSection() {
           ease: "power3.out",
 
           scrollTrigger: {
-            trigger: listContainerRef.current,
+            trigger:
+              listContainerRef.current,
             start: "top 85%",
             toggleActions:
               "play none none reset",
@@ -1147,11 +1311,14 @@ export default function AllWorksSection() {
       easing: (t) =>
         Math.min(
           1,
-          1.001 - Math.pow(2, -10 * t)
+          1.001 -
+            Math.pow(
+              2,
+              -10 * t
+            )
         ),
 
       smoothWheel: true,
-
       touchMultiplier: 2,
     });
 
@@ -1168,7 +1335,9 @@ export default function AllWorksSection() {
       requestAnimationFrame(raf);
 
     return () => {
-      cancelAnimationFrame(frameId);
+      cancelAnimationFrame(
+        frameId
+      );
 
       lenis.destroy();
     };
@@ -1205,18 +1374,23 @@ export default function AllWorksSection() {
         {displayProject && (
           <>
             {getVideoUrl(
-              displayProject.heroVideos?.[0]
+              displayProject
+                .heroVideos?.[0]
             ) && (
               <video
-                key={displayProject._id}
+                key={
+                  displayProject._id
+                }
                 ref={bgVideoRef}
                 src={getVideoUrl(
-                  displayProject.heroVideos?.[0]
+                  displayProject
+                    .heroVideos?.[0]
                 )}
                 autoPlay
                 muted
                 loop
                 playsInline
+                preload="metadata"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
@@ -1233,6 +1407,8 @@ export default function AllWorksSection() {
       {/* HEADER */}
 
       <div className="relative z-10 flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
+
+        {/* TOP BAR */}
 
         <div className="flex flex-row items-center justify-between w-full text-zinc-300">
 
@@ -1280,7 +1456,9 @@ export default function AllWorksSection() {
 
               <button
                 onClick={() =>
-                  handleToggleView("grid")
+                  handleToggleView(
+                    "grid"
+                  )
                 }
                 className={`transition-colors cursor-pointer ${
                   viewMode === "grid"
@@ -1297,7 +1475,9 @@ export default function AllWorksSection() {
 
               <button
                 onClick={() =>
-                  handleToggleView("list")
+                  handleToggleView(
+                    "list"
+                  )
                 }
                 className={`transition-colors cursor-pointer ${
                   viewMode === "list"
@@ -1312,10 +1492,15 @@ export default function AllWorksSection() {
 
             {/* CLIENT FILTER */}
 
-            {clientFilters.length > 0 && (
+            {clientFilters.length >
+              0 && (
               <ClientFilter
-                clientFilters={clientFilters}
-                selectedClient={selectedClient}
+                clientFilters={
+                  clientFilters
+                }
+                selectedClient={
+                  selectedClient
+                }
                 onClientFilter={
                   handleClientFilter
                 }
@@ -1333,36 +1518,47 @@ export default function AllWorksSection() {
           className="w-full transition-all duration-300"
         >
 
-          {viewMode === "grid" ? (
+          {viewMode ===
+          "grid" ? (
 
             <div className="flex flex-col space-y-8 lg:space-y-14 pt-4">
 
               {/* FIRST 3 PROJECTS */}
 
-              {activeProjects.length > 0 && (
+              {activeProjects.length >
+                0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-0 text-lavender">
 
                   {activeProjects
                     .slice(0, 3)
-                    .map((project) => (
-                      <WorkCard
-                        key={project._id}
-                        video={project}
-                        heightClassName="w-full aspect-video"
-                        onHoverChange={() => {}}
-                      />
-                    ))}
+                    .map(
+                      (project) => (
+                        <WorkCard
+                          key={
+                            project._id
+                          }
+                          video={
+                            project
+                          }
+                          heightClassName="w-full aspect-video"
+                          onHoverChange={() => {}}
+                        />
+                      )
+                    )}
 
                 </div>
               )}
 
               {/* FOURTH PROJECT */}
 
-              {activeProjects.length >= 4 && (
+              {activeProjects.length >=
+                4 && (
                 <div className="w-full">
 
                   <WorkCard
-                    video={activeProjects[3]}
+                    video={
+                      activeProjects[3]
+                    }
                     fullBleedVideo
                     heightClassName="w-full"
                     onHoverChange={() => {}}
@@ -1373,24 +1569,30 @@ export default function AllWorksSection() {
 
               {/* PROJECTS 5 + 6 */}
 
-              {activeProjects.length >= 5 && (
+              {activeProjects.length >=
+                5 && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 w-full gap-8 items-start py-2">
 
                   <div className="lg:col-span-5">
 
                     <WorkCard
-                      video={activeProjects[4]}
+                      video={
+                        activeProjects[4]
+                      }
                       heightClassName="w-full aspect-video"
                       onHoverChange={() => {}}
                     />
 
                   </div>
 
-                  {activeProjects.length >= 6 && (
+                  {activeProjects.length >=
+                    6 && (
                     <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-12">
 
                       <WorkCard
-                        video={activeProjects[5]}
+                        video={
+                          activeProjects[5]
+                        }
                         heightClassName="w-full aspect-video"
                         onHoverChange={() => {}}
                       />
@@ -1403,18 +1605,24 @@ export default function AllWorksSection() {
 
               {/* PROJECTS 7 + 8 */}
 
-              {activeProjects.length >= 7 && (
+              {activeProjects.length >=
+                7 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 text-lavender md:pt-30">
 
                   <WorkCard
-                    video={activeProjects[6]}
+                    video={
+                      activeProjects[6]
+                    }
                     heightClassName="w-full aspect-video"
                     onHoverChange={() => {}}
                   />
 
-                  {activeProjects.length >= 8 && (
+                  {activeProjects.length >=
+                    8 && (
                     <WorkCard
-                      video={activeProjects[7]}
+                      video={
+                        activeProjects[7]
+                      }
                       heightClassName="w-full aspect-video"
                       onHoverChange={() => {}}
                     />
@@ -1425,64 +1633,86 @@ export default function AllWorksSection() {
 
               {/* PROJECTS 9 - 11 */}
 
-              {activeProjects.length >= 9 && (
+              {activeProjects.length >=
+                9 && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-2 text-lavender md:pt-30">
 
                   {activeProjects
                     .slice(8, 11)
-                    .map((project) => (
-                      <WorkCard
-                        key={project._id}
-                        video={project}
-                        heightClassName="w-full aspect-video"
-                        onHoverChange={() => {}}
-                      />
-                    ))}
+                    .map(
+                      (project) => (
+                        <WorkCard
+                          key={
+                            project._id
+                          }
+                          video={
+                            project
+                          }
+                          heightClassName="w-full aspect-video"
+                          onHoverChange={() => {}}
+                        />
+                      )
+                    )}
 
                 </div>
               )}
 
               {/* PROJECTS 12 + 13 */}
 
-              {activeProjects.length >= 12 && (
+              {activeProjects.length >=
+                12 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 md:gap-3 text-lavender md:pt-30">
 
                   {activeProjects
                     .slice(11, 13)
-                    .map((project) => (
-                      <WorkCard
-                        key={project._id}
-                        video={project}
-                        heightClassName="w-full aspect-video"
-                        onHoverChange={() => {}}
-                      />
-                    ))}
+                    .map(
+                      (project) => (
+                        <WorkCard
+                          key={
+                            project._id
+                          }
+                          video={
+                            project
+                          }
+                          heightClassName="w-full aspect-video"
+                          onHoverChange={() => {}}
+                        />
+                      )
+                    )}
 
                 </div>
               )}
 
               {/* ANY PROJECTS AFTER 13 */}
 
-              {activeProjects.length > 13 && (
+              {activeProjects.length >
+                13 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
 
                   {activeProjects
                     .slice(13)
-                    .map((project) => (
-                      <WorkCard
-                        key={project._id}
-                        video={project}
-                        heightClassName="w-full aspect-video"
-                        onHoverChange={() => {}}
-                      />
-                    ))}
+                    .map(
+                      (project) => (
+                        <WorkCard
+                          key={
+                            project._id
+                          }
+                          video={
+                            project
+                          }
+                          heightClassName="w-full aspect-video"
+                          onHoverChange={() => {}}
+                        />
+                      )
+                    )}
 
                 </div>
               )}
 
               {/* EMPTY STATE */}
 
-              {activeProjects.length === 0 && (
+              {activeProjects.length ===
+                0 && (
                 <div className="flex items-center justify-center py-32">
 
                   <span className="font-geist-mono text-xs text-zinc-600 uppercase tracking-widest">
@@ -1499,7 +1729,9 @@ export default function AllWorksSection() {
                 <div className="flex justify-center pt-12">
 
                   <button
-                    onClick={handleLoadMore}
+                    onClick={
+                      handleLoadMore
+                    }
                     className="font-geist-mono text-xs tracking-widest uppercase border border-zinc-700 text-ghost-white hover:bg-ghost-white hover:text-carbon-black px-6 py-3 rounded-full transition-colors duration-300"
                   >
                     LOAD MORE
@@ -1515,7 +1747,9 @@ export default function AllWorksSection() {
             /* LIST VIEW */
 
             <div
-              ref={listContainerRef}
+              ref={
+                listContainerRef
+              }
               className="relative w-full pt-8 pb-8"
             >
 
@@ -1540,8 +1774,12 @@ export default function AllWorksSection() {
                 {activeProjects.map(
                   (project) => (
                     <ListItemRow
-                      key={project._id}
-                      project={project}
+                      key={
+                        project._id
+                      }
+                      project={
+                        project
+                      }
                       onHoverStart={
                         setHoveredProject
                       }
@@ -1556,7 +1794,8 @@ export default function AllWorksSection() {
 
               </div>
 
-              {activeProjects.length === 0 && (
+              {activeProjects.length ===
+                0 && (
                 <div className="flex items-center justify-center py-32">
 
                   <span className="font-geist-mono text-xs text-zinc-600 uppercase tracking-widest">
@@ -1571,7 +1810,9 @@ export default function AllWorksSection() {
                 <div className="flex justify-center pt-12">
 
                   <button
-                    onClick={handleLoadMore}
+                    onClick={
+                      handleLoadMore
+                    }
                     className="font-geist-mono text-xs tracking-widest uppercase border border-zinc-700 text-ghost-white hover:bg-ghost-white hover:text-carbon-black px-6 py-3 rounded-full transition-colors duration-300"
                   >
                     LOAD MORE
@@ -1581,7 +1822,6 @@ export default function AllWorksSection() {
               )}
 
             </div>
-
           )}
 
         </div>

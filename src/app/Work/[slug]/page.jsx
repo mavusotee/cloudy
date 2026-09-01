@@ -12,14 +12,18 @@ import Link from "next/link";
 import Navigation from "@/components/UI/Navigation";
 import HeroCanvas from "@/components/react-three/HeroCanvas";
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
+
 import { useParams } from "next/navigation";
+
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
+
 import { client } from "@/lib/client";
 import TransitionLink from "@/components/PageTransitions/TransitionLink";
+
 import { useLayoutEffect } from "react";
 
 if (typeof window !== "undefined") {
@@ -49,6 +53,27 @@ const getMediaUrl = (media) => {
 };
 
 // =========================================================
+// SANITY IMAGE OPTIMIZATION
+// =========================================================
+
+const getOptimizedSanityImageUrl = (
+  src,
+  width = 2000,
+  quality = 80
+) => {
+  if (!src) return null;
+
+  // Only apply Sanity image transformations to Sanity CDN assets.
+  if (!src.includes("cdn.sanity.io")) {
+    return src;
+  }
+
+  const separator = src.includes("?") ? "&" : "?";
+
+  return `${src}${separator}auto=format&fit=max&w=${width}&q=${quality}`;
+};
+
+// =========================================================
 // SANITY QUERY
 // =========================================================
 
@@ -63,14 +88,18 @@ const PROJECT_QUERY = `
     overview,
     date,
     services,
+
     heroVideos[]{
       _key,
       "src": asset->url
     },
+
     gallery[]{
       _key,
       "src": asset->url,
-      "mimeType": asset->mimeType
+      "mimeType": asset->mimeType,
+      "width": asset->metadata.dimensions.width,
+      "height": asset->metadata.dimensions.height
     }
   }
 `;
@@ -97,7 +126,9 @@ const ALL_PROJECTS_QUERY = `
 // =========================================================
 
 const useIsomorphicLayoutEffect =
-  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+  typeof window !== "undefined"
+    ? useLayoutEffect
+    : useEffect;
 
 function ExtrudedTextReveal({
   text,
@@ -113,18 +144,20 @@ function ExtrudedTextReveal({
     const ctx = gsap.context(() => {
       const split = new SplitText(textRef.current, {
         type: "lines,words,chars",
+
         linesClass:
           "sky-line relative block overflow-hidden py-[0.05em]",
+
         wordsClass:
           "sky-word relative inline-block whitespace-nowrap",
+
         charsClass:
           "sky-char relative inline-block will-change-[transform,opacity,filter] transform-gpu",
       });
 
-      // Reveal the parent h1 (it starts hidden via inline style to
-      // prevent a pre-split flash), then hide the individual chars
-      // so the reveal animation controls visibility from here on.
-      gsap.set(textRef.current, { opacity: 1 });
+      gsap.set(textRef.current, {
+        opacity: 1,
+      });
 
       gsap.set(split.chars, {
         opacity: 0,
@@ -165,10 +198,101 @@ function ExtrudedTextReveal({
       ref={containerRef}
       className={`w-[99.6%] ${className}`}
     >
-      <h1 ref={textRef} className="m-0" style={{ opacity: 0 }}>
+      <h1
+        ref={textRef}
+        className="m-0"
+        style={{ opacity: 0 }}
+      >
         {text}
       </h1>
     </div>
+  );
+}
+
+// =========================================================
+// LAZY GALLERY VIDEO
+// =========================================================
+
+function LazyGalleryVideo({ src }) {
+  const videoRef = useRef(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video) return;
+
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+
+        if (!entry) return;
+
+        if (entry.isIntersecting) {
+          setShouldLoad(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: "600px 0px",
+      }
+    );
+
+    observer.observe(video);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video || !shouldLoad) return;
+
+    const playVideo = async () => {
+      try {
+        await video.play();
+      } catch {
+        // Autoplay can be blocked by the browser.
+      }
+    };
+
+    playVideo();
+  }, [shouldLoad]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={shouldLoad ? src : undefined}
+      autoPlay={shouldLoad}
+      muted
+      loop
+      playsInline
+      preload="none"
+      className="
+        block
+        w-full
+        h-auto
+        object-cover
+        brightness-90
+        hover:brightness-100
+        transition-all
+        duration-500
+        ease-out
+      "
+      onError={() =>
+        console.error(
+          "Failed to load gallery video:",
+          src
+        )
+      }
+    />
   );
 }
 
@@ -340,26 +464,30 @@ export default function CloudhausWorkDetail() {
       : null;
 
   // =======================================================
-  // PRELOAD ACTIVE HERO VIDEO
+  // HERO VIDEO PRELOAD
+  //
+  // Only preload the FIRST hero video.
+  //
+  // We intentionally do NOT create a new preload request
+  // every time the active video changes.
   // =======================================================
 
+  const heroPreloadedRef = useRef(false);
+
   useEffect(() => {
-    if (!activeSrc) return;
-
-    const existing = document.querySelector(
-      `link[data-video-preload="${activeSrc}"]`
-    );
-
-    if (existing) return;
+    if (!activeSrc || heroPreloadedRef.current) {
+      return;
+    }
 
     const link = document.createElement("link");
 
     link.rel = "preload";
     link.as = "video";
     link.href = activeSrc;
-    link.dataset.videoPreload = activeSrc;
 
     document.head.appendChild(link);
+
+    heroPreloadedRef.current = true;
 
     return () => {
       link.remove();
@@ -375,6 +503,8 @@ export default function CloudhausWorkDetail() {
     setNextVideoIndex(null);
     setIsTransitioning(false);
     setIsPlayerOpen(false);
+
+    heroPreloadedRef.current = false;
   }, [project]);
 
   // =======================================================
@@ -485,12 +615,13 @@ export default function CloudhausWorkDetail() {
       );
 
       gsap.ticker.remove(raf);
+
       lenis.destroy();
     };
   }, []);
 
   // =======================================================
-  // HERO DIMMING WHILE SCROLLING THROUGH PROJECT INFO
+  // HERO DIMMING WHILE SCROLLING
   // =======================================================
 
   useGSAP(
@@ -564,6 +695,7 @@ export default function CloudhausWorkDetail() {
     ? project.gallery
         .map((item) => ({
           ...item,
+
           src: getMediaUrl(item),
         }))
         .filter((item) => item.src)
@@ -655,6 +787,7 @@ export default function CloudhausWorkDetail() {
       ================================================= */}
 
       <section className="relative w-full bg-black">
+
         {/* =================================================
             STICKY HERO BACKGROUND
         ================================================= */}
@@ -675,6 +808,7 @@ export default function CloudhausWorkDetail() {
               overflow-hidden
             "
           >
+
             {/* HERO CANVAS */}
 
             {activeSrc && (
@@ -720,6 +854,7 @@ export default function CloudhausWorkDetail() {
         ================================================= */}
 
         <div className="relative z-10">
+
           {/* =================================================
               HERO INTRO
           ================================================= */}
@@ -748,9 +883,8 @@ export default function CloudhausWorkDetail() {
                 md:gap-0
               "
             >
-              {/* =================================================
-                  PROJECT TITLE
-              ================================================= */}
+
+              {/* PROJECT TITLE */}
 
               <div
                 className="
@@ -761,7 +895,6 @@ export default function CloudhausWorkDetail() {
                   tracking-tighter
                   order-1
                   md:order-none
-
                   translate-y-6
                   md:translate-y-0
                 "
@@ -769,7 +902,7 @@ export default function CloudhausWorkDetail() {
                 <ExtrudedTextReveal
                   text={project.title || ""}
                   className="
-                    text-[clamp(4.5rem,12vw,7rem)]
+                    text-[clamp(3.5rem,6vw,6rem)]
                     md:text-9xl
                     text-ghost-white
                     tracking-tight
@@ -799,9 +932,7 @@ export default function CloudhausWorkDetail() {
                 )}
               </div>
 
-              {/* =================================================
-                  MEDIA BY CLOUDHAUS
-              ================================================= */}
+              {/* MEDIA BY CLOUDHAUS */}
 
               <div
                 className="
@@ -837,9 +968,7 @@ export default function CloudhausWorkDetail() {
                 />
               </div>
 
-              {/* =================================================
-                  CONTROLS
-              ================================================= */}
+              {/* CONTROLS */}
 
               <div
                 className="
@@ -853,6 +982,7 @@ export default function CloudhausWorkDetail() {
                   md:order-none
                 "
               >
+
                 {/* WATCH VIDEO */}
 
                 {activeSrc && (
@@ -939,6 +1069,7 @@ export default function CloudhausWorkDetail() {
                     text-center
                     transition-opacity
                     duration-300
+
                     ${
                       isTransitioning ||
                       totalVideos <= 1
@@ -984,9 +1115,8 @@ export default function CloudhausWorkDetail() {
                 font-geist-mono
               "
             >
-              {/* =================================================
-                  PROJECT OVERVIEW
-              ================================================= */}
+
+              {/* PROJECT OVERVIEW */}
 
               <div
                 className="
@@ -1020,9 +1150,7 @@ export default function CloudhausWorkDetail() {
                 </p>
               </div>
 
-              {/* =================================================
-                  WHAT WE DID
-              ================================================= */}
+              {/* WHAT WE DID */}
 
               <div
                 className="
@@ -1072,9 +1200,7 @@ export default function CloudhausWorkDetail() {
                 )}
               </div>
 
-              {/* =================================================
-                  CLIENT + DATE
-              ================================================= */}
+              {/* CLIENT + DATE */}
 
               <div
                 className="
@@ -1086,6 +1212,7 @@ export default function CloudhausWorkDetail() {
                   md:contents
                 "
               >
+
                 {/* CLIENT */}
 
                 <div
@@ -1180,88 +1307,86 @@ export default function CloudhausWorkDetail() {
               md:gap-6
             "
           >
-            {gallery.map(
-              (item, index) => {
-                const src = item.src;
+            {gallery.map((item, index) => {
+              const src = item.src;
 
-                const isVideo =
-                  item.mimeType?.startsWith(
-                    "video/"
-                  );
-
-                return (
-                  <div
-                    key={
-                      item._key ||
-                      `gallery-${index}`
-                    }
-                    className="
-                      relative
-                      w-full
-                      overflow-hidden
-                      bg-zinc-950
-                    "
-                  >
-                    {isVideo ? (
-                      <video
-                        src={src}
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        preload="none"
-                        className="
-                          block
-                          w-full
-                          h-auto
-                          object-cover
-                          brightness-90
-                          hover:brightness-100
-                          transition-all
-                          duration-500
-                          ease-out
-                        "
-                        onError={() =>
-                          console.error(
-                            "Failed to load gallery video:",
-                            src
-                          )
-                        }
-                      />
-                    ) : (
-                      <Image
-                        src={src}
-                        alt={`${project.title || "Project"} media ${
-                          index + 1
-                        }`}
-                        width={2000}
-                        height={1400}
-                        priority={index < 2}
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        quality={100}
-                        className="
-                          block
-                          w-full
-                          h-auto
-                          object-cover
-                          brightness-90
-                          hover:brightness-100
-                          transition-all
-                          duration-500
-                          ease-out
-                        "
-                        onError={() =>
-                          console.error(
-                            "Failed to load gallery image:",
-                            src
-                          )
-                        }
-                      />
-                    )}
-                  </div>
+              const isVideo =
+                item.mimeType?.startsWith(
+                  "video/"
                 );
-              }
-            )}
+
+              // Use the actual Sanity dimensions when
+              // available so the browser can calculate
+              // the correct aspect ratio immediately.
+              const imageWidth =
+                item.width || 2000;
+
+              const imageHeight =
+                item.height || 1400;
+
+              const optimizedImageSrc =
+                getOptimizedSanityImageUrl(
+                  src,
+                  1800,
+                  80
+                );
+
+              return (
+                <div
+                  key={
+                    item._key ||
+                    `gallery-${index}`
+                  }
+                  className="
+                    relative
+                    w-full
+                    overflow-hidden
+                    bg-zinc-950
+                  "
+                >
+                  {isVideo ? (
+                    <LazyGalleryVideo
+                      src={src}
+                    />
+                  ) : (
+                    <Image
+                      src={
+                        optimizedImageSrc ||
+                        src
+                      }
+                      alt={`${project.title || "Project"} media ${
+                        index + 1
+                      }`}
+                      width={imageWidth}
+                      height={imageHeight}
+                      loading="lazy"
+                      sizes="
+                        (max-width: 768px) 100vw,
+                        50vw
+                      "
+                      quality={75}
+                      className="
+                        block
+                        w-full
+                        h-auto
+                        object-cover
+                        brightness-90
+                        hover:brightness-100
+                        transition-all
+                        duration-500
+                        ease-out
+                      "
+                      onError={() =>
+                        console.error(
+                          "Failed to load gallery image:",
+                          src
+                        )
+                      }
+                    />
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div
@@ -1354,16 +1479,6 @@ export default function CloudhausWorkDetail() {
               </span>
             </div>
 
-            {/* =================================================
-                NEXT PROJECT TITLE
-
-                Mobile only:
-                translate-y-6 = 24px downward
-
-                Desktop:
-                translate-y-0 = original position
-            ================================================= */}
-
             <div className="overflow-hidden">
               <h2
                 className="
@@ -1375,8 +1490,6 @@ export default function CloudhausWorkDetail() {
                   text-white
                   transition-transform
                   duration-700
-
-                  
                   md:translate-y-0
                 "
               >
