@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, {
@@ -32,6 +33,9 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ----------------------------------------------------------------------
 // SANITY WORKS QUERY
+//
+// We are intentionally showcasing CMS works 5–9.
+// This does NOT affect the total counter.
 // ----------------------------------------------------------------------
 
 const SELECTED_WORKS_QUERY = `
@@ -40,7 +44,7 @@ const SELECTED_WORKS_QUERY = `
     defined(slug.current)
   ]
   | order(_createdAt asc)
-  [0...5]
+  [4...9]
   {
     _id,
     client,
@@ -53,6 +57,22 @@ const SELECTED_WORKS_QUERY = `
       "src": asset->url
     }
   }
+`;
+
+// ----------------------------------------------------------------------
+// TOTAL WORKS COUNT QUERY
+//
+// This counts ALL case studies in the CMS.
+// It is completely independent from the 5 projects shown above.
+// ----------------------------------------------------------------------
+
+const TOTAL_WORKS_COUNT_QUERY = `
+  count(
+    *[
+      _type == "caseStudy" &&
+      defined(slug.current)
+    ]
+  )
 `;
 
 // ----------------------------------------------------------------------
@@ -768,23 +788,31 @@ export default function Page() {
   ] = useState([]);
 
   const [
+    totalWorks,
+    setTotalWorks,
+  ] = useState(0);
+
+  const [
     isLoadingWorks,
     setIsLoadingWorks,
   ] = useState(true);
 
   // --------------------------------------------------------------------
-  // FETCH SELECTED WORKS FROM SANITY
+  // FETCH SELECTED WORKS + TOTAL WORK COUNT
   // --------------------------------------------------------------------
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchSelectedWorks() {
+    async function fetchWorks() {
       try {
         setIsLoadingWorks(true);
 
-        const data =
-          await client.fetch(
+        const [
+          selectedData,
+          totalCount,
+        ] = await Promise.all([
+          client.fetch(
             SELECTED_WORKS_QUERY,
             {},
             {
@@ -792,15 +820,30 @@ export default function Page() {
                 revalidate: 60,
               },
             }
-          );
+          ),
+
+          client.fetch(
+            TOTAL_WORKS_COUNT_QUERY,
+            {},
+            {
+              next: {
+                revalidate: 60,
+              },
+            }
+          ),
+        ]);
 
         if (cancelled) {
           return;
         }
 
+        // --------------------------------------------------------------
+        // NORMALIZE ONLY THE 5 SHOWCASED PROJECTS
+        // --------------------------------------------------------------
+
         const normalized =
-          Array.isArray(data)
-            ? data
+          Array.isArray(selectedData)
+            ? selectedData
                 .map(
                   (
                     project,
@@ -817,14 +860,26 @@ export default function Page() {
         setSelectedWorks(
           normalized
         );
+
+        // --------------------------------------------------------------
+        // TOTAL CMS PROJECT COUNT
+        // --------------------------------------------------------------
+
+        setTotalWorks(
+          typeof totalCount ===
+            "number"
+            ? totalCount
+            : 0
+        );
       } catch (error) {
         console.error(
-          "Failed to fetch selected works from Sanity:",
+          "Failed to fetch works from Sanity:",
           error
         );
 
         if (!cancelled) {
           setSelectedWorks([]);
+          setTotalWorks(0);
         }
       } finally {
         if (!cancelled) {
@@ -833,7 +888,7 @@ export default function Page() {
       }
     }
 
-    fetchSelectedWorks();
+    fetchWorks();
 
     return () => {
       cancelled = true;
@@ -1012,23 +1067,23 @@ export default function Page() {
         <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-12 lg:gap-8">
 
           <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1vw,0.775rem)] w-[43%] md:w-[15%]">
-           IT ALL STARTS WITH AN IDEA.
+            IT ALL STARTS WITH AN IDEA.
           </h1>
 
           <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full md:w-[50%] md:translate-x-[clamp(0rem,8vw,2rem)] lg:translate-x-[clamp(0rem,10vw,0.5rem)] font-medium">
 
-  <SmudgyTextReveal
-    text="The work is already high-end. The story should rise to it. We uncover the thinking, craft and details that make it worth seeing."
-  />
+            <SmudgyTextReveal
+              text="The work is already high-end. The story should rise to it. We uncover the thinking, craft and details that make it worth seeing."
+            />
 
-  <BlurFlicker>
-    <Button
-      text="Meet Cloudhaus"
-      href="/About"
-    />
-  </BlurFlicker>
+            <BlurFlicker>
+              <Button
+                text="Meet Cloudhaus"
+                href="/About"
+              />
+            </BlurFlicker>
 
-</div>
+          </div>
 
         </div>
 
@@ -1064,22 +1119,30 @@ export default function Page() {
                 Works
               </h1>
 
+              {/* ------------------------------------------------------
+                  TOTAL CMS PROJECT COUNT
+
+                  This is NOT selectedWorks.length.
+                  It represents every project in Sanity.
+              ------------------------------------------------------ */}
+
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
                 [
-                {selectedWorks.length < 10
-                  ? `0${selectedWorks.length}`
-                  : selectedWorks.length}
+                {totalWorks < 10
+                  ? `0${totalWorks}`
+                  : totalWorks}
                 ]
               </sup>
 
             </div>
 
             <div className="flex flex-col items-start sm:items-end justify-end sm:self-end w-full sm:w-auto">
+
               <BlurFlicker>
-              <Button
-                text="VIEW ALL WORKS"
-                href="/All-Works"
-              />
+                <Button
+                  text="VIEW ALL WORKS"
+                  href="/All-Works"
+                />
               </BlurFlicker>
 
             </div>
@@ -1096,7 +1159,6 @@ export default function Page() {
               <div className="min-h-[17.5rem] lg:min-h-[30rem] flex items-center justify-center">
 
                 <span className="font-geist-mono text-[10px] uppercase tracking-widest text-zinc-700">
-                  Loading Works
                 </span>
 
               </div>
@@ -1104,7 +1166,10 @@ export default function Page() {
 
             {/* ---------------------------------------------------------
                 ROW 1
-                CINEMATIC 16:9
+                SHOWCASED CMS WORK #5 + #6
+
+                selectedWorks[0] = CMS work #5
+                selectedWorks[1] = CMS work #6
             --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
@@ -1139,8 +1204,8 @@ export default function Page() {
               )}
 
             {/* ---------------------------------------------------------
-                ROW 2 - FEATURED
-                LEFT EXACTLY AS BEFORE
+                ROW 2
+                SHOWCASED CMS WORK #7
             --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
@@ -1158,7 +1223,7 @@ export default function Page() {
 
             {/* ---------------------------------------------------------
                 ROW 3
-                CINEMATIC 16:9
+                SHOWCASED CMS WORK #8 + #9
             --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
@@ -1236,3 +1301,4 @@ export default function Page() {
     </div>
   );
 }
+

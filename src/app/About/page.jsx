@@ -1,3 +1,4 @@
+
 'use client'
 
 import React, { useEffect, useRef } from 'react'
@@ -70,7 +71,7 @@ function ExtrudedTextReveal({ text }) {
         className="
           text-ghost-white
           w-full
-          text-[clamp(1.25rem,2.8vw,2.5rem)]
+          text-[clamp(1.25rem,2.1vw,2.25rem)]
           tracking-tight
           leading-[130%]
           uppercase
@@ -566,3 +567,4 @@ export default function Page() {
     </div>
   )
 }
+

@@ -248,7 +248,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
             <TransitionLink href="/About">ABOUT</TransitionLink>
           </BlurFlicker>
           <BlurFlicker>
-            <TransitionLink href="/All-Works">WORK</TransitionLink>
+            <TransitionLink href="/All-Works">WORKS</TransitionLink>
           </BlurFlicker>
           <BlurFlicker>
             <TransitionLink href="/Weddings">MORE</TransitionLink>
@@ -328,7 +328,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
               onClick={toggleMobileMenu}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
-              WORK
+              WORKS
             </Link>
           </div>
 

@@ -1,13 +1,17 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Button from "../UI/Button";
 import BlurFlicker from "../Animations/BlurFlicker";
 import SmudgyTextReveal from "../Animations/SmudgyTextReveal";
 import TransitionLink from "../PageTransitions/TransitionLink";
 import Link from "next/link";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 function Footer() {
   const [time, setTime] = useState("");
+  const logoRef = useRef(null);
+  const metaRef = useRef(null);
 
   useEffect(() => {
     const updateTime = () => {
@@ -27,18 +31,74 @@ function Footer() {
     return () => clearInterval(interval);
   }, []);
 
+  useGSAP(() => {
+    /* =====================================================
+       CLOUDHAUS LOGO REVEAL
+       ===================================================== */
+
+    if (logoRef.current) {
+      gsap.fromTo(
+        logoRef.current,
+        {
+          opacity: 0,
+          filter: "blur(18px)",
+          scale: 0.97,
+          y: 12,
+          transformOrigin: "center bottom",
+        },
+        {
+          opacity: 1,
+          filter: "blur(0px)",
+          scale: 1,
+          y: 0,
+          duration: 1.4,
+          ease: "power4.out",
+          delay: 0.15,
+        }
+      );
+    }
+
+    /* =====================================================
+       BOTTOM METADATA STAGGER
+       ===================================================== */
+
+    if (metaRef.current) {
+      const metaItems = metaRef.current.querySelectorAll(
+        "[data-footer-meta]"
+      );
+
+      gsap.fromTo(
+        metaItems,
+        {
+          opacity: 0,
+          filter: "blur(8px)",
+          y: 8,
+        },
+        {
+          opacity: 1,
+          filter: "blur(0px)",
+          y: 0,
+          duration: 0.7,
+          ease: "power3.out",
+          stagger: 0.1,
+          delay: 0.55,
+        }
+      );
+    }
+  }, []);
+
   return (
     <div
       id="footer"
       className="w-full min-h-[100vh] flex flex-col items-start gap-[clamp(7rem,25vh,18rem)] pt-[clamp(8.5rem,9vw,6.5rem)] px-0 bg-black"
     >
       {/* TOP DIV HOUSING ALL THREE COLUMNS */}
-      <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(3rem,4vw,3rem)] md:pt-20 ">
+      <div className="flex flex-col lg:flex-row justify-between w-full gap-[clamp(3rem,4vw,3rem)] md:pt-20">
         {/* 1. LEFT BLOCK */}
         <div className="flex flex-col items-start justify-start space-y-[clamp(1.5rem,3vw,2rem)]">
           <div className="flex flex-col space-y-[clamp(1.2rem,2vw,1.3rem)]">
             <SmudgyTextReveal
-              className="w-full max-w-[clamp(35rem,50vw,40.9125rem)] tracking-tight text-[clamp(1.75rem,3.0vw,1.2375rem)] font-sans font-medium text-ghost-white leading-[100%] uppercase"
+              className="w-full max-w-[clamp(35rem,50vw,40.9125rem)] tracking-tight text-[clamp(1.5rem,2.4vw,3rem)] font-sans font-medium text-ghost-white leading-[100%] uppercase"
               text="BUILT SOMETHING WORTH LOOKING UP TO? Let’s give it a story that
               rises to the occasion."
             />
@@ -58,41 +118,58 @@ function Footer() {
         <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)] font-regular">
           {/* NAVIGATION LINKS */}
           <div className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full">
-            <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
+            <div className="font-mono tracking-tight text-[clamp(0.625rem,0.6vw,0.65rem)] flex items-center gap-2 text-ghost-white">
               <div className="w-2 h-2 bg-ghost-white" />
               <span className="text-zinc-600 text-[clamp(0.65rem,1.1vw,1rem)]">
                 NAVIGATION
               </span>
             </div>
 
-            <div className="flex flex-col font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
-              <TransitionLink
-                href="/About"
-                className="hover:opacity-70 transition-opacity"
-              >
-                ABOUT
-              </TransitionLink>
+            <div className="flex flex-col font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.6vw,1.025rem)] uppercase">
+              <BlurFlicker>
+                <TransitionLink
+                  href="/#top"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  HOME
+                </TransitionLink>
+              </BlurFlicker>
 
-              <a
-                href="#services"
-                className="hover:opacity-70 transition-opacity"
-              >
-                SERVICES
-              </a>
+              <BlurFlicker>
+                <TransitionLink
+                  href="/About"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  ABOUT
+                </TransitionLink>
+              </BlurFlicker>
 
-              <TransitionLink
-                href="/All-Works"
-                className="hover:opacity-70 transition-opacity"
-              >
-                WORK
-              </TransitionLink>
+              <BlurFlicker>
+                <a
+                  href="#services"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  SERVICES
+                </a>
+              </BlurFlicker>
 
-              <TransitionLink
-                href="/Weddings"
-                className="hover:opacity-70 transition-opacity"
-              >
-                MORE
-              </TransitionLink>
+              <BlurFlicker>
+                <TransitionLink
+                  href="/All-Works"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  WORK
+                </TransitionLink>
+              </BlurFlicker>
+
+              <BlurFlicker>
+                <TransitionLink
+                  href="/Weddings"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  MORE
+                </TransitionLink>
+              </BlurFlicker>
             </div>
           </div>
 
@@ -105,7 +182,7 @@ function Footer() {
               </span>
             </div>
 
-            <div className="flex flex-col space-y-1 md:space-y-0 font-sans font-medium text-ghost-white text-[clamp(0.325rem,3.0vw,1.225rem)] uppercase">
+            <div className="flex flex-col space-y-1 md:space-y-0 font-sans font-medium text-ghost-white text-[clamp(0.325rem,3.0vw,1.025rem)] uppercase">
               <span>0404 104 360</span>
               <span>ADELAIDE, SOUTH AUSTRALIA</span>
               <span>info@cloudhaus.com.au</span>
@@ -140,32 +217,38 @@ function Footer() {
               </div>
 
               <div className="flex flex-col items-start justify-start w-full lg:flex-col space-x-[clamp(1.0rem,1.5vw,0.5rem)] font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
-                <a
-                  href="https://www.instagram.com/itsjmvisuals?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw=="
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-70 transition-opacity"
-                >
-                  INSTAGRAM
-                </a>
+                <BlurFlicker>
+                  <a
+                    href="https://www.instagram.com/itsjmvisuals?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw=="
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-70 transition-opacity"
+                  >
+                    INSTAGRAM
+                  </a>
+                </BlurFlicker>
 
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-70 transition-opacity"
-                >
-                  FACEBOOK
-                </a>
+                <BlurFlicker>
+                  <a
+                    href="https://facebook.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-70 transition-opacity"
+                  >
+                    FACEBOOK
+                  </a>
+                </BlurFlicker>
 
-                <a
-                  href="https://vimeo.com/user135969253"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-70 transition-opacity"
-                >
-                  VIMEO
-                </a>
+                <BlurFlicker>
+                  <a
+                    href="https://vimeo.com/user135969253"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-70 transition-opacity"
+                  >
+                    VIMEO
+                  </a>
+                </BlurFlicker>
               </div>
             </div>
           </div>
@@ -175,7 +258,10 @@ function Footer() {
       {/* BOTTOM SECTION CONTAINER */}
       <div className="w-full mt-auto flex flex-col justify-end pb-0">
         {/* CLOUDHAUS SVG LOGO */}
-        <div className="w-full select-none pointer-events-none flex items-center justify-center -mb-1 md:mb-4">
+        <div
+          ref={logoRef}
+          className="w-full select-none pointer-events-none flex items-center justify-center -mb-1 md:mb-4"
+        >
           <svg
             viewBox="0 0 271 34"
             fill="none"
@@ -188,7 +274,7 @@ function Footer() {
               fill="white"
             />
             <path
-              d="M78.4355 0.000976562C78.4355 4.3678 78.865 8.69189 79.7006 12.7263C80.5362 16.7607 81.7608 20.4265 83.3047 23.5143C84.8486 26.6021 86.6815 29.0515 88.6988 30.7226C90.7156 32.3937 92.8779 33.2538 95.0619 33.2538C97.2449 33.2538 99.4067 32.3937 101.424 30.7226C103.441 29.0515 105.274 26.6021 106.818 23.5143C108.362 20.4265 109.587 16.7607 110.423 12.7263C111.258 8.69189 111.688 4.3678 111.688 0.000976562H78.4355Z"
+              d="M78.4355 0.000976562C78.4355 4.3678 78.865 8.69189 79.7006 12.7263C80.5362 16.7607 81.7608 20.4265 83.3047 23.5143C84.8486 26.6021 86.6815 29.0515 88.6988 30.7226C90.7156 32.3937 92.8779 33.2538 95.0619 33.2538C97.2449 33.2538 99.406 32.3937 101.424 30.7226C103.441 29.0515 105.274 26.6021 106.818 23.5143C108.362 20.4265 109.587 16.7607 110.423 12.7263C111.258 8.69189 111.688 4.3678 111.688 0.000976562H78.4355Z"
               fill="white"
             />
             <path
@@ -230,7 +316,7 @@ function Footer() {
             <path
               fillRule="evenodd"
               clipRule="evenodd"
-              d="M172.142 0.384868V32.8683C172.142 33.0805 171.932 33.2532 171.674 33.2532H158.763C158.505 33.2532 158.295 33.0805 158.295 32.8683V0.384868C158.295 0.172428 158.505 0 158.763 0H171.674C171.932 0 172.142 0.172428 172.142 0.384868Z"
+              d="M172.142 0.384868V32.8683C172.142 33.0805 171.932 33.2532 171.674 33.2532H158.763C158.505 33.2532 158.295 33.0805 158.295 32.8683V0.384868Z"
               fill="white"
             />
             <path
@@ -241,34 +327,43 @@ function Footer() {
         </div>
 
         {/* BOTTOM CONTENT */}
-        <div className="flex flex-col-reverse md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.3rem,2.5vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-[clamp(0.75rem,2vw,1.25rem)]">
+        <div
+          ref={metaRef}
+          className="flex flex-col-reverse md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.3rem,2.5vw,0.725rem)] uppercase w-full gap-[clamp(0.55rem,0.8vw,1.5rem)] pt-[clamp(0.75rem,2vw,1.25rem)]"
+        >
           <div className="flex flex-row md:contents justify-between w-full md:w-auto">
             <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
-              <span>BASED IN ADELAIDE</span>
-              <span>PRIVACY POLICY</span>
+              <span data-footer-meta>BASED IN ADELAIDE</span>
+              <span data-footer-meta>PRIVACY POLICY</span>
             </div>
 
             <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
-              <span>TERMS & CONDITIONS</span>
+              <span data-footer-meta>TERMS & CONDITIONS</span>
 
-              <a
-                href="https://www.withzane.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold hover:opacity-70 transition-opacity"
-              >
-                WEBSITE BY: ZANE
-              </a>
+              <BlurFlicker>
+                <a
+                  data-footer-meta
+                  href="https://www.withzane.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold hover:opacity-70 transition-opacity"
+                >
+                  WEBSITE BY: ZANE
+                </a>
+              </BlurFlicker>
             </div>
           </div>
 
           <div className="flex flex-row space-x-[clamp(0.5rem,4.5vw,6rem)]">
-            <a
-              href="#top"
-              className="font-bold hover:opacity-70 transition-opacity"
-            >
-              BACK TO HOME
-            </a>
+            <BlurFlicker>
+              <a
+                data-footer-meta
+                href="#top"
+                className="font-bold hover:opacity-70 transition-opacity"
+              >
+                BACK TO HOME
+              </a>
+            </BlurFlicker>
           </div>
         </div>
       </div>

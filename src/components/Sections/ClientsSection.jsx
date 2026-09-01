@@ -1,12 +1,57 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import Image from "next/image";
 import gsap from "gsap";
+
+import KRIVICLogo from "@/Assets/Logo/KRIVIC.svg";
+import MorganBuildLogo from "@/Assets/Logo/MorganBuild.svg";
+import CircaLogo from "@/Assets/Logo/circa-white.svg";
+import Client4Logo from "@/Assets/Logo/TBC.svg";
+import Client5Logo from "@/Assets/Logo/4Life-Constructions.svg";
+import Client6Logo from "@/Assets/Logo/NBEE.svg";
 
 function ClientsSection() {
   const trackRef = useRef(null);
   const blurTweenRef = useRef(null);
   const wheelRAFRef = useRef(null);
+
+  // =========================================================
+  // CLIENT LOGOS
+  // =========================================================
+
+  const clients = [
+  {
+    name: "KRIVIC",
+    src: KRIVICLogo,
+    logoClass: "w-[65%] h-[65%]",
+  },
+  {
+    name: "Morgan Build",
+    src: MorganBuildLogo,
+    logoClass: "w-full h-full",
+  },
+  {
+    name: "Circa",
+    src: CircaLogo,
+    logoClass: "w-[65%] h-[65%]",
+  },
+  {
+    name: "TBC",
+    src: Client4Logo,
+    logoClass: "w-[65%] h-[65%]",
+  },
+  {
+    name: "4Life Constructions",
+    src: Client5Logo,
+    logoClass: "w-[65%] h-[65%]",
+  },
+  {
+    name: "NB",
+    src: Client6Logo,
+    logoClass: "w-full h-full scale-[1.35]",
+  },
+];
 
   useEffect(() => {
     const track = trackRef.current;
@@ -17,8 +62,7 @@ function ClientsSection() {
       const totalWidth = track.scrollWidth / 2;
 
       // =========================================================
-      // INFINITE CAROUSEL
-      // KEEPING THE ORIGINAL MOVEMENT
+      // INFINITE CAROUSEL (Original GSAP Loop structure restored)
       // =========================================================
 
       const loop = gsap.to(items, {
@@ -27,8 +71,18 @@ function ClientsSection() {
         ease: "none",
         repeat: -1,
         modifiers: {
-          x: gsap.utils.unitize((x) => parseFloat(x) % totalWidth),
+          x: gsap.utils.unitize((x) => {
+            const val = parseFloat(x);
+            return ((val % totalWidth) - totalWidth) % totalWidth;
+          }),
         },
+      });
+
+      // Wrap the timeline's progress continuously so playing in reverse never hits 0
+      loop.eventCallback("onUpdate", () => {
+        if (loop.totalProgress() <= 0) {
+          loop.totalProgress(loop.totalProgress() + 1);
+        }
       });
 
       // =========================================================
@@ -51,10 +105,8 @@ function ClientsSection() {
         const speedBoost = Math.min(Math.abs(delta) / 20, 5);
         const targetTimeScale = direction * (1 + speedBoost);
 
-        const blur = Math.min(Math.abs(delta) / 18, 8);
+        const blur = Math.min(Math.abs(delta) / 8, 20);
 
-        // Kill previous recovery animation before creating
-        // another one. This prevents timelines piling up.
         if (blurTweenRef.current) {
           blurTweenRef.current.kill();
           blurTweenRef.current = null;
@@ -101,7 +153,7 @@ function ClientsSection() {
               duration: 0.3,
               ease: "power3.out",
             },
-            "<"
+            "<",
           );
 
         blurTweenRef.current = timeline;
@@ -114,8 +166,6 @@ function ClientsSection() {
       const handleWheel = (event) => {
         latestDelta = event.deltaY;
 
-        // Don't run the expensive animation logic for every
-        // individual wheel event. Process at most once/frame.
         if (wheelRAFRef.current !== null) return;
 
         wheelRAFRef.current = requestAnimationFrame(applyWheelEffect);
@@ -144,7 +194,6 @@ function ClientsSection() {
 
         loop.kill();
 
-        // Kill any remaining GSAP tweens created for this section.
         gsap.killTweensOf(track);
       };
     }, trackRef);
@@ -152,11 +201,48 @@ function ClientsSection() {
     return () => ctx.revert();
   }, []);
 
-  const clientBlocks = Array.from({ length: 6 });
+  // =========================================================
+  // LOGO CARD
+  // =========================================================
+
+  const renderLogo = (client, i, set) => (
+    <div
+      key={`client-${set}-${i}`}
+      className="
+        w-[clamp(16rem,45vw,23rem)]
+        h-[clamp(8rem,20vw,15rem)]
+        shrink-0
+        border
+        border-eclipse
+        bg-black
+        flex
+        items-center
+        justify-center
+        px-8
+        py-6
+      "
+    >
+      <div
+        className={`
+          relative
+          ${client.logoClass}
+        `}
+      >
+        <Image
+          src={client.src}
+          alt={`${client.name} logo`}
+          fill
+          sizes="(max-width: 768px) 45vw, 23rem"
+          className="object-contain brightness-0 invert"
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div className="w-screen relative left-1/2 -translate-x-1/2 bg-black mt-[clamp(3rem,8vw,0.5rem)] overflow-hidden mb-10 md:mb-40">
       {/* HEADER */}
+
       <div className="flex flex-row items-center justify-between w-full text-zinc-300 px-4 md:px-8">
         <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.725rem)] flex items-center gap-[clamp(0.35rem,0.6vw,0.6rem)]">
           <div className="w-[clamp(0.35rem,0.5vw,0.5rem)] h-[clamp(0.35rem,0.5vw,0.5rem)] bg-zinc-300" />
@@ -169,15 +255,19 @@ function ClientsSection() {
       </div>
 
       {/* CONTENT */}
+
       <div className="flex flex-col space-y-[clamp(1.5rem,4vw,4.5rem)] mt-[clamp(1.5rem,3.5vw,1.5rem)] mb-10">
         {/* TITLE */}
+
         <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] font-sans tracking-tight text-ghost-white max-w-[clamp(18rem,80vw,40rem)] leading-tight px-4 md:px-8">
           OUR CURRENT ROSTER:
         </h1>
 
         {/* FULL BLEED HORIZONTAL LOGO TRACK */}
+
         <div className="relative w-full overflow-hidden">
           {/* Edge fade gradient masks */}
+
           <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-carbon-black to-transparent z-10 pointer-events-none" />
 
           <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-carbon-black to-transparent z-10 pointer-events-none" />
@@ -187,20 +277,12 @@ function ClientsSection() {
             className="flex flex-row space-x-[clamp(1rem,2vw,1.5rem)] w-max will-change-transform"
           >
             {/* Original Set */}
-            {clientBlocks.map((_, i) => (
-              <div
-                key={`client-1-${i}`}
-                className="w-[clamp(16rem,45vw,23rem)] h-[clamp(8rem,20vw,15rem)] shrink-0 border border-eclipse bg-black"
-              />
-            ))}
+
+            {clients.map((client, i) => renderLogo(client, i, 1))}
 
             {/* Duplicated Set */}
-            {clientBlocks.map((_, i) => (
-              <div
-                key={`client-2-${i}`}
-                className="w-[clamp(16rem,45vw,25rem)] h-[clamp(8rem,20vw,15rem)] shrink-0 border border-eclipse bg-black"
-              />
-            ))}
+
+            {clients.map((client, i) => renderLogo(client, i, 2))}
           </div>
         </div>
       </div>
