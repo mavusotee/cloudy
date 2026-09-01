@@ -70,40 +70,70 @@ export default function TransitionLink({
       // WAIT FOR THE NEW ROUTE
       // =====================================================
 
-      const checkRoute = () => {
+      const waitForPageReady = () => {
         if (window.location.pathname !== href) {
-          requestAnimationFrame(checkRoute);
+          requestAnimationFrame(waitForPageReady);
           return;
         }
 
-        // Give Next/React time to paint the new page
+        // ===================================================
+        // WAIT FOR REACT/NEXT TO RENDER THE NEW PAGE
+        // ===================================================
+
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             // =================================================
-            // WIPE OUT
+            // WAIT FOR PAGE IMAGES TO FINISH LOADING
             // =================================================
 
-            gsap.to(overlay, {
-              "--wipe": "0%",
-              opacity: 0,
-              duration: 0.75,
-              ease: "power4.inOut",
-              onComplete: () => {
-                gsap.set(overlay, {
-                  "--wipe": "0%",
-                  opacity: 0,
+            const images = Array.from(document.images);
+
+            const imagePromises = images.map((img) => {
+              if (img.complete) {
+                return Promise.resolve();
+              }
+
+              return new Promise((resolve) => {
+                img.addEventListener("load", resolve, {
+                  once: true,
                 });
 
-                isTransitioning.current = false;
+                img.addEventListener("error", resolve, {
+                  once: true,
+                });
+              });
+            });
 
-                ScrollTrigger.refresh();
-              },
+            Promise.all(imagePromises).then(() => {
+              // Give the browser one final frame to paint
+              requestAnimationFrame(() => {
+                // =================================================
+                // WIPE OUT
+                // =================================================
+
+                gsap.to(overlay, {
+                  "--wipe": "0%",
+                  opacity: 0,
+                  duration: 0.75,
+                  ease: "power4.inOut",
+                  onComplete: () => {
+                    gsap.set(overlay, {
+                      "--wipe": "0%",
+                      opacity: 0,
+                    });
+
+                    isTransitioning.current = false;
+
+                    ScrollTrigger.refresh();
+                  },
+                });
+              });
             });
           });
         });
       };
 
-      checkRoute();
+      waitForPageReady();
     });
   };
 

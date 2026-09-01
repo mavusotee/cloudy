@@ -12,7 +12,6 @@ import React, {
 } from "react";
 
 import TransitionLink from "@/components/PageTransitions/TransitionLink";
-import Button from "@/components/UI/Button";
 import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
 import Lenis from "lenis";
 
@@ -232,13 +231,13 @@ const SmallButton = forwardRef(({ isOpen = false }, ref) => {
   return (
     <div
       ref={buttonRef}
-      className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(7.5rem,10vw,8.6875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
+      className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(6.5rem,6vw,7.0875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
         isOpen
-          ? "bg-ghost-white text-carbon-black border-ghost-white hover:bg-zinc-300"
-          : "bg-carbon-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
+          ? "bg-ghost-white text-black border-ghost-white hover:bg-zinc-300"
+          : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
       }`}
     >
-      {isOpen ? "CLOSE" : "CLICK TO VIEW"}
+      {isOpen ? "CLOSE" : "WATCH FILM"}
     </div>
   );
 });
@@ -290,10 +289,6 @@ function WorkCard({
 
   const videoUrl = getVideoUrl(video?.heroVideos?.[0]);
 
-  // --------------------------------------------------
-  // RANDOM VIDEO START
-  // --------------------------------------------------
-
   const handleLoadedMetadata = (e) => {
     const videoEl = e.currentTarget;
 
@@ -307,10 +302,6 @@ function WorkCard({
     }
   };
 
-  // --------------------------------------------------
-  // VIDEO TIME
-  // --------------------------------------------------
-
   const handleTimeUpdate = (e) => {
     const videoEl = e.currentTarget;
 
@@ -318,10 +309,6 @@ function WorkCard({
       setCurrentTime(formatTime(videoEl.currentTime));
     }
   };
-
-  // --------------------------------------------------
-  // HOVER ENTER
-  // --------------------------------------------------
 
   const handleMouseEnter = () => {
     onHoverChange(true);
@@ -352,19 +339,19 @@ function WorkCard({
     buttonRef.current?.triggerBlur?.();
   };
 
-  // --------------------------------------------------
-  // HOVER LEAVE
-  // --------------------------------------------------
-
   const handleMouseLeave = () => {
     onHoverChange(false);
 
     if (!containerRef.current) return;
 
-    const topL = containerRef.current.querySelector(".corner-tl");
-    const topR = containerRef.current.querySelector(".corner-tr");
-    const botL = containerRef.current.querySelector(".corner-bl");
-    const botR = containerRef.current.querySelector(".corner-br");
+    const topL =
+      containerRef.current.querySelector(".corner-tl");
+    const topR =
+      containerRef.current.querySelector(".corner-tr");
+    const botL =
+      containerRef.current.querySelector(".corner-bl");
+    const botR =
+      containerRef.current.querySelector(".corner-br");
 
     gsap.to(topL, {
       opacity: 0,
@@ -420,8 +407,6 @@ function WorkCard({
         containerClassName || ""
       }`}
     >
-      {/* TOP INFO */}
-
       <div className="flex flex-row items-center justify-between w-full px-1 pb-2">
         <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
           {video.date || "—"}
@@ -431,8 +416,6 @@ function WorkCard({
           {currentTime}
         </h2>
       </div>
-
-      {/* VIDEO */}
 
       <div
         ref={containerRef}
@@ -452,7 +435,8 @@ function WorkCard({
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="none"
+            lazy="true"
             onLoadedMetadata={handleLoadedMetadata}
             onTimeUpdate={handleTimeUpdate}
             className="block w-full aspect-video object-cover brightness-90 contrast-105"
@@ -469,15 +453,9 @@ function WorkCard({
           </div>
         )}
 
-        {/* DARK OVERLAY */}
-
         <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-10" />
 
-        {/* NOISE */}
-
         <R3FTVNoise ref={noiseRef} />
-
-        {/* CORNERS */}
 
         <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
           <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t border-l border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
@@ -489,8 +467,6 @@ function WorkCard({
           <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b border-r border-white opacity-0 scale-90 translate-x-3 translate-y-3 mix-blend-difference" />
         </div>
       </div>
-
-      {/* BOTTOM INFO */}
 
       <div className="flex flex-row items-baseline justify-between w-full px-1 pt-2 text-ghost-white">
         <div className="flex flex-col min-w-0">
@@ -578,7 +554,7 @@ function ListItemRow({
 
     gsap.to(subtitleRef.current, {
       x: 0,
-      color: "#a1a1aa",
+      color: "#a1a1a1",
       duration: 0.35,
       ease: "power3.out",
       overwrite: "auto",
@@ -592,28 +568,6 @@ function ListItemRow({
       overwrite: "auto",
     });
   }, [onHoverEnd]);
-
-  useEffect(() => {
-    const mm = gsap.matchMedia();
-
-    mm.add("(max-width: 767px)", () => {
-      const st = ScrollTrigger.create({
-        trigger: rowRef.current,
-        start: "top 50%",
-        end: "bottom 50%",
-
-        onEnter: activateRow,
-        onEnterBack: activateRow,
-
-        onLeave: deactivateRow,
-        onLeaveBack: deactivateRow,
-      });
-
-      return () => st.kill();
-    });
-
-    return () => mm.revert();
-  }, [activateRow, deactivateRow]);
 
   return (
     <div
@@ -635,7 +589,7 @@ function ListItemRow({
 
         <span
           ref={subtitleRef}
-          className="font-geist-mono text-sm sm:text-base md:text-xl lg:text-2xl text-start uppercase tracking-wide text-zinc-400 inline-block truncate pr-4"
+          className="font-sans text-xs sm:text-sm md:text-sm font-light uppercase tracking-wide text-zinc-400 inline-block truncate pr-4"
         >
           {project.title}
         </span>
@@ -652,26 +606,248 @@ function ListItemRow({
 }
 
 // ----------------------------------------------------------------------
-// 5. MAIN WORKS
+// 5. CLIENT FILTER
+// ----------------------------------------------------------------------
+
+function ClientFilter({
+  clientFilters,
+  selectedClient,
+  onClientFilter,
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const filterRef = useRef(null);
+  const optionsRef = useRef(null);
+  const optionItemsRef = useRef([]);
+
+  // --------------------------------------------------
+  // INITIAL STATE
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (!optionsRef.current) return;
+
+    const items = optionItemsRef.current.filter(Boolean);
+
+    gsap.set(optionsRef.current, {
+      width: 0,
+      opacity: 0,
+      overflow: "hidden",
+    });
+
+    gsap.set(items, {
+      opacity: 0,
+      x: -18,
+    });
+  }, [clientFilters]);
+
+  // --------------------------------------------------
+  // OPEN
+  // --------------------------------------------------
+
+  const openFilter = useCallback(() => {
+    if (!clientFilters.length) return;
+
+    setIsOpen(true);
+
+    requestAnimationFrame(() => {
+      if (!optionsRef.current) return;
+
+      const items = optionItemsRef.current.filter(Boolean);
+
+      gsap.killTweensOf([
+        optionsRef.current,
+        ...items,
+      ]);
+
+      gsap.to(optionsRef.current, {
+        width: "auto",
+        opacity: 1,
+        duration: 0.55,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
+
+      gsap.to(items, {
+        opacity: 1,
+        x: 0,
+        duration: 0.5,
+        stagger: 0.055,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
+    });
+  }, [clientFilters]);
+
+  // --------------------------------------------------
+  // CLOSE
+  // --------------------------------------------------
+
+  const closeFilter = useCallback(() => {
+    if (!optionsRef.current) {
+      setIsOpen(false);
+      return;
+    }
+
+    const items = optionItemsRef.current.filter(Boolean);
+
+    gsap.killTweensOf([
+      optionsRef.current,
+      ...items,
+    ]);
+
+    gsap.to(items, {
+      opacity: 0,
+      x: -18,
+      duration: 0.35,
+      stagger: 0.025,
+      ease: "power3.inOut",
+      overwrite: "auto",
+    });
+
+    gsap.to(optionsRef.current, {
+      width: 0,
+      opacity: 0,
+      duration: 0.5,
+      delay: 0.04,
+      ease: "power3.inOut",
+      overwrite: "auto",
+      onComplete: () => {
+        setIsOpen(false);
+      },
+    });
+  }, []);
+
+  // --------------------------------------------------
+  // MOBILE TAP
+  // --------------------------------------------------
+
+  const handleFilterClick = () => {
+    if (window.innerWidth < 640) {
+      if (isOpen) {
+        closeFilter();
+      } else {
+        openFilter();
+      }
+    }
+  };
+
+  // --------------------------------------------------
+  // HOVER
+  // --------------------------------------------------
+
+  const handleMouseEnter = () => {
+    if (window.innerWidth >= 640) {
+      openFilter();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (window.innerWidth >= 640) {
+      closeFilter();
+    }
+  };
+
+  return (
+    <div
+      ref={filterRef}
+      className="relative flex items-center w-fit"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* FILTER LABEL */}
+
+      <button
+        type="button"
+        onClick={handleFilterClick}
+        className="font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase text-zinc-500 hover:text-white transition-colors duration-300 cursor-pointer whitespace-nowrap"
+      >
+        FILTER
+      </button>
+
+      {/* OPTIONS */}
+
+      <div
+        ref={optionsRef}
+        className="flex items-center overflow-hidden whitespace-nowrap"
+        style={{
+          gap: "0.75rem",
+          marginLeft: "0.75rem",
+        }}
+      >
+        <button
+          ref={(el) => {
+            optionItemsRef.current[0] = el;
+          }}
+          onClick={() => onClientFilter("ALL")}
+          className={`font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase transition-colors duration-300 cursor-pointer ${
+            selectedClient === "ALL"
+              ? "text-white font-bold"
+              : "text-zinc-600 hover:text-zinc-300"
+          }`}
+        >
+          ALL
+        </button>
+
+        {clientFilters.map((clientName, index) => (
+          <React.Fragment key={clientName}>
+            <span
+              ref={(el) => {
+                optionItemsRef.current[index * 2 + 1] = el;
+              }}
+              className="text-zinc-800 font-geist-mono text-[0.65rem] md:text-xs"
+            >
+              /
+            </span>
+
+            <button
+              ref={(el) => {
+                optionItemsRef.current[index * 2 + 2] = el;
+              }}
+              onClick={() =>
+                onClientFilter(clientName)
+              }
+              className={`font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase transition-colors duration-300 cursor-pointer ${
+                selectedClient === clientName
+                  ? "text-white font-bold"
+                  : "text-zinc-600 hover:text-zinc-300"
+              }`}
+            >
+              {clientName}
+            </button>
+          </React.Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ----------------------------------------------------------------------
+// 6. MAIN WORKS
 // ----------------------------------------------------------------------
 
 export default function AllWorksSection() {
   const containerRef = useRef(null);
-  const listPreviewRef = useRef(null);
   const listContainerRef = useRef(null);
   const bgVideoRef = useRef(null);
 
   const [viewMode, setViewMode] = useState("grid");
 
-  const [visibleCount, setVisibleCount] = useState(13);
+  const [visibleCount, setVisibleCount] =
+    useState(13);
 
   const [projects, setProjects] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const [hoveredProject, setHoveredProject] = useState(null);
+  const [hoveredProject, setHoveredProject] =
+    useState(null);
 
-  const [displayProject, setDisplayProject] = useState(null);
+  const [displayProject, setDisplayProject] =
+    useState(null);
+
+  const [selectedClient, setSelectedClient] =
+    useState("ALL");
 
   // --------------------------------------------------
   // FETCH PROJECTS
@@ -697,7 +873,9 @@ export default function AllWorksSection() {
         console.log("SANITY WORKS:", data);
 
         if (!cancelled) {
-          setProjects(Array.isArray(data) ? data : []);
+          setProjects(
+            Array.isArray(data) ? data : []
+          );
         }
       } catch (error) {
         console.error(
@@ -723,12 +901,69 @@ export default function AllWorksSection() {
   }, []);
 
   // --------------------------------------------------
+  // CLIENT FILTERS
+  // --------------------------------------------------
+
+  const clientFilters = useMemo(() => {
+    const clientCounts = {};
+
+    projects.forEach((project) => {
+      const clientName = project.client?.trim();
+
+      if (!clientName) return;
+
+      const normalizedName =
+        clientName.toLowerCase();
+
+      if (!clientCounts[normalizedName]) {
+        clientCounts[normalizedName] = {
+          name: clientName,
+          count: 0,
+        };
+      }
+
+      clientCounts[normalizedName].count += 1;
+    });
+
+    return Object.values(clientCounts)
+      .filter((client) => client.count >= 2)
+      .map((client) => client.name);
+  }, [projects]);
+
+  // --------------------------------------------------
+  // FILTERED PROJECTS
+  // --------------------------------------------------
+
+  const filteredProjects = useMemo(() => {
+    if (selectedClient === "ALL") {
+      return projects;
+    }
+
+    return projects.filter(
+      (project) =>
+        project.client?.trim().toLowerCase() ===
+        selectedClient.trim().toLowerCase()
+    );
+  }, [projects, selectedClient]);
+
+  // --------------------------------------------------
   // VISIBLE PROJECTS
   // --------------------------------------------------
 
   const activeProjects = useMemo(() => {
-    return projects.slice(0, visibleCount);
-  }, [projects, visibleCount]);
+    return filteredProjects.slice(
+      0,
+      visibleCount
+    );
+  }, [filteredProjects, visibleCount]);
+
+  // --------------------------------------------------
+  // RESET VISIBLE COUNT
+  // --------------------------------------------------
+
+  useEffect(() => {
+    setVisibleCount(13);
+  }, [selectedClient]);
 
   // --------------------------------------------------
   // VIEW TOGGLE
@@ -761,12 +996,45 @@ export default function AllWorksSection() {
   };
 
   // --------------------------------------------------
+  // CLIENT FILTER
+  // --------------------------------------------------
+
+  const handleClientFilter = (clientName) => {
+    if (clientName === selectedClient) return;
+
+    if (containerRef.current) {
+      gsap.to(containerRef.current, {
+        opacity: 0,
+        y: 10,
+        duration: 0.25,
+        ease: "power2.in",
+
+        onComplete: () => {
+          setSelectedClient(clientName);
+
+          gsap.to(containerRef.current, {
+            opacity: 1,
+            y: 0,
+            duration: 0.35,
+            ease: "power2.out",
+          });
+        },
+      });
+    } else {
+      setSelectedClient(clientName);
+    }
+  };
+
+  // --------------------------------------------------
   // LOAD MORE
   // --------------------------------------------------
 
   const handleLoadMore = () => {
     setVisibleCount((prev) =>
-      Math.min(prev + 5, projects.length)
+      Math.min(
+        prev + 5,
+        filteredProjects.length
+      )
     );
   };
 
@@ -780,7 +1048,12 @@ export default function AllWorksSection() {
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [viewMode, visibleCount, activeProjects]);
+  }, [
+    viewMode,
+    visibleCount,
+    activeProjects,
+    selectedClient,
+  ]);
 
   // --------------------------------------------------
   // HOVERED PROJECT
@@ -797,8 +1070,12 @@ export default function AllWorksSection() {
   // --------------------------------------------------
 
   useEffect(() => {
-    if (hoveredProject && bgVideoRef.current) {
-      const playPromise = bgVideoRef.current.play();
+    if (
+      hoveredProject &&
+      bgVideoRef.current
+    ) {
+      const playPromise =
+        bgVideoRef.current.play();
 
       if (playPromise !== undefined) {
         playPromise.catch(() => {});
@@ -824,6 +1101,11 @@ export default function AllWorksSection() {
           ".list-item-row"
         );
 
+      gsap.set(listItems, {
+        opacity: 0,
+        y: 40,
+      });
+
       gsap.fromTo(
         listItems,
         {
@@ -840,36 +1122,19 @@ export default function AllWorksSection() {
           scrollTrigger: {
             trigger: listContainerRef.current,
             start: "top 85%",
-            toggleActions: "play none none reset",
+            toggleActions:
+              "play none none reset",
           },
         }
       );
     }, listContainerRef);
 
     return () => ctx.revert();
-  }, [viewMode, activeProjects]);
-
-  // --------------------------------------------------
-  // PREVIEW TAG
-  // --------------------------------------------------
-
-  useEffect(() => {
-    const preview = listPreviewRef.current;
-
-    if (!preview) return;
-
-    gsap.to(preview, {
-      scale: hoveredProject ? 1 : 0.85,
-
-      opacity: hoveredProject ? 1 : 0,
-
-      duration: hoveredProject ? 0.35 : 0.25,
-
-      ease: hoveredProject
-        ? "power3.out"
-        : "power3.in",
-    });
-  }, [hoveredProject]);
+  }, [
+    viewMode,
+    activeProjects,
+    selectedClient,
+  ]);
 
   // --------------------------------------------------
   // LENIS
@@ -895,10 +1160,12 @@ export default function AllWorksSection() {
     function raf(time) {
       lenis.raf(time);
 
-      frameId = requestAnimationFrame(raf);
+      frameId =
+        requestAnimationFrame(raf);
     }
 
-    frameId = requestAnimationFrame(raf);
+    frameId =
+      requestAnimationFrame(raf);
 
     return () => {
       cancelAnimationFrame(frameId);
@@ -914,9 +1181,7 @@ export default function AllWorksSection() {
   if (isLoading) {
     return (
       <div className="bg-black w-full min-h-screen flex items-center justify-center">
-        <span className="font-geist-mono text-xs text-zinc-500 uppercase tracking-widest">
-          Loading Works
-        </span>
+        <span className="font-geist-mono text-xs text-zinc-500 uppercase tracking-widest"></span>
       </div>
     );
   }
@@ -928,9 +1193,7 @@ export default function AllWorksSection() {
   return (
     <div className="bg-black w-full min-h-screen px-4 py-6 md:px-4 md:pt-22 relative overflow-x-hidden">
 
-      {/* --------------------------------------------------
-          BACKGROUND VIDEO
-      -------------------------------------------------- */}
+      {/* BACKGROUND VIDEO */}
 
       <div
         className={`fixed inset-0 z-0 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out ${
@@ -963,39 +1226,24 @@ export default function AllWorksSection() {
         <div className="absolute inset-0 bg-black/60" />
       </div>
 
-      {/* --------------------------------------------------
-          NAVIGATION
-      -------------------------------------------------- */}
+      {/* NAVIGATION */}
 
       <Navigation />
 
-      {/* --------------------------------------------------
-          PLAY VIDEO TAG
-      -------------------------------------------------- */}
-
-      <div
-        ref={listPreviewRef}
-        className="fixed top-0 left-0 pointer-events-none z-[100] hidden md:block scale-85 opacity-0"
-      >
-        <span className="font-geist-mono text-[0.65rem] tracking-widest uppercase bg-ghost-white text-carbon-black px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap">
-          Play Video
-        </span>
-      </div>
-
-      {/* --------------------------------------------------
-          HEADER
-      -------------------------------------------------- */}
+      {/* HEADER */}
 
       <div className="relative z-10 flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
 
         <div className="flex flex-row items-center justify-between w-full text-zinc-300">
 
           <div className="opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
+
             <div className="w-2 h-2 bg-zinc-300" />
 
             <h1>
               SELECTED WORKS
             </h1>
+
           </div>
 
           <h1 className="font-geist-mono font-semibold tracking-tight text-ghost-white text-[clamp(0.5rem,0.8vw,0.825rem)]">
@@ -1004,29 +1252,29 @@ export default function AllWorksSection() {
 
         </div>
 
-        {/* --------------------------------------------------
-            TITLE / CONTROLS
-        -------------------------------------------------- */}
+        {/* TITLE / CONTROLS */}
 
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-6 sm:gap-0 pb-6">
 
           <div className="flex flex-row items-start gap-4 sm:gap-6">
 
-            <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%]  font-monot leading-none uppercase">
+            <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%] font-monot leading-none uppercase">
               Works
             </h1>
 
             <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
               [
-              {activeProjects.length < 10
-                ? `0${activeProjects.length}`
-                : activeProjects.length}
+              {projects.length < 10
+                ? `0${projects.length}`
+                : projects.length}
               ]
             </sup>
 
           </div>
 
           <div className="flex flex-col items-start sm:items-end justify-end space-y-4 w-full sm:w-auto">
+
+            {/* GRID / LIST */}
 
             <div className="flex items-center space-x-3 font-geist-mono text-sm md:text-lg tracking-widest uppercase">
 
@@ -1062,14 +1310,23 @@ export default function AllWorksSection() {
 
             </div>
 
-            
+            {/* CLIENT FILTER */}
+
+            {clientFilters.length > 0 && (
+              <ClientFilter
+                clientFilters={clientFilters}
+                selectedClient={selectedClient}
+                onClientFilter={
+                  handleClientFilter
+                }
+              />
+            )}
+
           </div>
 
         </div>
 
-        {/* --------------------------------------------------
-            CONTENT
-        -------------------------------------------------- */}
+        {/* CONTENT */}
 
         <div
           ref={containerRef}
@@ -1080,10 +1337,7 @@ export default function AllWorksSection() {
 
             <div className="flex flex-col space-y-8 lg:space-y-14 pt-4">
 
-              {/* ------------------------------------------------
-                  FIRST 3 PROJECTS
-                  ZERO GAP BETWEEN VIDEOS
-              ------------------------------------------------ */}
+              {/* FIRST 3 PROJECTS */}
 
               {activeProjects.length > 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-0 text-lavender">
@@ -1095,20 +1349,14 @@ export default function AllWorksSection() {
                         key={project._id}
                         video={project}
                         heightClassName="w-full aspect-video"
-                        onHoverChange={
-                          () => {}
-                        }
+                        onHoverChange={() => {}}
                       />
                     ))}
 
                 </div>
               )}
 
-              {/* ------------------------------------------------
-                  FOURTH PROJECT
-                  VIDEO BLEEDS EDGE TO EDGE
-                  METADATA STAYS INSIDE CONTAINER
-              ------------------------------------------------ */}
+              {/* FOURTH PROJECT */}
 
               {activeProjects.length >= 4 && (
                 <div className="w-full">
@@ -1123,9 +1371,7 @@ export default function AllWorksSection() {
                 </div>
               )}
 
-              {/* ------------------------------------------------
-                  PROJECTS 5 + 6
-              ------------------------------------------------ */}
+              {/* PROJECTS 5 + 6 */}
 
               {activeProjects.length >= 5 && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 w-full gap-8 items-start py-2">
@@ -1155,9 +1401,7 @@ export default function AllWorksSection() {
                 </div>
               )}
 
-              {/* ------------------------------------------------
-                  PROJECTS 7 + 8
-              ------------------------------------------------ */}
+              {/* PROJECTS 7 + 8 */}
 
               {activeProjects.length >= 7 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 text-lavender md:pt-30">
@@ -1179,9 +1423,7 @@ export default function AllWorksSection() {
                 </div>
               )}
 
-              {/* ------------------------------------------------
-                  PROJECTS 9 - 11
-              ------------------------------------------------ */}
+              {/* PROJECTS 9 - 11 */}
 
               {activeProjects.length >= 9 && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-2 text-lavender md:pt-30">
@@ -1200,9 +1442,7 @@ export default function AllWorksSection() {
                 </div>
               )}
 
-              {/* ------------------------------------------------
-                  PROJECTS 12 + 13
-              ------------------------------------------------ */}
+              {/* PROJECTS 12 + 13 */}
 
               {activeProjects.length >= 12 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 md:gap-3 text-lavender md:pt-30">
@@ -1221,9 +1461,7 @@ export default function AllWorksSection() {
                 </div>
               )}
 
-              {/* ------------------------------------------------
-                  ANY PROJECTS AFTER 13
-              ------------------------------------------------ */}
+              {/* ANY PROJECTS AFTER 13 */}
 
               {activeProjects.length > 13 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
@@ -1242,9 +1480,7 @@ export default function AllWorksSection() {
                 </div>
               )}
 
-              {/* ------------------------------------------------
-                  EMPTY STATE
-              ------------------------------------------------ */}
+              {/* EMPTY STATE */}
 
               {activeProjects.length === 0 && (
                 <div className="flex items-center justify-center py-32">
@@ -1256,13 +1492,27 @@ export default function AllWorksSection() {
                 </div>
               )}
 
+              {/* LOAD MORE */}
+
+              {visibleCount <
+                filteredProjects.length && (
+                <div className="flex justify-center pt-12">
+
+                  <button
+                    onClick={handleLoadMore}
+                    className="font-geist-mono text-xs tracking-widest uppercase border border-zinc-700 text-ghost-white hover:bg-ghost-white hover:text-carbon-black px-6 py-3 rounded-full transition-colors duration-300"
+                  >
+                    LOAD MORE
+                  </button>
+
+                </div>
+              )}
+
             </div>
 
           ) : (
 
-            /* ------------------------------------------------
-               LIST VIEW
-            ------------------------------------------------ */
+            /* LIST VIEW */
 
             <div
               ref={listContainerRef}
@@ -1287,20 +1537,37 @@ export default function AllWorksSection() {
 
               <div className="flex flex-col divide-y divide-zinc-800/60">
 
-                {activeProjects.map((project) => (
-                  <ListItemRow
-                    key={project._id}
-                    project={project}
-                    onHoverStart={setHoveredProject}
-                    onHoverEnd={() =>
-                      setHoveredProject(null)
-                    }
-                  />
-                ))}
+                {activeProjects.map(
+                  (project) => (
+                    <ListItemRow
+                      key={project._id}
+                      project={project}
+                      onHoverStart={
+                        setHoveredProject
+                      }
+                      onHoverEnd={() =>
+                        setHoveredProject(
+                          null
+                        )
+                      }
+                    />
+                  )
+                )}
 
               </div>
 
-              {visibleCount < projects.length && (
+              {activeProjects.length === 0 && (
+                <div className="flex items-center justify-center py-32">
+
+                  <span className="font-geist-mono text-xs text-zinc-600 uppercase tracking-widest">
+                    No projects found
+                  </span>
+
+                </div>
+              )}
+
+              {visibleCount <
+                filteredProjects.length && (
                 <div className="flex justify-center pt-12">
 
                   <button
@@ -1320,9 +1587,7 @@ export default function AllWorksSection() {
         </div>
       </div>
 
-      {/* --------------------------------------------------
-          FOOTER
-      -------------------------------------------------- */}
+      {/* FOOTER */}
 
       <Footer />
 
