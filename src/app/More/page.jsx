@@ -1238,7 +1238,7 @@ export default function Page() {
                       video={
                         selectedWorks[3]
                       }
-                      heightClassName="w-full aspect-video"
+                      heightClassName=" md:aspect-video h-[50vh] w-screen md:w-full"
                       onHoverChange={
                         handleHoverChange
                       }

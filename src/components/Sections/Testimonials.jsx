@@ -210,15 +210,17 @@ function Testimonials() {
         items-start
         justify-between
         w-full
-        min-h-screen
+        
+        md:min-h-screen
         font-mono
         text-ghost-white
         tracking-tight
         py-[clamp(2rem,3vw,4rem)]
+        
       "
     >
       {/* CONTENT GROUP */}
-      <div className="flex flex-col lg:flex-row justify-between w-full items-start gap-[clamp(1.5rem,3vw,4rem)] pt-[clamp(2rem,4vw,4rem)] ">
+      <div className="flex flex-col lg:flex-row justify-between w-full items-start gap-[clamp(1.5rem,3vw,4rem)] pt-[clamp(2rem,4vw,4rem)]  ">
 
         {/* CONTROLS & META GROUP - LEFT */}
         <div className="flex flex-col justify-between items-start w-full lg:w-[280px] gap-[clamp(1.5rem,2.5vw,2.5rem)] text-ghost-white shrink-0">
@@ -241,7 +243,7 @@ function Testimonials() {
             </div>
 
             {/* INTRO PARAGRAPH */}
-            <p className="text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 font-sans leading-relaxed tracking-normal">
+            <p className="text-[clamp(0.75rem,1vw,0.875rem)] text-zinc-400 w-1/2 md:w-full font-sans leading-relaxed tracking-normal">
               Hear it directly from our partners — real accounts on collaboration, execution, and architectural storytelling.
             </p>
 
@@ -337,17 +339,7 @@ function Testimonials() {
                     key={idx}
                     ref={isActive ? quoteRef : null}
                     aria-hidden={!isActive}
-                    className={`
-                      col-start-1 row-start-1 w-full
-                      text-[clamp(1.5rem,2.4vw,3.5rem)]
-                      text-ghost-white
-                      leading-[125%] lg:leading-[130%]
-                      text-left
-                      font-sans
-                      will-change-[transform,opacity,filter]
-                      uppercase
-                      ${isActive ? 'pointer-events-auto opacity-100 relative' : 'pointer-events-none opacity-0 absolute invisible'}
-                    `}
+                    className={` col-start-1 row-start-1 w-full text-[clamp(1.35rem,3vw,2rem)] lg:text-[clamp(1.5rem,2.4vw,3.5rem)] text-ghost-white leading-[125%] lg:leading-[130%] text-left font-sans will-change-[transform,opacity,filter] uppercase ${isActive ? 'pointer-events-auto opacity-100 relative' : 'pointer-events-none opacity-0 absolute invisible'} `}
                   >
                     &quot;{item.quote}&quot;
                   </p>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, {
@@ -9,21 +8,36 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useCallback,
+  useLayoutEffect,
 } from "react";
 
 import Button from "@/components/UI/Button";
+
 import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
+
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
+
 import Lenis from "lenis";
+
 import gsap from "gsap";
+
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+import { SplitText } from "gsap/SplitText";
+
 import { Canvas, useFrame } from "@react-three/fiber";
+
 import * as THREE from "three";
+
 import Navigation from "@/components/UI/Navigation";
+
 import { groq } from "next-sanity";
+
 import { client } from "@/lib/client";
 
-gsap.registerPlugin(ScrollTrigger);
+import Footer from "@/components/Sections/Footer";
+
+gsap.registerPlugin(ScrollTrigger, SplitText);
 
 /* ============================================================
    1. SANITY QUERY
@@ -90,7 +104,6 @@ const noiseShaderDefinition = {
   fragmentShader: `
     uniform float uTime;
     uniform float uOpacity;
-
     varying vec2 vUv;
 
     float random(vec2 st) {
@@ -139,10 +152,13 @@ function TVNoisePlane({ opacityRef }) {
         },
 
         vertexShader: noiseShaderDefinition.vertexShader,
+
         fragmentShader: noiseShaderDefinition.fragmentShader,
 
         transparent: true,
+
         depthTest: false,
+
         depthWrite: false,
       }),
     []
@@ -465,16 +481,6 @@ function WorkCard({
 
           <div className="corner-br absolute bottom-4 right-4 w-8 h-8 border-b border-r border-white opacity-0 scale-90 translate-x-3 translate-y-3 mix-blend-difference" />
         </div>
-
-        {/* MOBILE PLAY INDICATOR */}
-
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
-          <div className="bg-black/40 backdrop-blur-sm border border-white/30 rounded-full px-4 py-2">
-            <span className="font-geist-mono text-[0.6rem] text-white tracking-widest">
-              PLAY
-            </span>
-          </div>
-        </div>
       </div>
 
       {/* WEDDING INFO */}
@@ -622,13 +628,21 @@ function ListItemRow({
 
 export default function WeddingsSection() {
   const cursorRef = useRef(null);
+
   const containerRef = useRef(null);
+
   const listPreviewRef = useRef(null);
+
   const listContainerRef = useRef(null);
+
   const bgVideoRef = useRef(null);
 
+  const introRef = useRef(null);
+
   const [weddings, setWeddings] = useState([]);
+
   const [isLoading, setIsLoading] = useState(true);
+
   const [fetchError, setFetchError] = useState(null);
 
   const [viewMode, setViewMode] = useState("grid");
@@ -731,6 +745,51 @@ export default function WeddingsSection() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  /* ==========================================================
+     INTRO SPLIT TEXT REVEAL
+  ========================================================== */
+
+  useLayoutEffect(() => {
+    if (!introRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const split = new SplitText(introRef.current, {
+        type: "lines",
+        linesClass: "intro-split-line",
+      });
+
+      gsap.set(split.lines, {
+        yPercent: 110,
+        opacity: 0,
+      });
+
+      split.lines.forEach((line) => {
+        const wrapper = document.createElement("div");
+
+        wrapper.className = "overflow-hidden";
+
+        line.parentNode.insertBefore(wrapper, line);
+
+        wrapper.appendChild(line);
+      });
+
+      gsap.to(split.lines, {
+        yPercent: 0,
+        opacity: 1,
+        duration: 0.9,
+        stagger: 0.08,
+        ease: "power4.out",
+        scrollTrigger: {
+          trigger: introRef.current,
+          start: "top 80%",
+          toggleActions: "play none none reset",
+        },
+      });
+    }, introRef);
+
+    return () => ctx.revert();
   }, []);
 
   /* ==========================================================
@@ -1103,6 +1162,7 @@ export default function WeddingsSection() {
         ),
 
       smoothWheel: true,
+
       touchMultiplier: 2,
     });
 
@@ -1153,7 +1213,7 @@ export default function WeddingsSection() {
         onClose={closePlayer}
       />
 
-      <div className="bg-black w-full min-h-screen py-6 px-4 md:py-2 md:px-4 relative overflow-hidden pb-40">
+      <div className="bg-black w-full min-h-screen py-6 px-4 md:py-2 md:px-4 relative overflow-hidden pb-2 md:pb-2">
 
         {/* ======================================================
             FULL-BLEED HOVER VIDEO BACKGROUND
@@ -1198,7 +1258,10 @@ export default function WeddingsSection() {
         ====================================================== */}
 
         <div className="flex w-full min-h-[55vh] items-center justify-start px-2 pt-10 md:pt-20">
-          <h1 className="font-sans tracking-tight text-3xl md:text-5xl w-[250px] md:w-[590px] text-ghost-white leading-tight">
+          <h1
+            ref={introRef}
+            className="font-sans tracking-tight text-[clamp(2rem,6vw,3rem)] md:text-[clamp(0.8rem,4vw,3rem)] w-[clamp(15rem,75vw,46.875rem)] text-ghost-white leading-tight"
+          >
             MOMENTS WORTH REMEMBERING
           </h1>
         </div>
@@ -1222,7 +1285,7 @@ export default function WeddingsSection() {
 
         <div
           ref={listPreviewRef}
-          className="fixed top-0 left-0 pointer-events-none z-[100] hidden  scale-85 opacity-0"
+          className="fixed top-0 left-0 pointer-events-none z-[100] hidden scale-85 opacity-0"
         >
           <span className="font-geist-mono text-[0.65rem] tracking-widest uppercase bg-ghost-white text-carbon-black px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap">
             Play Film
@@ -1245,7 +1308,6 @@ export default function WeddingsSection() {
             <h1 className="font-geist-mono font-semibold tracking-tight text-ghost-white text-[clamp(0.5rem,0.8vw,0.825rem)]">
               [CLOUD_9]
             </h1>
-
           </div>
 
           {/* ==================================================
@@ -1310,10 +1372,7 @@ export default function WeddingsSection() {
 
               </div>
 
-             
-
             </div>
-
           </div>
 
           {/* ==================================================
@@ -1324,12 +1383,10 @@ export default function WeddingsSection() {
             ref={containerRef}
             className="w-full transition-all duration-300"
           >
-
             {isLoading ? (
 
               <div className="w-full py-20 flex justify-center">
                 <p className="font-geist-mono text-xs tracking-widest uppercase text-zinc-500">
-                 
                 </p>
               </div>
 
@@ -1428,6 +1485,7 @@ export default function WeddingsSection() {
                   <div className="grid grid-cols-1 lg:grid-cols-12 w-full gap-8 items-start py-2">
 
                     <div className="lg:col-span-5">
+
                       <WorkCard
                         wedding={
                           activeProjects[4]
@@ -1439,9 +1497,11 @@ export default function WeddingsSection() {
                           openPlayer
                         }
                       />
+
                     </div>
 
                     <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-20">
+
                       <WorkCard
                         wedding={
                           activeProjects[5]
@@ -1453,6 +1513,7 @@ export default function WeddingsSection() {
                           openPlayer
                         }
                       />
+
                     </div>
 
                   </div>
@@ -1674,11 +1735,12 @@ export default function WeddingsSection() {
 
               </div>
             )}
-
           </div>
         </div>
+
+        <Footer />
+
       </div>
     </>
   );
 }
-

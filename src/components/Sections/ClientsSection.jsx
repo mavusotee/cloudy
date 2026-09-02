@@ -240,7 +240,7 @@ function ClientsSection() {
   );
 
   return (
-    <div className="w-screen relative left-1/2 -translate-x-1/2 bg-black mt-[clamp(3rem,4vw,0.2rem)] overflow-hidden mb-10 md:mb-20 ">
+    <div className="w-screen relative left-1/2 -translate-x-1/2  bg-black mt-[clamp(0.1rem,4vw,0.2rem)] overflow-hidden mb-10 md:mb-20 ">
       {/* HEADER */}
 
       <div className="flex flex-row items-center justify-between w-full text-zinc-300 px-4 md:px-8 opacity-0">
