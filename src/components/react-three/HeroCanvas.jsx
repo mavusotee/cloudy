@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, {
@@ -308,7 +307,7 @@ const SmudgeTransitionShader = {
 
 
       // =====================================================
-      // ORIGINAL TRANSITION LOGIC
+      // ORIGINAL TRANSITION LOGIC — UNTOUCHED
       // =====================================================
 
       float transitionVelocity =
@@ -347,37 +346,51 @@ const SmudgeTransitionShader = {
 
 
       // =====================================================
-      // HOVER GOO
+      // THICK GEL HOVER — EXTRA THICK, LESS WATERY
       // =====================================================
 
-      float hoverNoiseX =
+      /*
+        EXTREMELY SLOW TIME FIELD
+
+        Watery motion comes from noise fields that evolve
+        too quickly. Slowing this down further makes the
+        gel feel like it has real inertia — a heavy mass
+        settling rather than rippling liquid.
+      */
+
+      float gelNoiseX =
         snoise(
 
-          vUv * 3.5 +
+          vUv * 2.8 +
 
           vec2(
-            uTime * 0.5,
-            uTime * 0.3
+            uTime * 0.03,
+            uTime * 0.018
           )
 
         );
 
 
-      float hoverNoiseY =
+      float gelNoiseY =
         snoise(
 
-          vUv * 4.5 -
+          vUv * 3.2 -
 
           vec2(
-            uTime * 0.3,
-            uTime * 0.4
+            uTime * 0.02,
+            uTime * 0.032
           )
 
         );
 
+
+      // =====================================================
+      // MOUSE DISTANCE
+      // =====================================================
 
       vec2 mouseDelta =
-        vUv - uMouse;
+        vUv -
+        uMouse;
 
 
       mouseDelta.x *=
@@ -386,12 +399,25 @@ const SmudgeTransitionShader = {
 
 
       float mouseDistance =
-        length(mouseDelta);
+        length(
+          mouseDelta
+        );
 
+
+      /*
+        Larger radius gives the goo enough physical mass
+        around the cursor.
+      */
 
       float hoverRadius =
-        0.25;
+        0.48;
 
+
+      /*
+        Much sharper inner falloff creates a dense, solid
+        blob with a defined edge instead of a soft watery
+        gradient that fades out gently.
+      */
 
       float mouseInfluence =
         1.0 -
@@ -406,23 +432,110 @@ const SmudgeTransitionShader = {
         );
 
 
+      mouseInfluence =
+        pow(
+          mouseInfluence,
+          2.4
+        );
+
+
       mouseInfluence *=
         uHover;
 
 
-      vec2 hoverOffset =
+      // =====================================================
+      // THICK GEL BODY
+      // =====================================================
+
+      /*
+        Low-frequency noise creates large,
+        slow-moving blobs.
+
+        High-frequency detail is pushed down to a lower
+        frequency and much lower weight than before — that
+        fine ripple is exactly what reads as "watery", so
+        it's almost entirely suppressed here.
+      */
+
+      float thickBody =
+        snoise(
+          vUv * 2.1 +
+          vec2(
+            uTime * 0.014,
+            -uTime * 0.01
+          )
+        );
+
+
+      float thickDetail =
+        snoise(
+          vUv * 3.0 +
+          vec2(
+            -uTime * 0.01,
+            uTime * 0.007
+          )
+        );
+
+
+      float gelShape =
+        thickBody * 0.9 +
+        thickDetail * 0.08;
+
+
+      /*
+        Higher base mass so the gel always reads as a
+        substantial, opaque-feeling body rather than a
+        thin film, with the noise only shaping it subtly.
+      */
+
+      float gelMass =
+        mouseInfluence *
+        (
+          0.85 +
+          gelShape * 0.3
+        );
+
+
+      // =====================================================
+      // SLOW GEL MOVEMENT
+      // =====================================================
+
+      vec2 gelDirection =
         vec2(
-          hoverNoiseX,
-          hoverNoiseY
+          gelNoiseX,
+          gelNoiseY
+        );
+
+
+      /*
+        Smaller movement distance than before.
+
+        Truly thick gel barely travels — it just bulges
+        and settles in place instead of sloshing around.
+      */
+
+      vec2 hoverOffset =
+        gelDirection *
+        0.055 *
+        gelMass;
+
+
+      /*
+        Minimal directional stretching — enough to feel
+        alive, not enough to look fluid or splashy.
+      */
+
+      hoverOffset +=
+        vec2(
+          gelShape * 0.01,
+          -gelShape * 0.008
         )
-        *
-        0.115
         *
         mouseInfluence;
 
 
       // =====================================================
-      // ORIGINAL TRANSITION SMUDGE
+      // ORIGINAL TRANSITION SMUDGE — UNTOUCHED
       // =====================================================
 
       vec2 smudgeOffset =
@@ -456,8 +569,22 @@ const SmudgeTransitionShader = {
 
 
       // =====================================================
-      // STRONGER RGB GOO
+      // THICKER RGB GEL
       // =====================================================
+
+      /*
+        Chromatic separation dialed back — heavy prismatic
+        shimmer reads as liquid/oily. Keeping it subtle
+        preserves a dense, opaque, less "wet" look.
+      */
+
+      float rgbGel =
+        gelMass *
+        (
+          0.038 +
+          abs(gelShape) * 0.01
+        );
+
 
       float rgbSplit =
         (
@@ -467,9 +594,8 @@ const SmudgeTransitionShader = {
         )
         +
         (
-          mouseInfluence *
-          0.032 *
-          hoverNoiseX
+          rgbGel *
+          gelNoiseX
         );
 
 
@@ -560,7 +686,7 @@ const SmudgeTransitionShader = {
 
 
       // =====================================================
-      // ORIGINAL TRANSITION MASK
+      // ORIGINAL TRANSITION MASK — UNTOUCHED
       // =====================================================
 
       float maskX =
@@ -963,8 +1089,13 @@ function ShaderPlane({
           targetMouseRef.current
 
 
+        /*
+          Slower than before, but not so slow that
+          the gel feels disconnected from the cursor.
+        */
+
         const followSpeed =
-          5.5
+          4.2
 
 
         const interpolation =
@@ -1096,11 +1227,12 @@ function ShaderPlane({
           }
 
 
-          // =================================================
-          // GOO APPEARS IMMEDIATELY,
-          // HOLDS FOR 0.35s,
-          // THEN FADES OUT.
-          // =================================================
+          /*
+            The goo appears quickly,
+            but then stays around as a thick remnant.
+
+            The fade is deliberately long and gentle.
+          */
 
           hoverTweenRef.current =
             gsap.fromTo(
@@ -1112,7 +1244,14 @@ function ShaderPlane({
               {
 
                 value:
-                  1.0
+                  Math.max(
+                    materialRef.current
+                      .uniforms
+                      .uHover
+                      .value,
+
+                    0.75
+                  )
 
               },
 
@@ -1122,13 +1261,13 @@ function ShaderPlane({
                   0.0,
 
                 delay:
-                  0.55,
+                  0.85,
 
                 duration:
-                  5.6,
+                  3.2,
 
                 ease:
-                  'power2.out'
+                  'power3.out'
 
               }
 
@@ -2267,4 +2406,3 @@ export default function HeroCanvas({
   )
 
 }
-

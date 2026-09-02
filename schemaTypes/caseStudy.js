@@ -21,26 +21,23 @@ export default defineType({
     // SLUG
     // =========================================================
 
- 
-defineField({
-  name: "slug",
-  title: "Slug",
-  type: "slug",
+    defineField({
+      name: "slug",
+      title: "Slug",
+      type: "slug",
 
-  options: {
-    source: "title",
-    maxLength: 96,
-    slugify: (input) =>
-      input
-        .toLowerCase()
-        .trim()
-        .replace(/\s+/g, "-")
-        .replace(/[^\w\-]+/g, "")
-        .replace(/\-\-+/g, "-"),
-  },
-}),
-
-
+      options: {
+        source: "title",
+        maxLength: 96,
+        slugify: (input) =>
+          input
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/[^\w\-]+/g, "")
+            .replace(/\-\-+/g, "-"),
+      },
+    }),
 
     // =========================================================
     // CLIENT
@@ -58,20 +55,34 @@ defineField({
     // =========================================================
 
     defineField({
-      name: "heroVideos",
-      title: "Hero Videos",
-      description: "Upload one or more videos for the project hero.",
-      type: "array",
+  name: "heroVideos",
+  title: "Hero Videos",
+  description:
+    "Upload one or more videos or add Cloudinary video URLs for the project hero.",
+  type: "array",
 
-      of: [
-        {
-          type: "file",
-          options: {
-            accept: "video/*",
-          },
-        },
+  of: [
+    {
+      type: "file",
+      options: {
+        accept: "video/*",
+      },
+    },
+    {
+      type: "object",
+      name: "cloudinaryVideo",
+      title: "Cloudinary Video",
+      fields: [
+        defineField({
+          name: "url",
+          title: "Cloudinary URL",
+          type: "url",
+          validation: (Rule) => Rule.required(),
+        }),
       ],
-    }),
+    },
+  ],
+}),
 
     // =========================================================
     // PROJECT OVERVIEW
@@ -115,40 +126,40 @@ defineField({
     // =========================================================
 
     defineField({
-  name: "gallery",
-  title: "Gallery",
+      name: "gallery",
+      title: "Gallery",
 
-  description:
-    "Upload up to 16 images or videos. Portrait and landscape media are supported.",
+      description:
+        "Upload up to 16 images or videos. Portrait and landscape media are supported.",
 
-  type: "array",
+      type: "array",
 
-  validation: (Rule) =>
-    Rule.max(16).error(
-      "You can upload a maximum of 16 gallery items."
-    ),
-
-  options: {
-    layout: "grid",
-  },
-
-  of: [
-    {
-      type: "image",
+      validation: (Rule) =>
+        Rule.max(16).error(
+          "You can upload a maximum of 16 gallery items."
+        ),
 
       options: {
-        hotspot: true,
+        layout: "grid",
       },
-    },
-    {
-      type: "file",
 
-      options: {
-        accept: "video/*",
-      },
-    },
-  ],
-}),
+      of: [
+        {
+          type: "image",
+
+          options: {
+            hotspot: true,
+          },
+        },
+        {
+          type: "file",
+
+          options: {
+            accept: "video/*",
+          },
+        },
+      ],
+    }),
   ],
 
   // ===========================================================

@@ -54,7 +54,10 @@ const SELECTED_WORKS_QUERY = `
 
     heroVideos[]{
       _key,
-      "src": asset->url
+      "src": coalesce(
+        asset->url,
+        url
+      )
     }
   }
 `;

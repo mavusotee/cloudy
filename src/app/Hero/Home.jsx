@@ -20,7 +20,7 @@ const getMobileOptimizedUrl = (url) => {
 
 const RAW_PROJECTS = [
   {
-    src: 'https://ik.imagekit.io/sivo7t3nqf/cloudhaus_landing_video%20(1440p).mp4',
+    src: 'https://res.cloudinary.com/eafm1vdw/video/upload/v1787731790/cloudhaus_landing_video_1440p.mp4',
     title: 'THE BUILDING COMPANY'
   },
 ]

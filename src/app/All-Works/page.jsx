@@ -46,7 +46,10 @@ const WORKS_QUERY = `
     "slug": slug.current,
     heroVideos[] {
       _key,
-      "src": asset->url
+      "src": coalesce(
+        asset->url,
+        url
+      )
     }
   }
 `;

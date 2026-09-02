@@ -88,12 +88,13 @@ const PROJECT_QUERY = `
     overview,
     date,
     services,
-
     heroVideos[]{
       _key,
-      "src": asset->url
+      "src": coalesce(
+        asset->url,
+        url
+      )
     },
-
     gallery[]{
       _key,
       "src": asset->url,
