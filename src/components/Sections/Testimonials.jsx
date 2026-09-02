@@ -41,7 +41,7 @@ const testimonialsData = [
 
 
 
-const AUTOPLAY_DURATION = 8;
+const AUTOPLAY_DURATION = 6;
 
 function Testimonials() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -214,11 +214,11 @@ function Testimonials() {
         font-mono
         text-ghost-white
         tracking-tight
-        py-[clamp(2rem,4vw,4rem)]
+        py-[clamp(2rem,3vw,4rem)]
       "
     >
       {/* CONTENT GROUP */}
-      <div className="flex flex-col lg:flex-row justify-between w-full items-start gap-[clamp(1.5rem,3vw,4rem)] pt-[clamp(2rem,4vw,4rem)] mb-auto">
+      <div className="flex flex-col lg:flex-row justify-between w-full items-start gap-[clamp(1.5rem,3vw,4rem)] pt-[clamp(2rem,4vw,4rem)] ">
 
         {/* CONTROLS & META GROUP - LEFT */}
         <div className="flex flex-col justify-between items-start w-full lg:w-[280px] gap-[clamp(1.5rem,2.5vw,2.5rem)] text-ghost-white shrink-0">

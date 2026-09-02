@@ -1076,7 +1076,7 @@ export default function Page() {
           <div className="flex flex-col items-start justify-end space-y-8 lg:space-y-12 w-full md:w-[50%] md:translate-x-[clamp(0rem,8vw,2rem)] lg:translate-x-[clamp(0rem,10vw,0.5rem)] font-medium">
 
             <SmudgyTextReveal
-              text="The work is already high-end. The story should rise to it. We uncover the thinking, craft and details that make it worth seeing."
+              text="A building can speak volumes before a single word is said. We create the imagery that makes people feel the thinking, craft and ambition behind every project."
             />
 
             <BlurFlicker>

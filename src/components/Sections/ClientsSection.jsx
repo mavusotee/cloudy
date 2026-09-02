@@ -209,7 +209,7 @@ function ClientsSection() {
     <div
       key={`client-${set}-${i}`}
       className="
-        w-[clamp(16rem,45vw,23rem)]
+        w-[clamp(13rem,45vw,23rem)]
         h-[clamp(8rem,20vw,15rem)]
         shrink-0
         border
@@ -240,10 +240,10 @@ function ClientsSection() {
   );
 
   return (
-    <div className="w-screen relative left-1/2 -translate-x-1/2 bg-black mt-[clamp(3rem,8vw,0.5rem)] overflow-hidden mb-10 md:mb-40">
+    <div className="w-screen relative left-1/2 -translate-x-1/2 bg-black mt-[clamp(3rem,4vw,0.2rem)] overflow-hidden mb-10 md:mb-20 ">
       {/* HEADER */}
 
-      <div className="flex flex-row items-center justify-between w-full text-zinc-300 px-4 md:px-8">
+      <div className="flex flex-row items-center justify-between w-full text-zinc-300 px-4 md:px-8 opacity-0">
         <div className="font-mono tracking-tight text-[clamp(0.5rem,0.8vw,0.725rem)] flex items-center gap-[clamp(0.35rem,0.6vw,0.6rem)]">
           <div className="w-[clamp(0.35rem,0.5vw,0.5rem)] h-[clamp(0.35rem,0.5vw,0.5rem)] bg-zinc-300" />
           <h1>CLIENTS</h1>

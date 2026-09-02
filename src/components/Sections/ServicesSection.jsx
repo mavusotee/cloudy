@@ -147,7 +147,7 @@ function ServiceItem({ service }) {
             <div className="flex items-start w-full md:translate-x-40 overflow-hidden py-1">
               <h1
                 ref={titleRef}
-                className="text-[clamp(2.05rem,4.5vw+0.5rem,4.5rem)] font-sans uppercase tracking-tighter text-ghost-white font-medium leading-[1.05]"
+                className="text-[clamp(2rem,4.5vw+0.4rem,4rem)] font-sans uppercase tracking-tighter text-ghost-white font-medium leading-[1.05]"
               >
                 {service.title}
               </h1>
@@ -156,9 +156,9 @@ function ServiceItem({ service }) {
             {/* ARROW */}
             <div
               ref={arrowRef}
-              className="hidden md:flex items-center shrink-0 pl-4 pt-2 text-zinc-400"
+              className="hidden md:flex items-center shrink-0 pl-4 pt-2 text-white md:text-12"
             >
-              ( <ArrowLeft className="rotate-180 w-5 h-5" /> )
+              ( <ArrowLeft className="rotate-0 w-8 h-8" /> )
             </div>
           </div>
 
@@ -166,7 +166,7 @@ function ServiceItem({ service }) {
           <div className="w-full md:translate-x-40 pt-4 md:pt-20">
             <p
               ref={descRef}
-              className="text-zinc-500 font-geist-mono uppercase w-[clamp(350px,50vw,500px)] max-w-full pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.85rem)] leading-relaxed will-change-transform"
+              className="text-zinc-500 font-geist-mono uppercase w-[clamp(350px,50vw,500px)] max-w-full pb-2 text-[clamp(0.7rem,0.65rem+0.35vw,0.9rem)] leading-relaxed will-change-transform"
             >
               {service.description}
             </p>
@@ -177,7 +177,7 @@ function ServiceItem({ service }) {
       {/* FULL-WIDTH UNDERLINE (SCRUBBED ON SCROLL) */}
       <div
         ref={lineRef}
-        className="w-full bg-zinc-950 h-[1.5px] mt-[clamp(1.25rem,3vw,2rem)]"
+        className="w-full bg-zinc-800/80 h-[1.5px] mt-[clamp(1.25rem,3vw,2rem)]"
       />
     </div>
   );

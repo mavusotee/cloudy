@@ -8,20 +8,29 @@ import React, {
 } from "react";
 
 import Image from "next/image";
+
 import Link from "next/link";
+
 import Navigation from "@/components/UI/Navigation";
+
 import HeroCanvas from "@/components/react-three/HeroCanvas";
+
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
 
 import { useParams } from "next/navigation";
 
 import Lenis from "lenis";
+
 import gsap from "gsap";
+
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 import { SplitText } from "gsap/SplitText";
+
 import { useGSAP } from "@gsap/react";
 
 import { client } from "@/lib/client";
+
 import TransitionLink from "@/components/PageTransitions/TransitionLink";
 
 import { useLayoutEffect } from "react";
@@ -88,6 +97,11 @@ const PROJECT_QUERY = `
     overview,
     date,
     services,
+    credits[]{
+      _key,
+      name,
+      role
+    },
     heroVideos[]{
       _key,
       "src": coalesce(
@@ -216,7 +230,9 @@ function ExtrudedTextReveal({
 
 function LazyGalleryVideo({ src }) {
   const videoRef = useRef(null);
-  const [shouldLoad, setShouldLoad] = useState(false);
+
+  const [shouldLoad, setShouldLoad] =
+    useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -228,21 +244,22 @@ function LazyGalleryVideo({ src }) {
       return;
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
+    const observer =
+      new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
 
-        if (!entry) return;
+          if (!entry) return;
 
-        if (entry.isIntersecting) {
-          setShouldLoad(true);
-          observer.disconnect();
+          if (entry.isIntersecting) {
+            setShouldLoad(true);
+            observer.disconnect();
+          }
+        },
+        {
+          rootMargin: "600px 0px",
         }
-      },
-      {
-        rootMargin: "600px 0px",
-      }
-    );
+      );
 
     observer.observe(video);
 
@@ -315,10 +332,17 @@ export default function CloudhausWorkDetail() {
   // STATE
   // =======================================================
 
-  const [project, setProject] = useState(null);
-  const [allProjects, setAllProjects] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [project, setProject] =
+    useState(null);
+
+  const [allProjects, setAllProjects] =
+    useState([]);
+
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState(null);
 
   const [currentVideoIndex, setCurrentVideoIndex] =
     useState(0);
@@ -336,9 +360,14 @@ export default function CloudhausWorkDetail() {
   // REFS
   // =======================================================
 
-  const projectInfoRef = useRef(null);
-  const heroDimmingRef = useRef(null);
-  const scrollProgressRef = useRef(null);
+  const projectInfoRef =
+    useRef(null);
+
+  const heroDimmingRef =
+    useRef(null);
+
+  const scrollProgressRef =
+    useRef(null);
 
   // =======================================================
   // FETCH PROJECT
@@ -357,27 +386,28 @@ export default function CloudhausWorkDetail() {
         setIsLoading(true);
         setError(null);
 
-        const [data, projects] = await Promise.all([
-          client.fetch(
-            PROJECT_QUERY,
-            { slug },
-            {
-              next: {
-                revalidate: 60,
-              },
-            }
-          ),
+        const [data, projects] =
+          await Promise.all([
+            client.fetch(
+              PROJECT_QUERY,
+              { slug },
+              {
+                next: {
+                  revalidate: 60,
+                },
+              }
+            ),
 
-          client.fetch(
-            ALL_PROJECTS_QUERY,
-            {},
-            {
-              next: {
-                revalidate: 60,
-              },
-            }
-          ),
-        ]);
+            client.fetch(
+              ALL_PROJECTS_QUERY,
+              {},
+              {
+                next: {
+                  revalidate: 60,
+                },
+              }
+            ),
+          ]);
 
         if (cancelled) return;
 
@@ -397,7 +427,9 @@ export default function CloudhausWorkDetail() {
 
         if (!cancelled) {
           setProject(null);
-          setError("Unable to load project.");
+          setError(
+            "Unable to load project."
+          );
         }
       } finally {
         if (!cancelled) {
@@ -417,11 +449,12 @@ export default function CloudhausWorkDetail() {
   // NEXT PROJECT
   // =======================================================
 
-  const currentProjectIndex = useMemo(() => {
-    return allProjects.findIndex(
-      (item) => item.slug === slug
-    );
-  }, [allProjects, slug]);
+  const currentProjectIndex =
+    useMemo(() => {
+      return allProjects.findIndex(
+        (item) => item.slug === slug
+      );
+    }, [allProjects, slug]);
 
   const nextProject = useMemo(() => {
     if (
@@ -435,14 +468,21 @@ export default function CloudhausWorkDetail() {
       (currentProjectIndex + 1) %
         allProjects.length
     ];
-  }, [allProjects, currentProjectIndex]);
+  }, [
+    allProjects,
+    currentProjectIndex,
+  ]);
 
   // =======================================================
   // HERO VIDEOS
   // =======================================================
 
   const heroVideos = useMemo(() => {
-    if (!Array.isArray(project?.heroVideos)) {
+    if (
+      !Array.isArray(
+        project?.heroVideos
+      )
+    ) {
       return [];
     }
 
@@ -454,14 +494,19 @@ export default function CloudhausWorkDetail() {
       .filter((video) => video.src);
   }, [project]);
 
-  const totalVideos = heroVideos.length;
+  const totalVideos =
+    heroVideos.length;
 
   const activeSrc =
-    heroVideos[currentVideoIndex]?.src || null;
+    heroVideos[
+      currentVideoIndex
+    ]?.src || null;
 
   const nextSrc =
     nextVideoIndex !== null
-      ? heroVideos[nextVideoIndex]?.src || null
+      ? heroVideos[
+          nextVideoIndex
+        ]?.src || null
       : null;
 
   // =======================================================
@@ -473,14 +518,19 @@ export default function CloudhausWorkDetail() {
   // every time the active video changes.
   // =======================================================
 
-  const heroPreloadedRef = useRef(false);
+  const heroPreloadedRef =
+    useRef(false);
 
   useEffect(() => {
-    if (!activeSrc || heroPreloadedRef.current) {
+    if (
+      !activeSrc ||
+      heroPreloadedRef.current
+    ) {
       return;
     }
 
-    const link = document.createElement("link");
+    const link =
+      document.createElement("link");
 
     link.rel = "preload";
     link.as = "video";
@@ -504,7 +554,6 @@ export default function CloudhausWorkDetail() {
     setNextVideoIndex(null);
     setIsTransitioning(false);
     setIsPlayerOpen(false);
-
     heroPreloadedRef.current = false;
   }, [project]);
 
@@ -521,7 +570,8 @@ export default function CloudhausWorkDetail() {
     }
 
     const nextIndex =
-      currentVideoIndex + 1 >= totalVideos
+      currentVideoIndex + 1 >=
+      totalVideos
         ? 0
         : currentVideoIndex + 1;
 
@@ -530,9 +580,13 @@ export default function CloudhausWorkDetail() {
   };
 
   const handleTransitionComplete = () => {
-    if (nextVideoIndex === null) return;
+    if (nextVideoIndex === null)
+      return;
 
-    setCurrentVideoIndex(nextVideoIndex);
+    setCurrentVideoIndex(
+      nextVideoIndex
+    );
+
     setNextVideoIndex(null);
     setIsTransitioning(false);
   };
@@ -548,20 +602,26 @@ export default function CloudhausWorkDetail() {
       easing: (t) =>
         Math.min(
           1,
-          1.001 - Math.pow(2, -10 * t)
+          1.001 -
+            Math.pow(2, -10 * t)
         ),
 
       smoothWheel: true,
       touchMultiplier: 2,
     });
 
-    const updateScrollProgress = ({ scroll }) => {
+    const updateScrollProgress = ({
+      scroll,
+    }) => {
       const documentHeight =
-        document.documentElement.scrollHeight -
+        document.documentElement
+          .scrollHeight -
         window.innerHeight;
 
       if (documentHeight <= 0) {
-        if (scrollProgressRef.current) {
+        if (
+          scrollProgressRef.current
+        ) {
           scrollProgressRef.current.style.transform =
             "scaleX(0)";
         }
@@ -577,7 +637,9 @@ export default function CloudhausWorkDetail() {
         )
       );
 
-      if (scrollProgressRef.current) {
+      if (
+        scrollProgressRef.current
+      ) {
         scrollProgressRef.current.style.transform =
           `scaleX(${progress})`;
       }
@@ -602,6 +664,7 @@ export default function CloudhausWorkDetail() {
     };
 
     gsap.ticker.add(raf);
+
     gsap.ticker.lagSmoothing(0);
 
     return () => {
@@ -627,10 +690,14 @@ export default function CloudhausWorkDetail() {
 
   useGSAP(
     () => {
-      const section = projectInfoRef.current;
-      const dimmer = heroDimmingRef.current;
+      const section =
+        projectInfoRef.current;
 
-      if (!section || !dimmer) return;
+      const dimmer =
+        heroDimmingRef.current;
+
+      if (!section || !dimmer)
+        return;
 
       gsap.set(dimmer, {
         opacity: 0,
@@ -692,11 +759,12 @@ export default function CloudhausWorkDetail() {
   // GALLERY
   // =======================================================
 
-  const gallery = Array.isArray(project.gallery)
+  const gallery = Array.isArray(
+    project.gallery
+  )
     ? project.gallery
         .map((item) => ({
           ...item,
-
           src: getMediaUrl(item),
         }))
         .filter((item) => item.src)
@@ -706,11 +774,30 @@ export default function CloudhausWorkDetail() {
   // SERVICES
   // =======================================================
 
-  const services = Array.isArray(project.services)
+  const services = Array.isArray(
+    project.services
+  )
     ? project.services.filter(
         (service) =>
-          typeof service === "string" &&
+          typeof service ===
+            "string" &&
           service.trim().length > 0
+      )
+    : [];
+
+  // =======================================================
+  // CREDITS
+  // =======================================================
+
+  const credits = Array.isArray(
+    project.credits
+  )
+    ? project.credits.filter(
+        (credit) =>
+          credit &&
+          typeof credit.name ===
+            "string" &&
+          credit.name.trim().length > 0
       )
     : [];
 
@@ -788,7 +875,6 @@ export default function CloudhausWorkDetail() {
       ================================================= */}
 
       <section className="relative w-full bg-black">
-
         {/* =================================================
             STICKY HERO BACKGROUND
         ================================================= */}
@@ -809,7 +895,6 @@ export default function CloudhausWorkDetail() {
               overflow-hidden
             "
           >
-
             {/* HERO CANVAS */}
 
             {activeSrc && (
@@ -817,7 +902,9 @@ export default function CloudhausWorkDetail() {
                 <HeroCanvas
                   activeSrc={activeSrc}
                   nextSrc={nextSrc}
-                  isTransitioning={isTransitioning}
+                  isTransitioning={
+                    isTransitioning
+                  }
                   onTransitionComplete={
                     handleTransitionComplete
                   }
@@ -855,7 +942,6 @@ export default function CloudhausWorkDetail() {
         ================================================= */}
 
         <div className="relative z-10">
-
           {/* =================================================
               HERO INTRO
           ================================================= */}
@@ -884,7 +970,6 @@ export default function CloudhausWorkDetail() {
                 md:gap-0
               "
             >
-
               {/* PROJECT TITLE */}
 
               <div
@@ -983,7 +1068,6 @@ export default function CloudhausWorkDetail() {
                   md:order-none
                 "
               >
-
                 {/* WATCH VIDEO */}
 
                 {activeSrc && (
@@ -1070,7 +1154,6 @@ export default function CloudhausWorkDetail() {
                     text-center
                     transition-opacity
                     duration-300
-
                     ${
                       isTransitioning ||
                       totalVideos <= 1
@@ -1116,7 +1199,6 @@ export default function CloudhausWorkDetail() {
                 font-geist-mono
               "
             >
-
               {/* PROJECT OVERVIEW */}
 
               <div
@@ -1180,7 +1262,10 @@ export default function CloudhausWorkDetail() {
                     "
                   >
                     {services.map(
-                      (service, index) => (
+                      (
+                        service,
+                        index
+                      ) => (
                         <li
                           key={`${service}-${index}`}
                         >
@@ -1213,7 +1298,6 @@ export default function CloudhausWorkDetail() {
                   md:contents
                 "
               >
-
                 {/* CLIENT */}
 
                 <div
@@ -1241,7 +1325,8 @@ export default function CloudhausWorkDetail() {
                       uppercase
                     "
                   >
-                    {project.client || "—"}
+                    {project.client ||
+                      "—"}
                   </p>
                 </div>
 
@@ -1272,9 +1357,86 @@ export default function CloudhausWorkDetail() {
                       uppercase
                     "
                   >
-                    {project.date || "—"}
+                    {project.date ||
+                      "—"}
                   </p>
                 </div>
+              </div>
+
+              {/* =================================================
+                  CREDITS
+              ================================================= */}
+
+              <div
+                className="
+                  md:col-span-7
+                  md:col-start-1
+                  md:row-start-3
+                  space-y-4
+                "
+              >
+                <h2
+                  className="
+                    text-zinc-600
+                    md:text-lg
+                  "
+                >
+                  CREDITS
+                </h2>
+
+                {credits.length > 0 ? (
+                  <ul
+                    className="
+                      space-y-3
+                      text-ghost-white
+                      text-sm
+                      uppercase
+                    "
+                  >
+                    {credits.map(
+                      (
+                        credit,
+                        index
+                      ) => (
+                        <li
+                          key={
+                            credit._key ||
+                            `${credit.name}-${index}`
+                          }
+                          className="
+                            flex
+                            flex-col
+                            gap-0.5
+                          "
+                        >
+                          <span>
+                            {credit.name}
+                          </span>
+
+                          {credit.role && (
+                            <span
+                              className="
+                                text-zinc-600
+                                text-[10px]
+                              "
+                            >
+                              {credit.role}
+                            </span>
+                          )}
+                        </li>
+                      )
+                    )}
+                  </ul>
+                ) : (
+                  <p
+                    className="
+                      text-ghost-white
+                      text-sm
+                    "
+                  >
+                    —
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -1308,86 +1470,104 @@ export default function CloudhausWorkDetail() {
               md:gap-6
             "
           >
-            {gallery.map((item, index) => {
-              const src = item.src;
+            {gallery.map(
+              (item, index) => {
+                const src = item.src;
 
-              const isVideo =
-                item.mimeType?.startsWith(
-                  "video/"
-                );
+                const isVideo =
+                  item.mimeType?.startsWith(
+                    "video/"
+                  );
 
-              // Use the actual Sanity dimensions when
-              // available so the browser can calculate
-              // the correct aspect ratio immediately.
-              const imageWidth =
-                item.width || 2000;
+                // Use the actual Sanity dimensions when
+                // available so the browser can calculate
+                // the correct aspect ratio immediately.
 
-              const imageHeight =
-                item.height || 1400;
+                const imageWidth =
+                  item.width || 2000;
 
-              const optimizedImageSrc =
-                getOptimizedSanityImageUrl(
-                  src,
-                  1800,
-                  80
-                );
+                const imageHeight =
+                  item.height || 1400;
 
-              return (
-                <div
-                  key={
-                    item._key ||
-                    `gallery-${index}`
-                  }
-                  className="
-                    relative
-                    w-full
-                    overflow-hidden
-                    bg-zinc-950
-                  "
-                >
-                  {isVideo ? (
-                    <LazyGalleryVideo
-                      src={src}
-                    />
-                  ) : (
-                    <Image
-                      src={
-                        optimizedImageSrc ||
-                        src
+                // Landscape media spans both columns.
+                const isLandscape =
+                  imageWidth >
+                  imageHeight;
+
+                const optimizedImageSrc =
+                  getOptimizedSanityImageUrl(
+                    src,
+                    1800,
+                    80
+                  );
+
+                return (
+                  <div
+                    key={
+                      item._key ||
+                      `gallery-${index}`
+                    }
+                    className={`
+                      relative
+                      w-full
+                      overflow-hidden
+                      bg-zinc-950
+                      ${
+                        isLandscape
+                          ? "md:col-span-2"
+                          : "md:col-span-1"
                       }
-                      alt={`${project.title || "Project"} media ${
-                        index + 1
-                      }`}
-                      width={imageWidth}
-                      height={imageHeight}
-                      loading="lazy"
-                      sizes="
-                        (max-width: 768px) 100vw,
-                        50vw
-                      "
-                      quality={75}
-                      className="
-                        block
-                        w-full
-                        h-auto
-                        object-cover
-                        brightness-90
-                        hover:brightness-100
-                        transition-all
-                        duration-500
-                        ease-out
-                      "
-                      onError={() =>
-                        console.error(
-                          "Failed to load gallery image:",
+                    `}
+                  >
+                    {isVideo ? (
+                      <LazyGalleryVideo
+                        src={src}
+                      />
+                    ) : (
+                      <Image
+                        src={
+                          optimizedImageSrc ||
                           src
-                        )
-                      }
-                    />
-                  )}
-                </div>
-              );
-            })}
+                        }
+                        alt={`${project.title || "Project"} media ${
+                          index + 1
+                        }`}
+                        width={
+                          imageWidth
+                        }
+                        height={
+                          imageHeight
+                        }
+                        loading="lazy"
+                        sizes={
+                          isLandscape
+                            ? "100vw"
+                            : "(max-width: 768px) 100vw, 50vw"
+                        }
+                        quality={75}
+                        className="
+                          block
+                          w-full
+                          h-auto
+                          object-cover
+                          brightness-90
+                          hover:brightness-100
+                          transition-all
+                          duration-500
+                          ease-out
+                        "
+                        onError={() =>
+                          console.error(
+                            "Failed to load gallery image:",
+                            src
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+                );
+              }
+            )}
           </div>
         ) : (
           <div

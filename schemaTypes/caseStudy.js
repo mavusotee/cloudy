@@ -55,34 +55,34 @@ export default defineType({
     // =========================================================
 
     defineField({
-  name: "heroVideos",
-  title: "Hero Videos",
-  description:
-    "Upload one or more videos or add Cloudinary video URLs for the project hero.",
-  type: "array",
+      name: "heroVideos",
+      title: "Hero Videos",
+      description:
+        "Upload one or more videos or add Cloudinary video URLs for the project hero.",
+      type: "array",
 
-  of: [
-    {
-      type: "file",
-      options: {
-        accept: "video/*",
-      },
-    },
-    {
-      type: "object",
-      name: "cloudinaryVideo",
-      title: "Cloudinary Video",
-      fields: [
-        defineField({
-          name: "url",
-          title: "Cloudinary URL",
-          type: "url",
-          validation: (Rule) => Rule.required(),
-        }),
+      of: [
+        {
+          type: "file",
+          options: {
+            accept: "video/*",
+          },
+        },
+        {
+          type: "object",
+          name: "cloudinaryVideo",
+          title: "Cloudinary Video",
+          fields: [
+            defineField({
+              name: "url",
+              title: "Cloudinary URL",
+              type: "url",
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+        },
       ],
-    },
-  ],
-}),
+    }),
 
     // =========================================================
     // PROJECT OVERVIEW
@@ -122,6 +122,47 @@ export default defineType({
     }),
 
     // =========================================================
+    // CREDITS
+    // =========================================================
+
+    defineField({
+      name: "credits",
+      title: "Credits",
+      description:
+        "Add everyone involved in the project, including architects, designers, stylists, builders, photographers, and other collaborators.",
+      type: "array",
+
+      of: [
+        {
+          type: "object",
+          name: "credit",
+          title: "Credit",
+          fields: [
+            defineField({
+              name: "name",
+              title: "Name",
+              type: "string",
+              validation: (Rule) => Rule.required(),
+            }),
+
+            defineField({
+              name: "role",
+              title: "Role",
+              type: "string",
+            }),
+          ],
+
+          preview: {
+            select: {
+              title: "name",
+              subtitle: "role",
+            },
+          },
+        },
+      ],
+    }),
+
+    // =========================================================
     // GALLERY
     // =========================================================
 
@@ -130,14 +171,14 @@ export default defineType({
       title: "Gallery",
 
       description:
-        "Upload up to 16 images or videos. Portrait and landscape media are supported.",
+        "Upload up to 26 images or videos. Portrait and landscape media are supported.",
 
       type: "array",
 
       validation: (Rule) =>
-        Rule.max(16).error(
-          "You can upload a maximum of 16 gallery items."
-        ),
+  Rule.max(26).error(
+    "You can upload a maximum of 26 gallery items."
+  ),
 
       options: {
         layout: "grid",
