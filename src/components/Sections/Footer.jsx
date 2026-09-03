@@ -400,13 +400,13 @@ Great work deserves to be seen.`}
             <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
               <span data-footer-meta>BASED IN ADELAIDE</span>
 
-              <TransitionLink
-                href="/Privacy-Policy"
+              <h2
+                
                 data-footer-meta
                 className="hover:opacity-70 transition-opacity"
               >
-               ARCHITECTURE/ CONSTRUCTION/ MEDIA
-              </TransitionLink>
+               ARCHITECTURE / CONSTRUCTION / MEDIA
+              </h2>
             </div>
 
             <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">

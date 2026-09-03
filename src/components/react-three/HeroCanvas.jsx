@@ -257,7 +257,8 @@ const SmudgeTransitionShader = {
 
 
       vec3 a0 =
-        x - ox;
+        x -
+        ox;
 
 
       m *=
@@ -289,22 +290,6 @@ const SmudgeTransitionShader = {
 
 
     void main() {
-
-      vec2 uvA =
-        getCoverUv(
-          vUv,
-          uResolution,
-          uVideoResA
-        );
-
-
-      vec2 uvB =
-        getCoverUv(
-          vUv,
-          uResolution,
-          uVideoResB
-        );
-
 
       // =====================================================
       // ORIGINAL TRANSITION LOGIC — UNTOUCHED
@@ -346,47 +331,17 @@ const SmudgeTransitionShader = {
 
 
       // =====================================================
-      // THICK GEL HOVER — EXTRA THICK, LESS WATERY
+      // CINEMATIC HOVER — DOLLY PUSH-IN
       // =====================================================
 
       /*
-        EXTREMELY SLOW TIME FIELD
+        Instead of warping the image, the hover now behaves
+        like a camera operator subtly pushing in toward the
+        cursor — a very small dolly zoom, the way a director
+        pulls focus toward a point of interest.
 
-        Watery motion comes from noise fields that evolve
-        too quickly. Slowing this down further makes the
-        gel feel like it has real inertia — a heavy mass
-        settling rather than rippling liquid.
+        The footage itself is never distorted. Only framed.
       */
-
-      float gelNoiseX =
-        snoise(
-
-          vUv * 2.8 +
-
-          vec2(
-            uTime * 0.03,
-            uTime * 0.018
-          )
-
-        );
-
-
-      float gelNoiseY =
-        snoise(
-
-          vUv * 3.2 -
-
-          vec2(
-            uTime * 0.02,
-            uTime * 0.032
-          )
-
-        );
-
-
-      // =====================================================
-      // MOUSE DISTANCE
-      // =====================================================
 
       vec2 mouseDelta =
         vUv -
@@ -404,134 +359,48 @@ const SmudgeTransitionShader = {
         );
 
 
-      /*
-        Larger radius gives the goo enough physical mass
-        around the cursor.
-      */
-
-      float hoverRadius =
-        0.48;
-
-
-      /*
-        Much sharper inner falloff creates a dense, solid
-        blob with a defined edge instead of a soft watery
-        gradient that fades out gently.
-      */
-
-      float mouseInfluence =
-        1.0 -
+      float spotlight =
         smoothstep(
-
+          0.78,
           0.0,
-
-          hoverRadius,
-
           mouseDistance
-
-        );
-
-
-      mouseInfluence =
-        pow(
-          mouseInfluence,
-          2.4
-        );
-
-
-      mouseInfluence *=
+        )
+        *
         uHover;
 
 
-      // =====================================================
-      // THICK GEL BODY
-      // =====================================================
+      float dollyAmount =
+        uHover * 0.032;
 
-      /*
-        Low-frequency noise creates large,
-        slow-moving blobs.
 
-        High-frequency detail is pushed down to a lower
-        frequency and much lower weight than before — that
-        fine ripple is exactly what reads as "watery", so
-        it's almost entirely suppressed here.
-      */
+      vec2 dollyUv =
+        uMouse +
+        (vUv - uMouse) *
+        (1.0 - dollyAmount);
 
-      float thickBody =
-        snoise(
-          vUv * 2.1 +
-          vec2(
-            uTime * 0.014,
-            -uTime * 0.01
-          )
+
+      vec2 uvA =
+        getCoverUv(
+          dollyUv,
+          uResolution,
+          uVideoResA
         );
 
 
-      float thickDetail =
-        snoise(
-          vUv * 3.0 +
-          vec2(
-            -uTime * 0.01,
-            uTime * 0.007
-          )
+      vec2 uvB =
+        getCoverUv(
+          dollyUv,
+          uResolution,
+          uVideoResB
         );
 
 
-      float gelShape =
-        thickBody * 0.9 +
-        thickDetail * 0.08;
+      vec2 distortedUvA =
+        uvA;
 
 
-      /*
-        Higher base mass so the gel always reads as a
-        substantial, opaque-feeling body rather than a
-        thin film, with the noise only shaping it subtly.
-      */
-
-      float gelMass =
-        mouseInfluence *
-        (
-          0.85 +
-          gelShape * 0.3
-        );
-
-
-      // =====================================================
-      // SLOW GEL MOVEMENT
-      // =====================================================
-
-      vec2 gelDirection =
-        vec2(
-          gelNoiseX,
-          gelNoiseY
-        );
-
-
-      /*
-        Smaller movement distance than before.
-
-        Truly thick gel barely travels — it just bulges
-        and settles in place instead of sloshing around.
-      */
-
-      vec2 hoverOffset =
-        gelDirection *
-        0.055 *
-        gelMass;
-
-
-      /*
-        Minimal directional stretching — enough to feel
-        alive, not enough to look fluid or splashy.
-      */
-
-      hoverOffset +=
-        vec2(
-          gelShape * 0.01,
-          -gelShape * 0.008
-        )
-        *
-        mouseInfluence;
+      vec2 distortedUvB =
+        uvB;
 
 
       // =====================================================
@@ -555,49 +424,90 @@ const SmudgeTransitionShader = {
         uDirection;
 
 
-      vec2 distortedUvA =
-        uvA +
-        smudgeOffset +
-        hoverOffset;
+      distortedUvA +=
+        smudgeOffset;
 
 
-      vec2 distortedUvB =
-        uvB -
+      distortedUvB -=
         smudgeOffset *
-        (1.0 - uProgress) +
-        hoverOffset;
+        (1.0 - uProgress);
 
 
       // =====================================================
-      // THICKER RGB GEL
+      // GATE WEAVE
       // =====================================================
 
       /*
-        Chromatic separation dialed back — heavy prismatic
-        shimmer reads as liquid/oily. Keeping it subtle
-        preserves a dense, opaque, less "wet" look.
+        A tiny, slow positional drift — the way real film
+        wobbles slightly in an old projector gate. Barely
+        perceptible on its own, but it's what keeps the
+        grain below from reading as a flat digital filter.
       */
 
-      float rgbGel =
-        gelMass *
-        (
-          0.038 +
-          abs(gelShape) * 0.01
+      vec2 weave =
+        vec2(
+          snoise(vec2(uTime * 0.55, 11.0)),
+          snoise(vec2(31.0, uTime * 0.5))
+        )
+        *
+        uHover
+        *
+        0.0022;
+
+      distortedUvA +=
+        weave;
+
+      distortedUvB +=
+        weave;
+
+
+      // =====================================================
+      // CHROMATIC ABERRATION
+      // =====================================================
+
+      /*
+        The transition keeps its original RGB motion.
+
+        The hover now contributes a clean, radial anamorphic
+        fringe centered on the cursor rather than an organic
+        noise-driven smear — closer to the way a real lens
+        separates color under strain.
+      */
+
+      float transitionRgb =
+        transitionVelocity *
+        0.028 *
+        uDirection;
+
+
+      vec2 abDir =
+        mouseDistance > 0.0001
+          ? normalize(mouseDelta)
+          : vec2(1.0, 0.0);
+
+
+      float hoverFade =
+        smoothstep(
+          0.0,
+          1.0,
+          uHover
         );
+
+
+      float hoverRgb =
+        spotlight *
+        hoverFade *
+        0.011;
 
 
       float rgbSplit =
-        (
-          transitionVelocity *
-          0.04 *
-          uDirection
-        )
-        +
-        (
-          rgbGel *
-          gelNoiseX
-        );
+        transitionRgb +
+        hoverRgb;
 
+
+      // =====================================================
+      // TEXTURE A
+      // =====================================================
 
       vec4 colA =
         vec4(0.0);
@@ -609,18 +519,20 @@ const SmudgeTransitionShader = {
           uTextureA,
 
           distortedUvA +
-          vec2(
-            rgbSplit,
-            rgbSplit * 0.5
-          )
+
+          abDir *
+          rgbSplit
 
         ).r;
 
 
       colA.g =
         texture2D(
+
           uTextureA,
+
           distortedUvA
+
         ).g;
 
 
@@ -630,10 +542,9 @@ const SmudgeTransitionShader = {
           uTextureA,
 
           distortedUvA -
-          vec2(
-            rgbSplit,
-            rgbSplit * 0.5
-          )
+
+          abDir *
+          rgbSplit
 
         ).b;
 
@@ -641,6 +552,10 @@ const SmudgeTransitionShader = {
       colA.a =
         1.0;
 
+
+      // =====================================================
+      // TEXTURE B
+      // =====================================================
 
       vec4 colB =
         vec4(0.0);
@@ -652,18 +567,21 @@ const SmudgeTransitionShader = {
           uTextureB,
 
           distortedUvB -
-          vec2(
-            rgbSplit * 0.8,
-            rgbSplit * 0.4
-          )
+
+          abDir *
+          rgbSplit *
+          0.8
 
         ).r;
 
 
       colB.g =
         texture2D(
+
           uTextureB,
+
           distortedUvB
+
         ).g;
 
 
@@ -673,10 +591,10 @@ const SmudgeTransitionShader = {
           uTextureB,
 
           distortedUvB +
-          vec2(
-            rgbSplit * 0.8,
-            rgbSplit * 0.4
-          )
+
+          abDir *
+          rgbSplit *
+          0.8
 
         ).b;
 
@@ -1027,6 +945,14 @@ function ShaderPlane({
     useRef(null)
 
 
+  const idleTimeoutRef =
+    useRef(null)
+
+
+  const isHoveredRef =
+    useRef(false)
+
+
   const activeSlotRef =
     useRef(0)
 
@@ -1089,11 +1015,6 @@ function ShaderPlane({
           targetMouseRef.current
 
 
-        /*
-          Slower than before, but not so slow that
-          the gel feels disconnected from the cursor.
-        */
-
         const followSpeed =
           4.2
 
@@ -1126,17 +1047,93 @@ function ShaderPlane({
 
 
   // =======================================================
-  // MOUSE GOO
+  // CURSOR TRACKING + IDLE-DRIVEN HOVER REVEAL
   // =======================================================
+
+  /*
+    The cinematic treatment (dolly push-in, aberration,
+    weave) should track actual movement, not just "is the
+    cursor somewhere over the canvas". So: every real
+    mousemove wakes uHover toward 1, and resets a short
+    idle timer that eases it back to 0 once the cursor
+    stops moving — not just once it leaves the canvas.
+  */
 
   useEffect(() => {
 
-    let lastX =
-      0.5
+    isHoveredRef.current =
+      isHovered
 
 
-    let lastY =
-      0.5
+    if (
+      !isHovered &&
+      materialRef.current
+    ) {
+
+      if (
+        idleTimeoutRef.current
+      ) {
+
+        clearTimeout(
+          idleTimeoutRef.current
+        )
+
+        idleTimeoutRef.current =
+          null
+
+      }
+
+
+      if (
+        hoverTweenRef.current
+      ) {
+
+        hoverTweenRef.current.kill()
+
+      }
+
+
+      hoverTweenRef.current =
+        gsap.to(
+
+          materialRef.current
+            .uniforms
+            .uHover,
+
+          {
+
+            value:
+              0.0,
+
+            duration:
+              1.4,
+
+            ease:
+              'power2.inOut'
+
+          }
+
+        )
+
+    }
+
+  }, [
+    isHovered
+  ])
+
+
+  useEffect(() => {
+
+    const idleDelay =
+      450
+
+
+    const wakeDuration =
+      0.6
+
+
+    const sleepDuration =
+      1.2
 
 
     const handleMouseMove =
@@ -1191,97 +1188,113 @@ function ShaderPlane({
         )
 
 
-        const movement =
-          Math.sqrt(
-
-            Math.pow(
-              x - lastX,
-              2
-            )
-
-            +
-
-            Math.pow(
-              y - lastY,
-              2
-            )
-
-          )
-
-
         if (
-
-          movement >
-          0.001 &&
-
-          isHovered
-
+          !isHoveredRef.current
         ) {
 
-          if (
-            hoverTweenRef.current
-          ) {
-
-            hoverTweenRef.current.kill()
-
-          }
-
-
-          /*
-            The goo appears quickly,
-            but then stays around as a thick remnant.
-
-            The fade is deliberately long and gentle.
-          */
-
-          hoverTweenRef.current =
-            gsap.fromTo(
-
-              materialRef.current
-                .uniforms
-                .uHover,
-
-              {
-
-                value:
-                  Math.max(
-                    materialRef.current
-                      .uniforms
-                      .uHover
-                      .value,
-
-                    0.75
-                  )
-
-              },
-
-              {
-
-                value:
-                  0.0,
-
-                delay:
-                  0.85,
-
-                duration:
-                  3.2,
-
-                ease:
-                  'power3.out'
-
-              }
-
-            )
+          return
 
         }
 
 
-        lastX =
-          x
+        // wake — the cursor is actively moving
+
+        if (
+          hoverTweenRef.current
+        ) {
+
+          hoverTweenRef.current.kill()
+
+        }
 
 
-        lastY =
-          y
+        hoverTweenRef.current =
+          gsap.to(
+
+            materialRef.current
+              .uniforms
+              .uHover,
+
+            {
+
+              value:
+                1.0,
+
+              duration:
+                wakeDuration,
+
+              ease:
+                'power2.out'
+
+            }
+
+          )
+
+
+        // reset the idle timer — sleep only fires once
+        // movement actually stops for idleDelay ms
+
+        if (
+          idleTimeoutRef.current
+        ) {
+
+          clearTimeout(
+            idleTimeoutRef.current
+          )
+
+        }
+
+
+        idleTimeoutRef.current =
+          setTimeout(
+
+            () => {
+
+              if (
+                !materialRef.current
+              ) {
+
+                return
+
+              }
+
+
+              if (
+                hoverTweenRef.current
+              ) {
+
+                hoverTweenRef.current.kill()
+
+              }
+
+
+              hoverTweenRef.current =
+                gsap.to(
+
+                  materialRef.current
+                    .uniforms
+                    .uHover,
+
+                  {
+
+                    value:
+                      0.0,
+
+                    duration:
+                      sleepDuration,
+
+                    ease:
+                      'power2.inOut'
+
+                  }
+
+                )
+
+            },
+
+            idleDelay
+
+          )
 
       }
 
@@ -1299,11 +1312,21 @@ function ShaderPlane({
         handleMouseMove
       )
 
+
+      if (
+        idleTimeoutRef.current
+      ) {
+
+        clearTimeout(
+          idleTimeoutRef.current
+        )
+
+      }
+
     }
 
   }, [
-    gl,
-    isHovered
+    gl
   ])
 
 
@@ -2352,7 +2375,7 @@ export default function HeroCanvas({
         frameloop="always"
 
 
-        onCreated={({
+        onCreated={( {
           gl
         }) => {
 
@@ -2368,6 +2391,7 @@ export default function HeroCanvas({
           )
 
         }}
+
 
       >
 
