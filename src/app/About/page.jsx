@@ -6,12 +6,13 @@ import Image from 'next/image'
 import Lenis from 'lenis'
 import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Link from 'next/link'
 import TransitionLink from '@/components/PageTransitions/TransitionLink'
 import BlurFlicker from '@/components/Animations/BlurFlicker'
 import { useGSAP } from '@gsap/react'
 
-gsap.registerPlugin(SplitText)
+gsap.registerPlugin(SplitText, ScrollTrigger)
 
 /* =========================================================
    SPLIT LINES REVEAL
@@ -153,10 +154,7 @@ function ImageReveal() {
         fill
         priority
         quality={80}
-        sizes="
-          (max-width: 1023px) 220px,
-          460px
-        "
+        sizes="(max-width: 1023px) 220px,460px"
         className="
           object-cover
           will-change-transform
@@ -184,10 +182,53 @@ function ImageReveal() {
 
 export default function Page() {
   /* =======================================================
+     BOTTOM CONTENT REVEAL
+     ======================================================= */
+
+  const bottomContentRef = useRef(null)
+
+  useGSAP(
+    () => {
+      if (!bottomContentRef.current) return
+
+      const elements = bottomContentRef.current.querySelectorAll('h1, a')
+
+      if (!elements.length) return
+
+      gsap.set(elements, {
+        opacity: 0,
+        y: 30,
+        filter: 'blur(8px)',
+        force3D: true,
+      })
+
+      gsap.to(elements, {
+        opacity: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 0.8,
+        ease: 'power3.out',
+        stagger: 0.12,
+        force3D: true,
+        scrollTrigger: {
+          trigger: bottomContentRef.current,
+          start: 'top 88%',
+          once: true,
+        },
+      })
+    },
+    {
+      scope: bottomContentRef,
+    }
+  )
+
+  /* =======================================================
      LENIS
      ======================================================= */
 
   useEffect(() => {
+    window.scrollTo(0, 0)
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -325,7 +366,7 @@ export default function Page() {
                 >
                   <p>0404 104 360</p>
                   <p>ADELAIDE, SOUTH AUSTRALIA</p>
-                  <p>info@cloudhaus.com.au</p>
+                  <a className="hover:text-zinc-600 hover:font-medium transition trransition-all duration-500" href="mailto:hello@cloudhaus.com">hello@cloudhaus.com</a>
                 </div>
               </div>
             </div>
@@ -405,7 +446,7 @@ export default function Page() {
               >
                 <BlurFlicker>
                   <a
-                    href="https://www.instagram.com/"
+                    href="https://www.instagram.com/cloudhausmedia/?utm_source=ig_web_button_share_sheet"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:opacity-60 transition-opacity duration-300"
@@ -414,20 +455,11 @@ export default function Page() {
                   </a>
                 </BlurFlicker>
 
-                <BlurFlicker>
-                  <a
-                    href="https://www.facebook.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:opacity-60 transition-opacity duration-300"
-                  >
-                    FACEBOOK
-                  </a>
-                </BlurFlicker>
+               
 
                 <BlurFlicker>
                   <a
-                    href="https://vimeo.com/"
+                    href="https://vimeo.com/user135969253"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:opacity-60 transition-opacity duration-300"
@@ -462,7 +494,7 @@ export default function Page() {
             className="
               font-geist-mono
               font-medium
-              text-[clamp(0.6rem,1vw,0.85rem)]
+              text-[clamp(0.4rem,1vw,0.85rem)]
               text-zinc-400
               tracking-tight
               text-left
@@ -482,6 +514,7 @@ export default function Page() {
       ================================================= */}
 
       <div
+        ref={bottomContentRef}
         className="
           flex
           flex-col-reverse

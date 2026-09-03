@@ -85,7 +85,7 @@ function Footer() {
           scrollTrigger: {
             trigger: logoRef.current,
             start: "top 90%",
-            toggleActions: "play none none none",
+            toggleActions: "play none none reverse",
           },
         }
       );
@@ -111,13 +111,13 @@ function Footer() {
         },
         {
           opacity: 1,
-          duration: 1,
+          duration: 1.2,
           ease: "power3.out",
           stagger: 0.12,
           scrollTrigger: {
             trigger: footerInfoRef.current,
             start: "top 80%",
-            toggleActions: "play none none none",
+            toggleActions: "play none none reverse",
           },
         }
       );
@@ -148,7 +148,7 @@ function Footer() {
           scrollTrigger: {
             trigger: metaRef.current,
             start: "top 95%",
-            toggleActions: "play none none none",
+            toggleActions: "play none none reverse",
           },
         }
       );
@@ -405,14 +405,14 @@ Great work deserves to be seen.`}
                 data-footer-meta
                 className="hover:opacity-70 transition-opacity"
               >
-               ARCHITECTURE / CONSTRUCTION / MEDIA
+               ARCHITECTURE / CONSTRUCTION / MORE
               </h2>
             </div>
 
             <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
               <TransitionLink
-                href="mailto:hello@cloudhausmedia"
                 data-footer-meta
+                href="mailto:hello@cloudhausmedia"
                 className="hover:opacity-70 transition-opacity"
               >
                 GET IN TOUCH

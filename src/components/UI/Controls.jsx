@@ -119,7 +119,7 @@ function Controls({
       <div className="hidden md:flex flex-col items-start justify-start space-y-1 w-[clamp(140px,30vw,360px)]">
         <div className="overflow-hidden pb-0.5">
           <h1 className="mask-text font-sans font-semibold text-[clamp(0.5rem,0.45rem+0.2vw,0.925rem)] block origin-left">
-            CLOUDHAUS STUDIO
+            CLOUDHAUS MEDIA
           </h1>
         </div>
 

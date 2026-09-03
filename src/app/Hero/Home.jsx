@@ -11,8 +11,14 @@ import gsap from 'gsap'
 const getMobileOptimizedUrl = (url) => {
   if (!url) return url
 
-  if (typeof window !== 'undefined' && window.innerWidth <= 768) {
-    return url.replace('/upload/', '/upload/q_auto,f_auto,w_720,vc_h264/')
+  if (
+    typeof window !== 'undefined' &&
+    window.innerWidth <= 768
+  ) {
+    return url.replace(
+      '/upload/',
+      '/upload/q_auto,f_mp4,w_720,vc_h264/'
+    )
   }
 
   return url
@@ -216,99 +222,131 @@ function Home() {
   }, [isLoaded])
 
   const handleVideoInit = useCallback((videoEl) => {
-    if (!videoEl) return
+  if (!videoEl) return
 
-    activeVideoRef.current = videoEl
-    videoEl.muted = isMuted
+  activeVideoRef.current = videoEl
 
-    videoEl.setAttribute('playsinline', 'true')
-    videoEl.setAttribute('webkit-playsinline', 'true')
+  videoEl.muted = isMuted
+  videoEl.defaultMuted = isMuted
+  videoEl.setAttribute('playsinline', 'true')
+  videoEl.setAttribute('webkit-playsinline', 'true')
 
-    const updateDuration = () => {
-      if (videoEl.duration && !isNaN(videoEl.duration)) {
-        setDuration(formatTime(videoEl.duration))
-      }
+  const updateDuration = () => {
+    if (videoEl.duration && !isNaN(videoEl.duration)) {
+      setDuration(formatTime(videoEl.duration))
     }
+  }
 
-    const handleProgress = () => {
-      if (videoEl.buffered.length > 0 && videoEl.duration) {
-        const bufferedEnd =
-          videoEl.buffered.end(videoEl.buffered.length - 1)
+  const updateCurrentTime = () => {
+  if (
+    videoEl.duration !== undefined &&
+    !isNaN(videoEl.duration) &&
+    !isNaN(videoEl.currentTime)
+  ) {
+    const remaining = Math.max(
+      0,
+      videoEl.duration - videoEl.currentTime
+    )
 
-        const pct = Math.min(
-          100,
-          Math.round((bufferedEnd / videoEl.duration) * 100)
-        )
+    setDuration(formatTime(remaining))
+  }
+}
 
-        targetProgress.current = Math.max(
-          targetProgress.current,
-          pct
-        )
-      }
-    }
+ videoEl.addEventListener('timeupdate', updateCurrentTime)
 
-    if (videoEl.readyState >= 1) {
-      updateDuration()
+  // Set the initial countdown immediately
+  updateCurrentTime()
+
+  const handleProgress = () => {
+    if (videoEl.buffered.length > 0 && videoEl.duration) {
+      const bufferedEnd =
+        videoEl.buffered.end(videoEl.buffered.length - 1)
+
+      const pct = Math.min(
+        100,
+        Math.round((bufferedEnd / videoEl.duration) * 100)
+      )
+
       targetProgress.current = Math.max(
         targetProgress.current,
-        85
+        pct
       )
     }
+  }
 
-    if (videoEl.readyState >= 3) {
+  if (videoEl.readyState >= 1) {
+    updateDuration()
+
+    targetProgress.current = Math.max(
+      targetProgress.current,
+      85
+    )
+  }
+
+  if (videoEl.readyState >= 3) {
+    targetProgress.current = 100
+  }
+
+  videoEl.addEventListener(
+    'loadedmetadata',
+    updateDuration
+  )
+
+  videoEl.addEventListener(
+    'durationchange',
+    updateDuration
+  )
+
+  videoEl.addEventListener(
+    'timeupdate',
+    updateCurrentTime
+  )
+
+  videoEl.addEventListener(
+    'progress',
+    handleProgress
+  )
+
+  videoEl.addEventListener(
+    'canplay',
+    () => {
       targetProgress.current = 100
     }
+  )
 
-    videoEl.addEventListener(
+  const playPromise = videoEl.play()
+
+  if (playPromise !== undefined) {
+    playPromise.catch((err) => {
+      console.warn(
+        'Autoplay restricted or deferred:',
+        err
+      )
+    })
+  }
+
+  return () => {
+    videoEl.removeEventListener(
       'loadedmetadata',
       updateDuration
     )
 
-    videoEl.addEventListener(
+    videoEl.removeEventListener(
       'durationchange',
       updateDuration
     )
 
-    videoEl.addEventListener(
+    videoEl.removeEventListener(
+      'timeupdate',
+      updateCurrentTime
+    )
+
+    videoEl.removeEventListener(
       'progress',
       handleProgress
     )
-
-    videoEl.addEventListener(
-      'canplaythrough',
-      () => {
-        targetProgress.current = 100
-      }
-    )
-
-    const playPromise = videoEl.play()
-
-    if (playPromise !== undefined) {
-      playPromise.catch((err) => {
-        console.warn(
-          "Autoplay restricted or deferred:",
-          err
-        )
-      })
-    }
-
-    return () => {
-      videoEl.removeEventListener(
-        'loadedmetadata',
-        updateDuration
-      )
-
-      videoEl.removeEventListener(
-        'durationchange',
-        updateDuration
-      )
-
-      videoEl.removeEventListener(
-        'progress',
-        handleProgress
-      )
-    }
-  }, [isMuted])
+  }
+}, [isMuted])
 
   const handleToggleSound = () => {
     const nextMutedState = !isMuted

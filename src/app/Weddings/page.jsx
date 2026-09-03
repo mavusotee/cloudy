@@ -25,6 +25,7 @@ import * as THREE from "three";
 import Navigation from "@/components/UI/Navigation";
 import { groq } from "next-sanity";
 import { client } from "@/lib/client";
+import BottomContent from "@/components/Sections/SmallFooter";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -1443,101 +1444,7 @@ export default function WeddingsSection() {
             BOTTOM CONTENT
         ================================================= */}
 
-        <div
-          className="
-            flex
-            flex-col-reverse
-            md:flex-row
-            items-start
-            md:items-end
-            justify-between
-            font-geist-mono
-            text-ghost-white
-            text-[clamp(0.3rem,2.5vw,0.725rem)]
-            uppercase
-            w-full
-            gap-[clamp(0.55rem,0.8vw,1.5rem)]
-            pt-16
-            md:pt-48
-            px-2
-            md:px-4
-          "
-        >
-          <div
-            className="
-              flex
-              flex-row
-              md:contents
-              justify-between
-              w-full
-              md:w-auto
-            "
-          >
-            <div
-              className="
-                flex
-                flex-col
-                md:flex-row
-                space-y-0
-                space-x-[clamp(0.5rem,4.5vw,6rem)]
-              "
-            >
-              <h1>BASED IN ADELAIDE</h1>
-
-              <h1>
-                ARCHITECTURE / CONSTRUCTION /
-                MEDIA
-              </h1>
-            </div>
-
-            <div
-              className="
-                flex
-                flex-col
-                md:flex-row
-                space-y-0
-                space-x-[clamp(0.5rem,4.5vw,6rem)]
-              "
-            >
-              <BlurFlicker>
-                <a
-                  href="mailto:info@cloudhaus.com.au"
-                  className="hover:opacity-60 transition-opacity duration-300"
-                >
-                  GET IN TOUCH
-                </a>
-              </BlurFlicker>
-
-              <BlurFlicker>
-                <a
-                  href="https://www.withzane.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold hover:opacity-60 transition-opacity duration-300"
-                >
-                  WEBSITE BY: ZANE
-                </a>
-              </BlurFlicker>
-            </div>
-          </div>
-
-          <div
-            className="
-              flex
-              flex-row
-              space-x-[clamp(0.5rem,4.5vw,6rem)]
-            "
-          >
-            <BlurFlicker>
-              <TransitionLink
-                href="/"
-                className="font-bold"
-              >
-                BACK TO HOME
-              </TransitionLink>
-            </BlurFlicker>
-          </div>
-        </div>
+        <BottomContent />
       </div>
     </>
   );

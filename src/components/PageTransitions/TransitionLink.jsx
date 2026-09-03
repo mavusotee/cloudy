@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -29,6 +30,7 @@ export default function TransitionLink({
     );
 
     if (!overlay) {
+      window.scrollTo(0, 0);
       router.push(href);
       return;
     }
@@ -64,6 +66,11 @@ export default function TransitionLink({
     // =======================================================
 
     tl.call(() => {
+      // Reset scroll before mounting the new route.
+      // This prevents the previous page's scroll position
+      // from being carried into the new page.
+      window.scrollTo(0, 0);
+
       router.push(href);
 
       // =====================================================
@@ -147,3 +154,4 @@ export default function TransitionLink({
     </Link>
   );
 }
+

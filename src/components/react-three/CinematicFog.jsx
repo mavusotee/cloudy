@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, {
@@ -28,7 +27,6 @@ function useIsClient() {
 class WebGLSceneErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-
     this.state = {
       hasError: false,
     };
@@ -99,7 +97,7 @@ function WebGLContextGuard() {
 }
 
 /* =========================================================
-   RADIAL STEAM
+   RADIAL STEAM (ORIGINAL CLOUD DATA PRESERVED)
 ========================================================= */
 
 function RadialVaporRing() {
@@ -107,6 +105,23 @@ function RadialVaporRing() {
 
   const smoothScroll = useRef(0);
   const smoothDepth = useRef(0);
+  const docHeightRef = useRef(1);
+
+  // Cache document height on resize to prevent layout thrashing inside useFrame
+  useEffect(() => {
+    const updateDocHeight = () => {
+      if (typeof document !== "undefined") {
+        const docElement = document.documentElement;
+        docHeightRef.current = docElement
+          ? Math.max(1, docElement.scrollHeight - window.innerHeight)
+          : 1;
+      }
+    };
+
+    updateDocHeight();
+    window.addEventListener("resize", updateDocHeight, { passive: true });
+    return () => window.removeEventListener("resize", updateDocHeight);
+  }, []);
 
   useFrame((state, delta) => {
     const container = containerRef.current;
@@ -134,25 +149,11 @@ function RadialVaporRing() {
        DOCUMENT PROGRESS
     ======================================================= */
 
-    const docElement =
-      typeof document !== "undefined"
-        ? document.documentElement
-        : null;
-
-    const docHeight =
-      docElement
-        ? docElement.scrollHeight - window.innerHeight
-        : 0;
-
-    let progress = 0;
-
-    if (docHeight > 0) {
-      progress = THREE.MathUtils.clamp(
-        scrollState.current / docHeight,
-        0,
-        1
-      );
-    }
+    const progress = THREE.MathUtils.clamp(
+      scrollState.current / docHeightRef.current,
+      0,
+      1
+    );
 
     /* =======================================================
        CONTROLLED CLOUD PULL
@@ -225,7 +226,6 @@ function RadialVaporRing() {
 
         {/* =================================================
             TOP ATMOSPHERE
-            Suspended around the upper edge.
         ================================================= */}
 
         <group
@@ -260,8 +260,6 @@ function RadialVaporRing() {
 
         {/* =================================================
             TOP CENTER ATMOSPHERE
-
-            Kept high enough to avoid filling the middle.
         ================================================= */}
 
         <group
@@ -281,7 +279,6 @@ function RadialVaporRing() {
 
         {/* =================================================
             BOTTOM ATMOSPHERE
-            Suspended around the lower edge.
         ================================================= */}
 
         <group
@@ -316,8 +313,6 @@ function RadialVaporRing() {
 
         {/* =================================================
             BOTTOM CENTER ATMOSPHERE
-
-            Kept low to preserve the central opening.
         ================================================= */}
 
         <group
@@ -346,84 +341,11 @@ function RadialVaporRing() {
 
 export default function GlobalCinematicFog() {
   const isClient = useIsClient();
-  const wrapperRef = useRef();
-
-  useEffect(() => {
-    if (!isClient) return;
-
-    let animationFrameId = null;
-    let cancelled = false;
-
-    const updateOpacity = () => {
-      if (cancelled) return;
-
-      const wrapper = wrapperRef.current;
-
-      if (wrapper) {
-        const docElement =
-          typeof document !== "undefined"
-            ? document.documentElement
-            : null;
-
-        const docHeight =
-          docElement
-            ? docElement.scrollHeight -
-              window.innerHeight
-            : 0;
-
-        if (docHeight > 0) {
-          const progress =
-            THREE.MathUtils.clamp(
-              scrollState.current / docHeight,
-              0,
-              1
-            );
-
-          const fade =
-            0.42 +
-            Math.abs(
-              Math.cos(
-                progress * Math.PI
-              )
-            ) *
-              0.18;
-
-          wrapper.style.opacity =
-            fade.toFixed(3);
-        }
-      }
-
-      if (!cancelled) {
-        animationFrameId =
-          requestAnimationFrame(
-            updateOpacity
-          );
-      }
-    };
-
-    animationFrameId =
-      requestAnimationFrame(
-        updateOpacity
-      );
-
-    return () => {
-      cancelled = true;
-
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(
-          animationFrameId
-        );
-
-        animationFrameId = null;
-      }
-    };
-  }, [isClient]);
 
   if (!isClient) return null;
 
   return (
     <div
-      ref={wrapperRef}
       className="fixed inset-0 w-full h-full pointer-events-none z-40 overflow-hidden"
       style={{
         pointerEvents: "none",
@@ -431,15 +353,16 @@ export default function GlobalCinematicFog() {
     >
       <WebGLSceneErrorBoundary>
         <Canvas
+          dpr={[1, 1.5]} // Caps pixel density to prevent 3x render overhead on high-DPR phones
           camera={{
             position: [0, 0, 7],
             fov: 75,
           }}
           gl={{
-            powerPreference:
-              "high-performance",
+            powerPreference: "high-performance",
             antialias: false,
             alpha: true,
+            stencil: false,
           }}
           style={{
             pointerEvents: "none",
@@ -473,4 +396,3 @@ export default function GlobalCinematicFog() {
     </div>
   );
 }
-
