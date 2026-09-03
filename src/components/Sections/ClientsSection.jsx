@@ -21,37 +21,38 @@ function ClientsSection() {
   // =========================================================
 
   const clients = [
-  {
-    name: "KRIVIC",
-    src: KRIVICLogo,
-    logoClass: "w-[65%] h-[65%]",
-  },
-  {
-    name: "Morgan Build",
-    src: MorganBuildLogo,
-    logoClass: "w-full h-full",
-  },
-  {
-    name: "Circa",
-    src: CircaLogo,
-    logoClass: "w-[65%] h-[65%]",
-  },
-  {
-    name: "TBC",
-    src: Client4Logo,
-    logoClass: "w-[65%] h-[65%]",
-  },
-  {
-    name: "4Life Constructions",
-    src: Client5Logo,
-    logoClass: "w-[65%] h-[65%]",
-  },
-  {
-    name: "NB",
-    src: Client6Logo,
-    logoClass: "w-full h-full scale-[1.35]",
-  },
-];
+    {
+      name: "KRIVIC",
+      src: KRIVICLogo,
+      logoClass: "w-[clamp(8rem,12vw,13rem)] h-[clamp(4rem,7vw,7rem)]",
+    },
+    {
+      name: "Morgan Build",
+      src: MorganBuildLogo,
+      logoClass: "w-[clamp(10rem,16vw,18rem)] h-[clamp(5rem,9vw,9rem)]",
+    },
+    {
+      name: "Circa",
+      src: CircaLogo,
+      logoClass: "w-[clamp(8rem,12vw,13rem)] h-[clamp(4rem,7vw,7rem)]",
+    },
+    {
+      name: "TBC",
+      src: Client4Logo,
+      logoClass: "w-[clamp(8rem,12vw,13rem)] h-[clamp(4rem,7vw,7rem)]",
+    },
+    {
+      name: "4Life Constructions",
+      src: Client5Logo,
+      logoClass: "w-[clamp(8rem,12vw,13rem)] h-[clamp(4rem,7vw,7rem)]",
+    },
+    {
+      name: "NB",
+      src: Client6Logo,
+      logoClass:
+        "w-[clamp(9rem,14vw,15rem)] h-[clamp(5rem,8vw,8rem)] scale-[1.35]",
+    },
+  ];
 
   useEffect(() => {
     const track = trackRef.current;
@@ -214,7 +215,7 @@ function ClientsSection() {
         shrink-0
         border
         border-eclipse
-        bg-black
+        bg-carbon-black
         flex
         items-center
         justify-center
@@ -256,10 +257,10 @@ function ClientsSection() {
 
       {/* CONTENT */}
 
-      <div className="flex flex-col space-y-[clamp(1.5rem,4vw,4.5rem)] mt-[clamp(1.5rem,3.5vw,1.5rem)] mb-10">
+      <div className="flex flex-col space-y-[clamp(1.5rem,4vw,4.5rem)] mt-[clamp(1.5rem,3.5vw,1.5rem)] mb-10 md:mb-30 mt-10 md:mt-0 ">
         {/* TITLE */}
 
-        <h1 className="text-[clamp(1.75rem,4vw,2.75rem)] font-sans tracking-tight text-ghost-white max-w-[clamp(18rem,80vw,40rem)] leading-tight px-4 md:px-8">
+        <h1 className="text-[clamp(1.35rem,3.6vw,2.65rem)] font-sans tracking-tight text-ghost-white max-w-[clamp(18rem,80vw,40rem)] leading-tight px-4 md:px-8 font-medium">
           OUR CURRENT ROSTER:
         </h1>
 

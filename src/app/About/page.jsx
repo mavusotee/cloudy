@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useEffect, useRef } from 'react'
@@ -9,6 +8,7 @@ import gsap from 'gsap'
 import { SplitText } from 'gsap/SplitText'
 import Link from 'next/link'
 import TransitionLink from '@/components/PageTransitions/TransitionLink'
+import BlurFlicker from '@/components/Animations/BlurFlicker'
 import { useGSAP } from '@gsap/react'
 
 gsap.registerPlugin(SplitText)
@@ -48,7 +48,7 @@ function ExtrudedTextReveal({ text }) {
         yPercent: 0,
         scaleY: 1,
         filter: 'blur(0px)',
-        duration: 0.9,
+        duration: 1.5,
         ease: 'power4.out',
         stagger: 0.08,
         force3D: true,
@@ -98,8 +98,8 @@ function ImageReveal() {
 
       gsap.set(imageRef.current, {
         opacity: 0,
-        scale: 1.06,
-        filter: 'brightness(0.15) blur(3px)',
+        scale: 1.08,
+        filter: 'brightness(0.05) blur(3px)',
         transformOrigin: 'center center',
         force3D: true,
       })
@@ -118,12 +118,12 @@ function ImageReveal() {
         opacity: 1,
         scale: 1,
         filter: 'brightness(1) blur(0px)',
-        duration: 1,
+        duration: 1.2,
       }).to(
         overlayRef.current,
         {
           opacity: 0,
-          duration: 0.8,
+          duration: 1,
           ease: 'power2.out',
         },
         '<0.05'
@@ -242,7 +242,8 @@ export default function Page() {
           gap-8
           lg:gap-16
           w-full
-          pt-40
+          pt-26
+          md:pt-40
           items-start
         "
       >
@@ -272,7 +273,7 @@ export default function Page() {
                 flex
                 items-center
                 gap-2
-                text-ghost-white
+                text-zinc-700
               "
             >
               <div className="w-2 h-2 bg-ghost-white" />
@@ -303,12 +304,12 @@ export default function Page() {
                   flex
                   items-center
                   gap-2
-                  text-ghost-white
+                  text-zinc-700
                 "
               >
                 <div className="w-2 h-2 bg-ghost-white" />
 
-                <h2 className="text-zinc-600">CONTACT</h2>
+                <h2 className="text-zinc-700">CONTACT</h2>
               </div>
 
               <div className="flex flex-col space-y-3 w-full">
@@ -345,7 +346,7 @@ export default function Page() {
               >
                 <div className="w-2 h-2 bg-ghost-white" />
 
-                <h2 className="text-zinc-600">SERVICES</h2>
+                <h2 className="text-zinc-700">SERVICES</h2>
               </div>
 
               <div className="flex flex-col space-y-3 w-full">
@@ -385,7 +386,7 @@ export default function Page() {
             >
               <div className="w-2 h-2 bg-ghost-white" />
 
-              <h2 className="text-zinc-600 font-mono">SOCIALS</h2>
+              <h2 className="text-zinc-700 font-mono">SOCIALS</h2>
             </div>
 
             <div className="flex flex-col space-y-3 w-full font-sans">
@@ -402,32 +403,38 @@ export default function Page() {
                   uppercase
                 "
               >
-                <a
-                  href="https://www.instagram.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-60 transition-opacity duration-300"
-                >
-                  INSTAGRAM
-                </a>
+                <BlurFlicker>
+                  <a
+                    href="https://www.instagram.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-60 transition-opacity duration-300"
+                  >
+                    INSTAGRAM
+                  </a>
+                </BlurFlicker>
 
-                <a
-                  href="https://www.facebook.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-60 transition-opacity duration-300"
-                >
-                  FACEBOOK
-                </a>
+                <BlurFlicker>
+                  <a
+                    href="https://www.facebook.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-60 transition-opacity duration-300"
+                  >
+                    FACEBOOK
+                  </a>
+                </BlurFlicker>
 
-                <a
-                  href="https://vimeo.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:opacity-60 transition-opacity duration-300"
-                >
-                  VIMEO
-                </a>
+                <BlurFlicker>
+                  <a
+                    href="https://vimeo.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-60 transition-opacity duration-300"
+                  >
+                    VIMEO
+                  </a>
+                </BlurFlicker>
               </div>
             </div>
           </div>
@@ -515,12 +522,7 @@ export default function Page() {
           >
             <h1>BASED IN ADELAIDE</h1>
 
-            <a
-              href="/privacy-policy"
-              className="hover:opacity-60 transition-opacity duration-300"
-            >
-              PRIVACY POLICY
-            </a>
+            <h1>ARCHITECTURE / CONSTRUCTION / MEDIA</h1>
           </div>
 
           <div
@@ -532,21 +534,25 @@ export default function Page() {
               space-x-[clamp(0.5rem,4.5vw,6rem)]
             "
           >
-            <a
-              href="/privacy-policy"
-              className="hover:opacity-60 transition-opacity duration-300"
-            >
-              PRIVACY POLICY
-            </a>
+            <BlurFlicker>
+              <a
+                href="mailto:info@cloudhaus.com.au"
+                className="hover:opacity-60 transition-opacity duration-300"
+              >
+                GET IN TOUCH
+              </a>
+            </BlurFlicker>
 
-            <a
-              href="https://www.withzane.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold hover:opacity-60 transition-opacity duration-300"
-            >
-              WEBSITE BY: ZANE
-            </a>
+            <BlurFlicker>
+              <a
+                href="https://www.withzane.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold hover:opacity-60 transition-opacity duration-300"
+              >
+                WEBSITE BY: ZANE
+              </a>
+            </BlurFlicker>
           </div>
         </div>
 
@@ -559,12 +565,13 @@ export default function Page() {
             space-x-[clamp(0.5rem,4.5vw,6rem)]
           "
         >
-          <TransitionLink href="/" className="font-bold">
-            BACK TO HOME
-          </TransitionLink>
+          <BlurFlicker>
+            <TransitionLink href="/" className="font-bold">
+              BACK TO HOME
+            </TransitionLink>
+          </BlurFlicker>
         </div>
       </div>
     </div>
   )
 }
-

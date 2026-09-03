@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, {
@@ -34,7 +33,8 @@ gsap.registerPlugin(ScrollTrigger);
 // ----------------------------------------------------------------------
 // SANITY WORKS QUERY
 //
-// We are intentionally showcasing CMS works 5–9.
+// We are showcasing CMS works 1–5.
+// The five selected projects are shuffled before being displayed.
 // This does NOT affect the total counter.
 // ----------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ const SELECTED_WORKS_QUERY = `
     defined(slug.current)
   ]
   | order(_createdAt asc)
-  [4...9]
+  [0...5]
   {
     _id,
     client,
@@ -292,7 +292,7 @@ R3FTVNoise.displayName =
 // ----------------------------------------------------------------------
 
 const SmallButton = forwardRef(
-  ({ isOpen }, ref) => {
+  (_, ref) => {
     const buttonRef = useRef(null);
 
     useImperativeHandle(
@@ -337,15 +337,9 @@ const SmallButton = forwardRef(
     return (
       <div
         ref={buttonRef}
-        className={`font-mono tracking-tight text-[clamp(0.5875rem,0.9vw,0.65rem)] border transition-colors duration-300 rounded-full w-[clamp(6.5rem,10vw,6.6875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
-          isOpen
-            ? "bg-ghost-white text-carbon-black border-ghost-white hover:bg-zinc-300"
-            : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
-        }`}
+        className="font-mono tracking-tight text-[clamp(0.5875rem,0.9vw,0.65rem)] border transition-colors duration-300 rounded-full w-[clamp(5.5rem,10vw,6.0875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none bg-black text-ghost-white border-eclipse "
       >
-        {isOpen
-          ? "CLOSE"
-          : "CLICK TO VIEW"}
+        WATCH FILM
       </div>
     );
   }
@@ -860,6 +854,31 @@ export default function Page() {
                 .filter(Boolean)
             : [];
 
+        // --------------------------------------------------------------
+        // SHUFFLE THE 5 SELECTED PROJECTS
+        // --------------------------------------------------------------
+
+        for (
+          let i =
+            normalized.length - 1;
+          i > 0;
+          i--
+        ) {
+          const j =
+            Math.floor(
+              Math.random() *
+                (i + 1)
+            );
+
+          [
+            normalized[i],
+            normalized[j],
+          ] = [
+            normalized[j],
+            normalized[i],
+          ];
+        }
+
         setSelectedWorks(
           normalized
         );
@@ -1069,7 +1088,7 @@ export default function Page() {
 
         <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-12 lg:gap-8">
 
-          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1vw,0.775rem)] w-[43%] md:w-[15%]">
+          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1vw,0.775rem)] w-[43%] md:w-[15%] text-eclipse font-medium">
             IT ALL STARTS WITH AN IDEA.
           </h1>
 
@@ -1122,13 +1141,6 @@ export default function Page() {
                 Works
               </h1>
 
-              {/* ------------------------------------------------------
-                  TOTAL CMS PROJECT COUNT
-
-                  This is NOT selectedWorks.length.
-                  It represents every project in Sanity.
-              ------------------------------------------------------ */}
-
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
                 [
                 {totalWorks < 10
@@ -1169,10 +1181,7 @@ export default function Page() {
 
             {/* ---------------------------------------------------------
                 ROW 1
-                SHOWCASED CMS WORK #5 + #6
-
-                selectedWorks[0] = CMS work #5
-                selectedWorks[1] = CMS work #6
+                SHOWCASED CMS WORK #1 + #2
             --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
@@ -1184,7 +1193,7 @@ export default function Page() {
                       video={
                         selectedWorks[0]
                       }
-                      heightClassName="w-full aspect-video"
+                      heightClassName="w-screen -ml-4 lg:ml-0 lg:w-full aspect-video"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1196,7 +1205,7 @@ export default function Page() {
                       video={
                         selectedWorks[1]
                       }
-                      heightClassName="w-full aspect-video"
+                      heightClassName="w-screen -ml-4 lg:ml-0 lg:w-full aspect-video"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1208,7 +1217,7 @@ export default function Page() {
 
             {/* ---------------------------------------------------------
                 ROW 2
-                SHOWCASED CMS WORK #7
+                SHOWCASED CMS WORK #3
             --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
@@ -1217,7 +1226,7 @@ export default function Page() {
                   video={
                     selectedWorks[2]
                   }
-                  heightClassName="w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen"
+                 heightClassName="w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen"
                   onHoverChange={
                     handleHoverChange
                   }
@@ -1226,7 +1235,7 @@ export default function Page() {
 
             {/* ---------------------------------------------------------
                 ROW 3
-                SHOWCASED CMS WORK #8 + #9
+                SHOWCASED CMS WORK #4 + #5
             --------------------------------------------------------- */}
 
             {!isLoadingWorks &&
@@ -1238,7 +1247,7 @@ export default function Page() {
                       video={
                         selectedWorks[3]
                       }
-                      heightClassName=" md:aspect-video h-[50vh] w-screen md:w-full"
+                      heightClassName="w-screen -ml-4 lg:ml-0 md:aspect-video h-[50vh] md:w-full"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1251,7 +1260,7 @@ export default function Page() {
                         selectedWorks[4]
                       }
                       containerClassName="lg:translate-y-24"
-                      heightClassName="w-full aspect-video"
+                      heightClassName="w-screen -ml-4 lg:ml-0 lg:w-full aspect-video"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1304,4 +1313,3 @@ export default function Page() {
     </div>
   );
 }
-

@@ -187,7 +187,10 @@ Great work deserves to be seen.`}
           </div>
 
           <BlurFlicker>
-            <Button text="check availability" href="mailto:hello@cloudhausmedia.com"/>
+            <Button
+              text="check availability"
+              href="mailto:hello@cloudhausmedia.com"
+            />
           </BlurFlicker>
         </div>
 
@@ -331,7 +334,7 @@ Great work deserves to be seen.`}
               <div className="flex flex-col items-start justify-start w-full lg:flex-col space-x-[clamp(1.0rem,1.5vw,0.5rem)] font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
                 <BlurFlicker>
                   <a
-                    href="https://www.instagram.com/itsjmvisuals?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw=="
+                    href="https://www.instagram.com/cloudhausmedia/?utm_source=ig_web_button_share_sheet"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:opacity-70 transition-opacity"
@@ -374,7 +377,7 @@ Great work deserves to be seen.`}
             preserveAspectRatio="xMidYMax meet"
           >
             <path d="M60.4953 33.254C69.678 33.254 77.1217 25.8101 77.1217 16.6275C77.1217 7.44491 69.678 0.000976562 60.4953 0.000976562C51.313 0.000976562 43.8691 7.44491 43.8691 16.6275C43.8691 25.8101 51.313 33.254 60.4953 33.254Z" fill="white"/>
-            <path d="M78.4355 0.000976562C78.4355 4.3678 78.865 8.69189 79.7006 12.7263C80.5362 16.7607 81.7608 20.4265 83.3047 23.5143C84.8486 26.6021 86.6815 29.0515 88.6988 30.7226C90.7156 32.3937 92.8779 33.2538 95.0619 33.2538C97.2449 33.2538 99.4067 32.3937 101.424 30.7226C103.441 29.0515 105.274 26.6021 106.818 23.5143C108.362 20.4265 109.587 16.7607 110.423 12.7263C111.258 8.69189 111.688 4.3678 111.688 0.000976562H78.4355Z" fill="white"/>
+            <path d="M78.4355 0.000976562C78.4355 4.3678 78.865 8.69189 79.7006 12.7263C80.5362 16.7607 81.7608 20.4265 83.3047 23.5143C84.8486 26.6021 86.6815 29.0515 88.6988 30.7226C90.7156 32.3937 92.8779 33.2538 95.0619 33.2538C97.2449 33.2538 99.4067 32.3937 101.424 30.7226C103.441 29.0515 105.274 26.6021 106.6021 23.5143C108.362 20.4265 109.587 16.7607 110.423 12.7263C111.258 8.69189 111.688 4.3678 111.688 0.000976562H78.4355Z" fill="white"/>
             <path d="M113.684 33.254C116.556 33.254 119.399 32.8239 122.052 31.9884C124.705 31.1529 127.115 29.9282 129.145 28.3843C131.175 26.8403 132.786 25.0074 133.885 22.9902C134.984 20.973 135.549 18.811 135.549 16.6275C135.549 14.4441 134.984 12.282 133.885 10.2649C132.786 8.24766 131.175 6.41472 129.145 4.87076C127.115 3.3269 124.705 2.10223 122.052 1.26667C119.399 0.431034 116.556 0.000976562 113.684 0.000976562V33.254Z" fill="white"/>
             <path d="M21.7144 0.000976562C18.8533 0.012908 16.0221 0.454741 13.3825 1.30131C10.7427 2.14788 8.34629 3.38255 6.32994 4.9349C4.3136 6.48723 2.71677 8.32678 1.63065 10.3485C0.544606 12.3704 -0.00950373 14.5347 0.000123322 16.7181C0.00967149 18.9015 0.582642 21.0612 1.68636 23.0738C2.79016 25.0864 4.403 26.9127 6.43279 28.4481C8.46272 29.9836 10.8698 31.1983 13.5169 32.0228C16.1639 32.8474 18.9989 33.2656 21.86 33.2537L21.7872 16.6273L21.7144 0.000976562Z" fill="white"/>
             <path fillRule="evenodd" clipRule="evenodd" d="M41.0538 0.38585V32.8691C41.0538 33.0816 40.8588 33.254 40.6186 33.254H27.6422C27.402 33.254 27.207 33.0816 27.207 32.8691V0.38585C27.207 0.1734 27.402 0.000976562 27.6422 0.000976562H40.6186C40.8588 0.000976562 41.0538 0.1734 41.0538 0.38585Z" fill="white"/>
@@ -391,17 +394,29 @@ Great work deserves to be seen.`}
         {/* BOTTOM METADATA */}
         <div
           ref={metaRef}
-          className="flex flex-col-reverse md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.6rem,2.5vw,0.725rem)] uppercase w-full gap-2 pt-2 "
+          className="flex flex-col-reverse md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.6rem,2.5vw,0.725rem)] uppercase w-full gap-2 pt-2"
         >
           <div className="flex flex-row md:contents justify-between w-full md:w-auto">
             <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
               <span data-footer-meta>BASED IN ADELAIDE</span>
 
-              <span data-footer-meta>PRIVACY POLICY</span>
+              <TransitionLink
+                href="/Privacy-Policy"
+                data-footer-meta
+                className="hover:opacity-70 transition-opacity"
+              >
+               ARCHITECTURE/ CONSTRUCTION/ MEDIA
+              </TransitionLink>
             </div>
 
             <div className="flex flex-col md:flex-row space-y-0 space-x-[clamp(0.5rem,4.5vw,6rem)]">
-              <span data-footer-meta>TERMS & CONDITIONS</span>
+              <TransitionLink
+                href="mailto:hello@cloudhausmedia"
+                data-footer-meta
+                className="hover:opacity-70 transition-opacity"
+              >
+                GET IN TOUCH
+              </TransitionLink>
 
               <BlurFlicker>
                 <a

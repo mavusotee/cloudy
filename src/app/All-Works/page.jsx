@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, {
@@ -13,18 +12,15 @@ import React, {
 
 import TransitionLink from "@/components/PageTransitions/TransitionLink";
 import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
-
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-
 import Footer from "@/components/Sections/Footer";
 import Navigation from "@/components/UI/Navigation";
-
 import { client } from "@/lib/client";
+import { groq } from "next-sanity";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -32,7 +28,7 @@ gsap.registerPlugin(ScrollTrigger);
 // SANITY QUERY
 // ----------------------------------------------------------------------
 
-const WORKS_QUERY = `
+const WORKS_QUERY = groq`
   *[
     _type == "caseStudy"
     && defined(slug.current)
@@ -272,9 +268,7 @@ const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
 
-  return `${mins < 10 ? "0" : ""}${mins}:${
-    secs < 10 ? "0" : ""
-  }${secs}`;
+  return `${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
 };
 
 // ----------------------------------------------------------------------
@@ -287,12 +281,10 @@ function WorkCard({
   heightClassName,
   onHoverChange,
   fullBleedVideo = false,
+  priority = false,
 }) {
   const [currentTime, setCurrentTime] =
     useState("00:00");
-
-  const [shouldLoadVideo, setShouldLoadVideo] =
-    useState(false);
 
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
@@ -312,31 +304,32 @@ function WorkCard({
       return;
     }
 
-    const element = containerRef.current;
-
-    // If IntersectionObserver isn't available,
-    // load the video normally.
-    if (!("IntersectionObserver" in window)) {
-      setShouldLoadVideo(true);
+    // Priority videos begin loading immediately.
+    // These are the videos closest to the top of the page.
+    if (priority) {
       return;
     }
+
+    if (!("IntersectionObserver" in window)) {
+      return;
+    }
+
+    const element = containerRef.current;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
 
         if (entry.isIntersecting) {
-          setShouldLoadVideo(true);
+          if (videoRef.current) {
+            videoRef.current.load();
+          }
 
-          // Once the video has been marked for loading,
-          // we no longer need to observe this card.
           observer.disconnect();
         }
       },
       {
-        // Start loading before the card actually enters
-        // the viewport so playback is ready in advance.
-        rootMargin: "500px 0px",
+        rootMargin: "2000px 0px",
         threshold: 0,
       }
     );
@@ -346,7 +339,7 @@ function WorkCard({
     return () => {
       observer.disconnect();
     };
-  }, [videoUrl]);
+  }, [videoUrl, priority]);
 
   // --------------------------------------------------
   // VIDEO METADATA
@@ -491,11 +484,12 @@ function WorkCard({
   return (
     <TransitionLink
       href={`/Work/${video.slug}`}
-      className={`flex flex-col w-full ${
+      className={`work-card-reveal flex flex-col w-full ${
         containerClassName || ""
       }`}
     >
       {/* TOP META */}
+
       <div className="flex flex-row items-center justify-between w-full px-1 pb-2">
         <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
           {video.date || "—"}
@@ -507,6 +501,7 @@ function WorkCard({
       </div>
 
       {/* VIDEO */}
+
       <div
         ref={containerRef}
         onMouseEnter={handleMouseEnter}
@@ -518,24 +513,20 @@ function WorkCard({
         } ${heightClassName || ""}`}
       >
         {videoUrl ? (
-          shouldLoadVideo ? (
-            <video
-              ref={videoRef}
-              src={videoUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="metadata"
-              onLoadedMetadata={
-                handleLoadedMetadata
-              }
-              onTimeUpdate={handleTimeUpdate}
-              className="block w-full aspect-video object-cover brightness-90 contrast-105"
-            />
-          ) : (
-            <div className="w-full aspect-video bg-zinc-900" />
-          )
+          <video
+            ref={videoRef}
+            src={videoUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload={priority ? "auto" : "metadata"}
+            onLoadedMetadata={
+              handleLoadedMetadata
+            }
+            onTimeUpdate={handleTimeUpdate}
+            className="block w-full aspect-video object-cover brightness-90 contrast-105"
+          />
         ) : (
           <div className="w-full aspect-video bg-zinc-900 flex flex-col items-center justify-center gap-2">
             <span className="font-geist-mono text-xs text-zinc-500 uppercase">
@@ -549,12 +540,15 @@ function WorkCard({
         )}
 
         {/* DARK OVERLAY */}
+
         <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-10" />
 
         {/* TV NOISE */}
+
         <R3FTVNoise ref={noiseRef} />
 
         {/* CORNERS */}
+
         <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
           <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t border-l border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
 
@@ -567,6 +561,7 @@ function WorkCard({
       </div>
 
       {/* BOTTOM META */}
+
       <div className="flex flex-row items-baseline justify-between w-full px-1 pt-2 text-ghost-white">
         <div className="flex flex-col min-w-0">
           <p className="font-geist-mono text-[clamp(0.6875rem,1vw,0.75rem)] text-zinc-400 tracking-tight">
@@ -949,6 +944,7 @@ export default function AllWorksSection() {
   const containerRef = useRef(null);
   const listContainerRef =
     useRef(null);
+
   const bgVideoRef = useRef(null);
 
   const [viewMode, setViewMode] =
@@ -1109,6 +1105,52 @@ export default function AllWorksSection() {
   useEffect(() => {
     setVisibleCount(13);
   }, [selectedClient]);
+
+  // --------------------------------------------------
+  // LANDING STAGGER REVEAL
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (
+      viewMode !== "grid" ||
+      !containerRef.current ||
+      !activeProjects.length
+    ) {
+      return;
+    }
+
+    const ctx = gsap.context(() => {
+      const cards =
+        containerRef.current.querySelectorAll(
+          ".work-card-reveal"
+        );
+
+      if (!cards.length) return;
+
+      gsap.set(cards, {
+        opacity: 0,
+        y: 50,
+        filter: "blur(10px)",
+      });
+
+      gsap.to(cards, {
+        opacity: 1,
+        y: 0,
+        filter: "blur(0px)",
+        duration: 0.9,
+        stagger: 0.12,
+        ease: "power4.out",
+        delay: 0.1,
+        overwrite: "auto",
+      });
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, [
+    viewMode,
+    activeProjects,
+    selectedClient,
+  ]);
 
   // --------------------------------------------------
   // VIEW TOGGLE
@@ -1353,7 +1395,7 @@ export default function AllWorksSection() {
   if (isLoading) {
     return (
       <div className="bg-black w-full min-h-screen flex items-center justify-center">
-        <span className="font-geist-mono text-xs text-zinc-500 uppercase tracking-widest"></span>
+        <span className="font-geist-mono text-xs text-zinc-500 uppercase tracking-widest" />
       </div>
     );
   }
@@ -1393,7 +1435,7 @@ export default function AllWorksSection() {
                 muted
                 loop
                 playsInline
-                preload="metadata"
+                preload="auto"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
@@ -1416,19 +1458,16 @@ export default function AllWorksSection() {
         <div className="flex flex-row items-center justify-between w-full text-zinc-300">
 
           <div className="opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
-
             <div className="w-2 h-2 bg-zinc-300" />
 
             <h1>
               SELECTED WORKS
             </h1>
-
           </div>
 
           <h1 className="font-geist-mono font-semibold tracking-tight text-ghost-white text-[clamp(0.5rem,0.8vw,0.825rem)]">
             [CLOUD_9]
           </h1>
-
         </div>
 
         {/* TITLE / CONTROLS */}
@@ -1511,7 +1550,6 @@ export default function AllWorksSection() {
             )}
 
           </div>
-
         </div>
 
         {/* CONTENT */}
@@ -1521,8 +1559,7 @@ export default function AllWorksSection() {
           className="w-full transition-all duration-300"
         >
 
-          {viewMode ===
-          "grid" ? (
+          {viewMode === "grid" ? (
 
             <div className="flex flex-col space-y-8 lg:space-y-14 pt-4">
 
@@ -1535,13 +1572,19 @@ export default function AllWorksSection() {
                   {activeProjects
                     .slice(0, 3)
                     .map(
-                      (project) => (
+                      (
+                        project,
+                        index
+                      ) => (
                         <WorkCard
                           key={
                             project._id
                           }
                           video={
                             project
+                          }
+                          priority={
+                            index < 6
                           }
                           heightClassName="w-full aspect-video"
                           onHoverChange={() => {}}
@@ -1562,6 +1605,7 @@ export default function AllWorksSection() {
                     video={
                       activeProjects[3]
                     }
+                    priority
                     fullBleedVideo
                     heightClassName="w-full"
                     onHoverChange={() => {}}
@@ -1582,6 +1626,7 @@ export default function AllWorksSection() {
                       video={
                         activeProjects[4]
                       }
+                      priority
                       heightClassName="w-full aspect-video"
                       onHoverChange={() => {}}
                     />
@@ -1596,6 +1641,7 @@ export default function AllWorksSection() {
                         video={
                           activeProjects[5]
                         }
+                        priority
                         heightClassName="w-full aspect-video"
                         onHoverChange={() => {}}
                       />
@@ -1837,4 +1883,3 @@ export default function AllWorksSection() {
     </div>
   );
 }
-

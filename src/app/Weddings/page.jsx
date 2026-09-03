@@ -12,30 +12,19 @@ import React, {
 } from "react";
 
 import Button from "@/components/UI/Button";
-
 import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
-
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
-
+import TransitionLink from "@/components/PageTransitions/TransitionLink";
+import BlurFlicker from "@/components/Animations/BlurFlicker";
 import Lenis from "lenis";
-
 import gsap from "gsap";
-
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-
 import { SplitText } from "gsap/SplitText";
-
 import { Canvas, useFrame } from "@react-three/fiber";
-
 import * as THREE from "three";
-
 import Navigation from "@/components/UI/Navigation";
-
 import { groq } from "next-sanity";
-
 import { client } from "@/lib/client";
-
-import Footer from "@/components/Sections/Footer";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -62,23 +51,18 @@ const WEDDINGS_QUERY = groq`
 
 const getMediaUrl = (media) => {
   if (!media) return null;
-
   if (typeof media === "string") {
     return media;
   }
-
   if (typeof media.url === "string") {
     return media.url;
   }
-
   if (typeof media.src === "string") {
     return media.src;
   }
-
   if (media.asset?.url) {
     return media.asset.url;
   }
-
   return null;
 };
 
@@ -91,7 +75,6 @@ const noiseShaderDefinition = {
     uTime: { value: 0 },
     uOpacity: { value: 0 },
   },
-
   vertexShader: `
     varying vec2 vUv;
 
@@ -100,10 +83,10 @@ const noiseShaderDefinition = {
       gl_Position = vec4(position, 1.0);
     }
   `,
-
   fragmentShader: `
     uniform float uTime;
     uniform float uOpacity;
+
     varying vec2 vUv;
 
     float random(vec2 st) {
@@ -150,15 +133,10 @@ function TVNoisePlane({ opacityRef }) {
           uTime: { value: 0 },
           uOpacity: { value: 0 },
         },
-
         vertexShader: noiseShaderDefinition.vertexShader,
-
         fragmentShader: noiseShaderDefinition.fragmentShader,
-
         transparent: true,
-
         depthTest: false,
-
         depthWrite: false,
       }),
     []
@@ -367,13 +345,10 @@ function WorkCard({
 
     const topL =
       containerRef.current.querySelector(".corner-tl");
-
     const topR =
       containerRef.current.querySelector(".corner-tr");
-
     const botL =
       containerRef.current.querySelector(".corner-bl");
-
     const botR =
       containerRef.current.querySelector(".corner-br");
 
@@ -432,7 +407,6 @@ function WorkCard({
       }`}
     >
       {/* DATE / TIME */}
-
       <div className="flex flex-row items-center justify-between w-full px-1">
         <h1 className="font-geist-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] text-zinc-500">
           {wedding.year || "—"}
@@ -444,7 +418,6 @@ function WorkCard({
       </div>
 
       {/* VIDEO */}
-
       <div
         ref={containerRef}
         onMouseEnter={handleMouseEnter}
@@ -471,7 +444,6 @@ function WorkCard({
         <R3FTVNoise ref={noiseRef} />
 
         {/* CORNER BRACKETS */}
-
         <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
           <div className="corner-tl absolute top-4 left-4 w-8 h-8 border-t border-l border-white opacity-0 scale-90 -translate-x-3 -translate-y-3 mix-blend-difference" />
 
@@ -484,7 +456,6 @@ function WorkCard({
       </div>
 
       {/* WEDDING INFO */}
-
       <div className="flex flex-row items-baseline justify-between w-full px-1 pt-2 text-ghost-white">
         <div className="flex flex-col">
           <SmudgyTitleReveal
@@ -570,7 +541,6 @@ function ListItemRow({
   }, [onHoverEnd]);
 
   /* MOBILE SCROLL ACTIVATION */
-
   useEffect(() => {
     const mm = gsap.matchMedia();
 
@@ -601,16 +571,14 @@ function ListItemRow({
     >
       <div className="relative grid grid-cols-2 items-center py-4 px-2">
         {/* COUPLE */}
-
         <span
           ref={titleRef}
-          className="font-sans text-sm md:text-xl font-light uppercase text-ghost-white inline-block"
+          className="font-serif text-sm md:text-xl font-light uppercase text-ghost-white inline-block"
         >
           {wedding.title || "UNTITLED WEDDING"}
         </span>
 
         {/* YEAR */}
-
         <span
           ref={yearRef}
           className="font-geist-mono text-sm md:text-base text-right text-zinc-500 inline-block"
@@ -628,50 +596,29 @@ function ListItemRow({
 
 export default function WeddingsSection() {
   const cursorRef = useRef(null);
-
   const containerRef = useRef(null);
-
   const listPreviewRef = useRef(null);
-
   const listContainerRef = useRef(null);
-
   const bgVideoRef = useRef(null);
-
   const introRef = useRef(null);
 
   const [weddings, setWeddings] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
-
   const [fetchError, setFetchError] = useState(null);
-
   const [viewMode, setViewMode] = useState("grid");
-
   const [visibleCount, setVisibleCount] = useState(13);
-
-  const [hoveredProject, setHoveredProject] =
-    useState(null);
-
-  const [displayProject, setDisplayProject] =
-    useState(null);
-
+  const [hoveredProject, setHoveredProject] = useState(null);
+  const [displayProject, setDisplayProject] = useState(null);
   const [isHoveringVideo, setIsHoveringVideo] =
     useState(false);
 
-  /* ==========================================================
-     VIDEO PLAYER STATE
-  ========================================================== */
-
+  /* VIDEO PLAYER STATE */
   const [selectedWedding, setSelectedWedding] =
     useState(null);
-
   const [isPlayerOpen, setIsPlayerOpen] =
     useState(false);
 
-  /* ==========================================================
-     FETCH WEDDINGS
-  ========================================================== */
-
+  /* FETCH WEDDINGS */
   useEffect(() => {
     let cancelled = false;
 
@@ -692,32 +639,26 @@ export default function WeddingsSection() {
 
         if (cancelled) return;
 
-        const formattedWeddings =
-          Array.isArray(data)
-            ? data
-                .map((wedding) => ({
-                  ...wedding,
-
-                  videos: Array.isArray(
-                    wedding.videos
-                  )
-                    ? wedding.videos
-                        .slice(0, 5)
-                        .map((video) => ({
-                          ...video,
-                          url: getMediaUrl(video),
-                        }))
-                        .filter(
-                          (video) => video.url
-                        )
-                    : [],
-                }))
-                .filter(
-                  (wedding) =>
-                    wedding.title &&
-                    wedding.videos?.length > 0
-                )
-            : [];
+        const formattedWeddings = Array.isArray(data)
+          ? data
+              .map((wedding) => ({
+                ...wedding,
+                videos: Array.isArray(wedding.videos)
+                  ? wedding.videos
+                      .slice(0, 5)
+                      .map((video) => ({
+                        ...video,
+                        url: getMediaUrl(video),
+                      }))
+                      .filter((video) => video.url)
+                  : [],
+              }))
+              .filter(
+                (wedding) =>
+                  wedding.title &&
+                  wedding.videos?.length > 0
+              )
+          : [];
 
         setWeddings(formattedWeddings);
       } catch (error) {
@@ -728,7 +669,6 @@ export default function WeddingsSection() {
 
         if (!cancelled) {
           setWeddings([]);
-
           setFetchError(
             "Unable to load weddings."
           );
@@ -747,18 +687,18 @@ export default function WeddingsSection() {
     };
   }, []);
 
-  /* ==========================================================
-     INTRO SPLIT TEXT REVEAL
-  ========================================================== */
-
+  /* INTRO SPLIT TEXT REVEAL */
   useLayoutEffect(() => {
     if (!introRef.current) return;
 
     const ctx = gsap.context(() => {
-      const split = new SplitText(introRef.current, {
-        type: "lines",
-        linesClass: "intro-split-line",
-      });
+      const split = new SplitText(
+        introRef.current,
+        {
+          type: "lines",
+          linesClass: "intro-split-line",
+        }
+      );
 
       gsap.set(split.lines, {
         yPercent: 110,
@@ -766,11 +706,16 @@ export default function WeddingsSection() {
       });
 
       split.lines.forEach((line) => {
-        const wrapper = document.createElement("div");
+        const wrapper =
+          document.createElement("div");
 
-        wrapper.className = "overflow-hidden";
+        wrapper.className =
+          "overflow-hidden";
 
-        line.parentNode.insertBefore(wrapper, line);
+        line.parentNode.insertBefore(
+          wrapper,
+          line
+        );
 
         wrapper.appendChild(line);
       });
@@ -784,7 +729,8 @@ export default function WeddingsSection() {
         scrollTrigger: {
           trigger: introRef.current,
           start: "top 80%",
-          toggleActions: "play none none reset",
+          toggleActions:
+            "play none none reset",
         },
       });
     }, introRef);
@@ -792,26 +738,17 @@ export default function WeddingsSection() {
     return () => ctx.revert();
   }, []);
 
-  /* ==========================================================
-     VISIBLE WEDDINGS
-  ========================================================== */
-
   const activeProjects = useMemo(() => {
     return weddings.slice(0, visibleCount);
   }, [weddings, visibleCount]);
 
-  /* ==========================================================
-     OPEN PLAYER
-  ========================================================== */
-
-  const openPlayer = useCallback((wedding) => {
-    setSelectedWedding(wedding);
-    setIsPlayerOpen(true);
-  }, []);
-
-  /* ==========================================================
-     CLOSE PLAYER
-  ========================================================== */
+  const openPlayer = useCallback(
+    (wedding) => {
+      setSelectedWedding(wedding);
+      setIsPlayerOpen(true);
+    },
+    []
+  );
 
   const closePlayer = useCallback(() => {
     setIsPlayerOpen(false);
@@ -820,10 +757,6 @@ export default function WeddingsSection() {
       setSelectedWedding(null);
     }, 300);
   }, []);
-
-  /* ==========================================================
-     TOGGLE VIEW
-  ========================================================== */
 
   const handleToggleView = (mode) => {
     if (mode === viewMode) return;
@@ -834,7 +767,6 @@ export default function WeddingsSection() {
         y: 10,
         duration: 0.25,
         ease: "power2.in",
-
         onComplete: () => {
           setViewMode(mode);
 
@@ -851,10 +783,6 @@ export default function WeddingsSection() {
     }
   };
 
-  /* ==========================================================
-     LOAD MORE
-  ========================================================== */
-
   const handleLoadMore = () => {
     setVisibleCount((prev) =>
       Math.min(
@@ -863,10 +791,6 @@ export default function WeddingsSection() {
       )
     );
   };
-
-  /* ==========================================================
-     REFRESH SCROLLTRIGGER
-  ========================================================== */
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -880,19 +804,11 @@ export default function WeddingsSection() {
     weddings,
   ]);
 
-  /* ==========================================================
-     HOVERED PROJECT
-  ========================================================== */
-
   useEffect(() => {
     if (hoveredProject) {
       setDisplayProject(hoveredProject);
     }
   }, [hoveredProject]);
-
-  /* ==========================================================
-     PLAY BACKGROUND VIDEO
-  ========================================================== */
 
   useEffect(() => {
     if (
@@ -913,10 +829,7 @@ export default function WeddingsSection() {
     hoveredProject,
   ]);
 
-  /* ==========================================================
-     LIST STAGGER
-  ========================================================== */
-
+  /* LIST STAGGER */
   useEffect(() => {
     if (
       viewMode !== "list" ||
@@ -943,13 +856,10 @@ export default function WeddingsSection() {
           duration: 0.6,
           stagger: 0.08,
           ease: "power3.out",
-
           scrollTrigger: {
             trigger:
               listContainerRef.current,
-
             start: "top 85%",
-
             toggleActions:
               "play none none reset",
           },
@@ -963,14 +873,9 @@ export default function WeddingsSection() {
     activeProjects,
   ]);
 
-  /* ==========================================================
-     CURSOR & PREVIEW TRACKING
-  ========================================================== */
-
+  /* CURSOR & PREVIEW TRACKING */
   useEffect(() => {
-    const cursor =
-      cursorRef.current;
-
+    const cursor = cursorRef.current;
     const preview =
       listPreviewRef.current;
 
@@ -986,10 +891,8 @@ export default function WeddingsSection() {
         gsap.set(preview, {
           xPercent: -50,
           yPercent: -50,
-
           x:
             window.innerWidth / 2,
-
           y:
             window.innerHeight / 2,
         });
@@ -1073,10 +976,7 @@ export default function WeddingsSection() {
     return () => ctx.revert();
   }, [viewMode]);
 
-  /* ==========================================================
-     CURSOR VISIBILITY
-  ========================================================== */
-
+  /* CURSOR VISIBILITY */
   useEffect(() => {
     const cursor =
       cursorRef.current;
@@ -1087,25 +987,22 @@ export default function WeddingsSection() {
       scale: isHoveringVideo
         ? 1
         : 0,
-
       opacity: isHoveringVideo
         ? 1
         : 0,
-
-      duration: isHoveringVideo
-        ? 0.25
-        : 0.2,
-
+      duration:
+        isHoveringVideo
+          ? 0.25
+          : 0.2,
       ease: isHoveringVideo
         ? "power2.out"
         : "power2.in",
     });
-  }, [isHoveringVideo]);
+  }, [
+    isHoveringVideo,
+  ]);
 
-  /* ==========================================================
-     PLAY VIDEO TAG
-  ========================================================== */
-
+  /* PLAY VIDEO TAG */
   useEffect(() => {
     const preview =
       listPreviewRef.current;
@@ -1127,12 +1024,11 @@ export default function WeddingsSection() {
         ease: "power3.in",
       });
     }
-  }, [hoveredProject]);
+  }, [
+    hoveredProject,
+  ]);
 
-  /* ==========================================================
-     VIDEO HOVER
-  ========================================================== */
-
+  /* VIDEO HOVER */
   const handleHoverChange =
     useCallback(
       (isHovered) => {
@@ -1143,14 +1039,10 @@ export default function WeddingsSection() {
       []
     );
 
-  /* ==========================================================
-     LENIS
-  ========================================================== */
-
+  /* LENIS */
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
-
       easing: (t) =>
         Math.min(
           1,
@@ -1160,9 +1052,7 @@ export default function WeddingsSection() {
               -10 * t
             )
         ),
-
       smoothWheel: true,
-
       touchMultiplier: 2,
     });
 
@@ -1170,7 +1060,6 @@ export default function WeddingsSection() {
 
     function raf(time) {
       lenis.raf(time);
-
       frameId =
         requestAnimationFrame(
           raf
@@ -1178,15 +1067,12 @@ export default function WeddingsSection() {
     }
 
     frameId =
-      requestAnimationFrame(
-        raf
-      );
+      requestAnimationFrame(raf);
 
     return () => {
       cancelAnimationFrame(
         frameId
       );
-
       lenis.destroy();
     };
   }, []);
@@ -1214,7 +1100,6 @@ export default function WeddingsSection() {
       />
 
       <div className="bg-black w-full min-h-screen py-6 px-4 md:py-2 md:px-4 relative overflow-hidden pb-2 md:pb-2">
-
         {/* ======================================================
             FULL-BLEED HOVER VIDEO BACKGROUND
         ====================================================== */}
@@ -1247,16 +1132,10 @@ export default function WeddingsSection() {
           <div className="absolute inset-0 bg-black/60" />
         </div>
 
-        {/* ======================================================
-            NAVIGATION
-        ====================================================== */}
-
+        {/* NAVIGATION */}
         <Navigation />
 
-        {/* ======================================================
-            INTRO
-        ====================================================== */}
-
+        {/* INTRO */}
         <div className="flex w-full min-h-[55vh] items-center justify-start px-2 pt-10 md:pt-20">
           <h1
             ref={introRef}
@@ -1266,10 +1145,7 @@ export default function WeddingsSection() {
           </h1>
         </div>
 
-        {/* ======================================================
-            CUSTOM CURSOR
-        ====================================================== */}
-
+        {/* CUSTOM CURSOR */}
         <div
           ref={cursorRef}
           className="fixed top-0 left-0 pointer-events-none z-[100] hidden md:block scale-0 opacity-0 mix-blend-difference text-white"
@@ -1279,10 +1155,7 @@ export default function WeddingsSection() {
           </span>
         </div>
 
-        {/* ======================================================
-            FLOATING PLAY TAG
-        ====================================================== */}
-
+        {/* FLOATING PLAY TAG */}
         <div
           ref={listPreviewRef}
           className="fixed top-0 left-0 pointer-events-none z-[100] hidden scale-85 opacity-0"
@@ -1292,16 +1165,12 @@ export default function WeddingsSection() {
           </span>
         </div>
 
-        {/* ======================================================
-            HEADER
-        ====================================================== */}
-
+        {/* HEADER */}
         <div className="relative z-10 flex flex-col space-y-6 pt-14 md:pt-10 lg:pt-30">
-
           <div className="flex flex-row items-center justify-between w-full text-zinc-300">
-
             <div className="opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
               <div className="w-2 h-2 bg-zinc-300" />
+
               <h1>WEDDINGS</h1>
             </div>
 
@@ -1310,16 +1179,11 @@ export default function WeddingsSection() {
             </h1>
           </div>
 
-          {/* ==================================================
-              WEDDINGS HEADER
-          ================================================== */}
-
+          {/* WORKS HEADER */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-6 sm:gap-0 pb-6">
-
             <div className="flex flex-row items-start gap-4 sm:gap-6 font-monot">
-
               <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%] font-light leading-none uppercase">
-                WEDDINGS
+                WORKS
               </h1>
 
               <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
@@ -1329,13 +1193,10 @@ export default function WeddingsSection() {
                   : activeProjects.length}
                 ]
               </sup>
-
             </div>
 
             <div className="flex flex-col items-start sm:items-end justify-end space-y-4 w-full sm:w-auto">
-
               <div className="flex items-center space-x-3 font-geist-mono text-sm md:text-lg tracking-widest uppercase">
-
                 <button
                   onClick={() =>
                     handleToggleView(
@@ -1343,7 +1204,8 @@ export default function WeddingsSection() {
                     )
                   }
                   className={`transition-colors cursor-pointer ${
-                    viewMode === "grid"
+                    viewMode ===
+                    "grid"
                       ? "text-white font-bold"
                       : "text-zinc-500 hover:text-white"
                   }`}
@@ -1362,67 +1224,53 @@ export default function WeddingsSection() {
                     )
                   }
                   className={`transition-colors cursor-pointer ${
-                    viewMode === "list"
+                    viewMode ===
+                    "list"
                       ? "text-white font-bold"
                       : "text-zinc-500 hover:text-white"
                   }`}
                 >
                   LIST
                 </button>
-
               </div>
-
             </div>
           </div>
 
-          {/* ==================================================
-              CONTENT
-          ================================================== */}
-
+          {/* CONTENT */}
           <div
             ref={containerRef}
             className="w-full transition-all duration-300"
           >
             {isLoading ? (
-
               <div className="w-full py-20 flex justify-center">
-                <p className="font-geist-mono text-xs tracking-widest uppercase text-zinc-500">
-                </p>
+                <p className="font-geist-mono text-xs tracking-widest uppercase text-zinc-500" />
               </div>
-
             ) : fetchError ? (
-
               <div className="w-full py-20 flex justify-center">
                 <p className="font-geist-mono text-xs tracking-widest uppercase text-zinc-500">
                   {fetchError}
                 </p>
               </div>
-
-            ) : activeProjects.length === 0 ? (
-
+            ) : activeProjects.length ===
+              0 ? (
               <div className="w-full py-20 flex justify-center">
                 <p className="font-geist-mono text-xs tracking-widest uppercase text-zinc-500">
                   No weddings available.
                 </p>
               </div>
-
-            ) : viewMode === "grid" ? (
-
-              /* =================================================
-                 GRID VIEW
-              ================================================= */
-
-              <div className="flex flex-col space-y-16 lg:space-y-28 pt-4">
-
-                {/* ROW 1 */}
-
-                {activeProjects.length >= 3 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 w-full gap-6 md:gap-4 text-lavender">
-
+            ) : viewMode ===
+              "grid" ? (
+              /* 5-VIDEO EDITORIAL GRID */
+              <div className="flex flex-col space-y-8 lg:space-y-58 pt-6">
+                {/* VIDEO 01 + VIDEO 02 */}
+                {activeProjects.length >=
+                  2 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-8 lg:gap-0 text-lavender">
                     <WorkCard
                       wedding={
                         activeProjects[0]
                       }
+                      heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1435,7 +1283,7 @@ export default function WeddingsSection() {
                       wedding={
                         activeProjects[1]
                       }
-                      containerClassName="lg:translate-y-16"
+                      heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1443,91 +1291,35 @@ export default function WeddingsSection() {
                         openPlayer
                       }
                     />
-
-                    <WorkCard
-                      wedding={
-                        activeProjects[2]
-                      }
-                      onHoverChange={
-                        handleHoverChange
-                      }
-                      onOpen={
-                        openPlayer
-                      }
-                    />
-
                   </div>
                 )}
 
-                {/* FEATURED WEDDING */}
+                {/* VIDEO 03 — FEATURED / FULL WIDTH */}
+                {activeProjects.length >=
+                  3 && (
+                  <WorkCard
+                    wedding={
+                      activeProjects[2]
+                    }
+                    heightClassName="w-screen left-1/2 -translate-x-1/2 h-[60vh] lg:h-screen"
+                    onHoverChange={
+                      handleHoverChange
+                    }
+                    onOpen={
+                      openPlayer
+                    }
+                  />
+                )}
 
-                {activeProjects.length >= 4 && (
-                  <div className="-mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]">
-
+                {/* VIDEO 04 + VIDEO 05 — ASYMMETRIC */}
+                {activeProjects.length >=
+                  5 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-8 lg:gap-12 text-lavender pb-12 lg:pb-24 items-start">
                     <WorkCard
                       wedding={
                         activeProjects[3]
                       }
-                      onHoverChange={
-                        handleHoverChange
-                      }
-                      onOpen={
-                        openPlayer
-                      }
-                    />
-
-                  </div>
-                )}
-
-                {/* ROW 3 */}
-
-                {activeProjects.length >= 6 && (
-                  <div className="grid grid-cols-1 lg:grid-cols-12 w-full gap-8 items-start py-2">
-
-                    <div className="lg:col-span-5">
-
-                      <WorkCard
-                        wedding={
-                          activeProjects[4]
-                        }
-                        onHoverChange={
-                          handleHoverChange
-                        }
-                        onOpen={
-                          openPlayer
-                        }
-                      />
-
-                    </div>
-
-                    <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-20">
-
-                      <WorkCard
-                        wedding={
-                          activeProjects[5]
-                        }
-                        onHoverChange={
-                          handleHoverChange
-                        }
-                        onOpen={
-                          openPlayer
-                        }
-                      />
-
-                    </div>
-
-                  </div>
-                )}
-
-                {/* ROW 4 */}
-
-                {activeProjects.length >= 8 && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 text-lavender lg:pt-20">
-
-                    <WorkCard
-                      wedding={
-                        activeProjects[6]
-                      }
+                      heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[36rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1538,8 +1330,10 @@ export default function WeddingsSection() {
 
                     <WorkCard
                       wedding={
-                        activeProjects[7]
+                        activeProjects[4]
                       }
+                      containerClassName="lg:translate-y-24"
+                      heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[26rem]"
                       onHoverChange={
                         handleHoverChange
                       }
@@ -1547,95 +1341,19 @@ export default function WeddingsSection() {
                         openPlayer
                       }
                     />
-
-                  </div>
-                )}
-
-                {/* ROW 5 */}
-
-                {activeProjects.length >= 11 && (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-2 text-lavender lg:pt-20">
-
-                    <WorkCard
-                      wedding={
-                        activeProjects[8]
-                      }
-                      onHoverChange={
-                        handleHoverChange
-                      }
-                      onOpen={
-                        openPlayer
-                      }
-                    />
-
-                    <WorkCard
-                      wedding={
-                        activeProjects[9]
-                      }
-                      onHoverChange={
-                        handleHoverChange
-                      }
-                      onOpen={
-                        openPlayer
-                      }
-                    />
-
-                    <WorkCard
-                      wedding={
-                        activeProjects[10]
-                      }
-                      onHoverChange={
-                        handleHoverChange
-                      }
-                      onOpen={
-                        openPlayer
-                      }
-                    />
-
-                  </div>
-                )}
-
-                {/* ROW 6 */}
-
-                {activeProjects.length >= 13 && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 md:gap-3 text-lavender lg:pt-20">
-
-                    <WorkCard
-                      wedding={
-                        activeProjects[11]
-                      }
-                      onHoverChange={
-                        handleHoverChange
-                      }
-                      onOpen={
-                        openPlayer
-                      }
-                    />
-
-                    <WorkCard
-                      wedding={
-                        activeProjects[12]
-                      }
-                      onHoverChange={
-                        handleHoverChange
-                      }
-                      onOpen={
-                        openPlayer
-                      }
-                    />
-
                   </div>
                 )}
 
                 {/* REMAINING WEDDINGS */}
-
-                {activeProjects.length > 13 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-
+                {activeProjects.length >
+                  5 && (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-8 lg:gap-12 text-lavender">
                     {activeProjects
-                      .slice(13)
+                      .slice(5)
                       .map(
-                        (wedding) => (
+                        (
+                          wedding
+                        ) => (
                           <WorkCard
                             key={
                               wedding._id
@@ -1643,6 +1361,7 @@ export default function WeddingsSection() {
                             wedding={
                               wedding
                             }
+                            heightClassName="w-full aspect-video lg:aspect-none h-[17.5rem] lg:h-[30rem]"
                             onHoverChange={
                               handleHoverChange
                             }
@@ -1652,29 +1371,19 @@ export default function WeddingsSection() {
                           />
                         )
                       )}
-
                   </div>
                 )}
-
               </div>
-
             ) : (
-
-              /* =================================================
-                 LIST VIEW
-              ================================================= */
-
+              /* LIST VIEW */
               <div
                 ref={
                   listContainerRef
                 }
                 className="relative w-full pt-8 pb-16"
               >
-
                 {/* TABLE HEADER */}
-
                 <div className="grid grid-cols-2 items-center text-zinc-500 font-geist-mono text-xs uppercase tracking-wider pb-4 border-b border-zinc-800">
-
                   <span className="text-left">
                     COUPLE
                   </span>
@@ -1682,13 +1391,10 @@ export default function WeddingsSection() {
                   <span className="text-right">
                     YEAR
                   </span>
-
                 </div>
 
                 {/* LIST ROWS */}
-
                 <div className="flex flex-col divide-y divide-zinc-800/60">
-
                   {activeProjects.map(
                     (wedding) => (
                       <ListItemRow
@@ -1712,15 +1418,12 @@ export default function WeddingsSection() {
                       />
                     )
                   )}
-
                 </div>
 
                 {/* LOAD MORE */}
-
                 {visibleCount <
                   weddings.length && (
                   <div className="flex justify-center pt-12">
-
                     <button
                       onClick={
                         handleLoadMore
@@ -1729,17 +1432,112 @@ export default function WeddingsSection() {
                     >
                       LOAD MORE
                     </button>
-
                   </div>
                 )}
-
               </div>
             )}
           </div>
         </div>
 
-        <Footer />
+        {/* =================================================
+            BOTTOM CONTENT
+        ================================================= */}
 
+        <div
+          className="
+            flex
+            flex-col-reverse
+            md:flex-row
+            items-start
+            md:items-end
+            justify-between
+            font-geist-mono
+            text-ghost-white
+            text-[clamp(0.3rem,2.5vw,0.725rem)]
+            uppercase
+            w-full
+            gap-[clamp(0.55rem,0.8vw,1.5rem)]
+            pt-16
+            md:pt-48
+            px-2
+            md:px-4
+          "
+        >
+          <div
+            className="
+              flex
+              flex-row
+              md:contents
+              justify-between
+              w-full
+              md:w-auto
+            "
+          >
+            <div
+              className="
+                flex
+                flex-col
+                md:flex-row
+                space-y-0
+                space-x-[clamp(0.5rem,4.5vw,6rem)]
+              "
+            >
+              <h1>BASED IN ADELAIDE</h1>
+
+              <h1>
+                ARCHITECTURE / CONSTRUCTION /
+                MEDIA
+              </h1>
+            </div>
+
+            <div
+              className="
+                flex
+                flex-col
+                md:flex-row
+                space-y-0
+                space-x-[clamp(0.5rem,4.5vw,6rem)]
+              "
+            >
+              <BlurFlicker>
+                <a
+                  href="mailto:info@cloudhaus.com.au"
+                  className="hover:opacity-60 transition-opacity duration-300"
+                >
+                  GET IN TOUCH
+                </a>
+              </BlurFlicker>
+
+              <BlurFlicker>
+                <a
+                  href="https://www.withzane.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold hover:opacity-60 transition-opacity duration-300"
+                >
+                  WEBSITE BY: ZANE
+                </a>
+              </BlurFlicker>
+            </div>
+          </div>
+
+          <div
+            className="
+              flex
+              flex-row
+              space-x-[clamp(0.5rem,4.5vw,6rem)]
+            "
+          >
+            <BlurFlicker>
+              <TransitionLink
+                href="/"
+                className="font-bold"
+              >
+                BACK TO HOME
+              </TransitionLink>
+            </BlurFlicker>
+          </div>
+        </div>
       </div>
     </>
   );
