@@ -64,10 +64,11 @@ export default function BottomContent() {
         text-[clamp(0.3rem,2.5vw,0.725rem)]
         uppercase
         w-full
-        gap-[clamp(0.55rem,0.8vw,1.5rem)]
-        pt-16
-        md:pt-48
+        gap-[clamp(0.45rem,0.8vw,1.5rem)]
+        pt-14
+        md:pt-28
         px-2
+        md:pb-4
         md:px-4
       "
     >

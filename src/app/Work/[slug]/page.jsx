@@ -14,6 +14,7 @@ import Link from "next/link";
 import Navigation from "@/components/UI/Navigation";
 
 import HeroCanvas from "@/components/react-three/HeroCanvas";
+import BottomContent from "@/components/Sections/SmallFooter";
 
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
 
@@ -1740,92 +1741,7 @@ export default function CloudhausWorkDetail() {
           BOTTOM CONTENT
       ================================================= */}
 
-      <div
-        className="
-          flex
-          flex-col-reverse
-          md:flex-row
-          items-start
-          md:items-end
-          justify-between
-          font-geist-mono
-          text-ghost-white
-          text-[clamp(0.3rem,2.5vw,0.725rem)]
-          uppercase
-          w-full
-          gap-[clamp(0.55rem,0.8vw,1.5rem)]
-          pb-4
-          px-2
-          md:px-4
-        "
-      >
-        <div
-          className="
-            flex
-            flex-row
-            md:contents
-            justify-between
-            w-full
-            md:w-auto
-          "
-        >
-          <div
-            className="
-              flex
-              flex-col
-              md:flex-row
-              space-y-0
-              space-x-[clamp(0.5rem,4.5vw,6rem)]
-            "
-          >
-            <h1>
-              BASED IN ADELAIDE
-            </h1>
-
-            <h1>
-              TERMS & CONDITIONS
-            </h1>
-          </div>
-
-          <div
-            className="
-              flex
-              flex-col
-              md:flex-row
-              space-y-0
-              space-x-[clamp(0.5rem,4.5vw,6rem)]
-            "
-          >
-            <h1>
-              PRIVACY POLICY
-            </h1>
-
-            <Link
-              href="https://www.withzane.com"
-              className="font-bold"
-            >
-              WEBSITE BY: ZANE
-            </Link>
-          </div>
-        </div>
-
-        {/* BACK TO HOME */}
-
-        <div
-          className="
-            flex
-            flex-row
-            space-x-[clamp(0.5rem,4.5vw,6rem)]
-          "
-        >
-          <TransitionLink
-            href="/"
-            className="font-bold"
-          >
-            BACK TO HOME
-          </TransitionLink>
-        </div>
-      </div>
+      <BottomContent />
 
       {/* =================================================
           EXTERNAL CUSTOM VIDEO PLAYER
