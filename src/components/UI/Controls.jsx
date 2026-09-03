@@ -165,7 +165,7 @@ function Controls({
               <div className="mask-text flex items-center gap-2 origin-left opacity-60">
                 <div className="text-white bg-white w-[clamp(3px,0.25vw+2px,12px)] h-[clamp(3px,0.25vw+2px,15px)] animate-pulse" />
                 <h1 className="text-[clamp(0.75rem,0.65rem+0.3vw,0.975rem)]">
-                  REEL '26
+                  REEL &apos;26
                 </h1>
               </div>
             ) : (

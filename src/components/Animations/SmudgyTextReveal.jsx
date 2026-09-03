@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useLayoutEffect } from "react";
@@ -16,6 +17,9 @@ export default function ExtrudedElevationReveal({
 
   useLayoutEffect(() => {
     if (!textRef.current) return;
+
+    // Disable the animation completely on mobile.
+    if (window.innerWidth <= 768) return;
 
     const ctx = gsap.context(() => {
       const split = new SplitText(textRef.current, {
@@ -128,3 +132,4 @@ export default function ExtrudedElevationReveal({
     </div>
   );
 }
+

@@ -1088,7 +1088,7 @@ export default function Page() {
 
         <div className="flex flex-col lg:flex-row items-start justify-between w-full text-ghost-white gap-12 lg:gap-8">
 
-          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1vw,0.775rem)] w-[43%] md:w-[15%] text-zinc-600 font-medium">
+          <h1 className="font-geist-mono md:tracking-tight text-[clamp(0.55rem,1vw,0.775rem)] w-[43%] md:w-[15%] text-zinc-400 font-medium">
             IT ALL STARTS WITH AN IDEA.
           </h1>
 

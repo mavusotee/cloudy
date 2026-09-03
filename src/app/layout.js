@@ -6,7 +6,6 @@ import {
 } from "next/font/google";
 import "./globals.css";
 
-import dynamic from "next/dynamic";
 import ClientFogWrapper from "@/components/react-three/ClientFogWrapper";
 import TransitionOverlay from "@/components/PageTransitions/TransitionOverlay";
 import FilmGrain from "@/components/react-three/FilmGrain";
@@ -86,8 +85,12 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col">
         <TransitionOverlay />
         <FilmGrain />
+
         <ClientFogWrapper />
-        {children}
+
+        <div className="relative z-10">
+          {children}
+        </div>
       </body>
     </html>
   );
