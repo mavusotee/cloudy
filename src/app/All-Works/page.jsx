@@ -87,53 +87,69 @@ const noiseShaderDefinition = {
 
       float grain = random(
         st * 400.0
-        + vec2(uTime * 15.0, uTime * 25.0)
+        + vec2(
+          uTime * 15.0,
+          uTime * 25.0
+        )
       );
 
-      float scanline = sin(st.y * 800.0) * 0.08;
+      float scanline =
+        sin(st.y * 800.0) * 0.08;
 
       float r = random(
         st * 400.0
-        + vec2(uTime * 15.0 + 0.02, uTime * 25.0)
+        + vec2(
+          uTime * 15.0 + 0.02,
+          uTime * 25.0
+        )
       );
 
       float b = random(
         st * 400.0
-        + vec2(uTime * 15.0 - 0.02, uTime * 25.0)
+        + vec2(
+          uTime * 15.0 - 0.02,
+          uTime * 25.0
+        )
       );
 
-      vec3 color = vec3(r, grain, b) - scanline;
+      vec3 color =
+        vec3(r, grain, b)
+        - scanline;
 
-      gl_FragColor = vec4(color, uOpacity);
+      gl_FragColor =
+        vec4(color, uOpacity);
     }
   `,
 };
 
+// ----------------------------------------------------------------------
+// SHARED TV NOISE PLANE
+// ----------------------------------------------------------------------
+
 function TVNoisePlane({ opacityRef }) {
   const materialRef = useRef(null);
 
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        uniforms: {
-          uTime: { value: 0 },
-          uOpacity: { value: 0 },
-        },
-
-        vertexShader: noiseShaderDefinition.vertexShader,
-        fragmentShader: noiseShaderDefinition.fragmentShader,
-
-        transparent: true,
-        depthTest: false,
-        depthWrite: false,
-      }),
-    []
-  );
+  const shaderArgs = useMemo(() => {
+    return {
+      uniforms: {
+        uTime: { value: 0 },
+        uOpacity: { value: 0 },
+      },
+      vertexShader:
+        noiseShaderDefinition.vertexShader,
+      fragmentShader:
+        noiseShaderDefinition.fragmentShader,
+      transparent: true,
+      depthTest: false,
+      depthWrite: false,
+    };
+  }, []);
 
   useFrame((_, delta) => {
     if (!materialRef.current) return;
 
-    materialRef.current.uniforms.uTime.value += delta;
+    materialRef.current.uniforms.uTime.value +=
+      delta;
 
     if (opacityRef.current !== undefined) {
       materialRef.current.uniforms.uOpacity.value =
@@ -145,101 +161,218 @@ function TVNoisePlane({ opacityRef }) {
     <mesh>
       <planeGeometry args={[2, 2]} />
 
-      <primitive
-        object={material}
+      <shaderMaterial
         ref={materialRef}
-        attach="material"
+        args={[shaderArgs]}
+        transparent
+        depthTest={false}
+        depthWrite={false}
       />
     </mesh>
   );
 }
 
-const R3FTVNoise = forwardRef((props, ref) => {
-  const opacityRef = useRef({ value: 0 });
+// ----------------------------------------------------------------------
+// SHARED TV NOISE
+// ----------------------------------------------------------------------
 
-  useImperativeHandle(ref, () => ({
-    triggerNoise: () => {
-      gsap.killTweensOf(opacityRef.current);
+const SharedTVNoise = forwardRef(
+  function SharedTVNoise(_, ref) {
+    const opacityRef = useRef({
+      value: 0,
+    });
 
-      gsap
-        .timeline()
-        .set(opacityRef.current, {
-          value: 0.85,
-        })
-        .to(opacityRef.current, {
-          value: 0,
-          duration: 0.32,
-          ease: "power3.out",
-        });
-    },
-  }));
+    const targetRef = useRef(null);
+    const containerRef = useRef(null);
 
-  return (
-    <div className="absolute inset-0 pointer-events-none mix-blend-screen z-20 overflow-hidden">
-      <Canvas
-        camera={{
-          position: [0, 0, 1],
+    const updatePosition = useCallback(() => {
+      const target = targetRef.current;
+      const container = containerRef.current;
+
+      if (!target || !container) {
+        if (container) {
+          container.style.opacity = "0";
+        }
+
+        return;
+      }
+
+      const rect =
+        target.getBoundingClientRect();
+
+      if (
+        rect.width <= 0 ||
+        rect.height <= 0
+      ) {
+        container.style.opacity = "0";
+        return;
+      }
+
+      container.style.left = `${rect.left}px`;
+      container.style.top = `${rect.top}px`;
+      container.style.width = `${rect.width}px`;
+      container.style.height = `${rect.height}px`;
+
+      container.style.opacity = "1";
+    }, []);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        setTarget: (element) => {
+          targetRef.current = element;
+
+          updatePosition();
+        },
+
+        clearTarget: () => {
+          targetRef.current = null;
+
+          if (containerRef.current) {
+            containerRef.current.style.opacity =
+              "0";
+          }
+        },
+
+        triggerNoise: () => {
+          const target = targetRef.current;
+
+          if (!target) return;
+
+          updatePosition();
+
+          gsap.killTweensOf(
+            opacityRef.current
+          );
+
+          gsap
+            .timeline()
+            .set(opacityRef.current, {
+              value: 0.85,
+            })
+            .to(opacityRef.current, {
+              value: 0,
+              duration: 0.32,
+              ease: "power3.out",
+            });
+        },
+      }),
+      [updatePosition]
+    );
+
+    useEffect(() => {
+      let frameId;
+
+      const update = () => {
+        updatePosition();
+
+        frameId =
+          requestAnimationFrame(update);
+      };
+
+      frameId =
+        requestAnimationFrame(update);
+
+      return () => {
+        cancelAnimationFrame(frameId);
+
+        gsap.killTweensOf(
+          opacityRef.current
+        );
+      };
+    }, [updatePosition]);
+
+    return (
+      <div
+        ref={containerRef}
+        aria-hidden="true"
+        className="fixed pointer-events-none mix-blend-screen z-20 overflow-hidden"
+        style={{
+          left: 0,
+          top: 0,
+          width: 0,
+          height: 0,
+          opacity: 0,
         }}
-        gl={{
-          preserveDrawingBuffer: true,
-          alpha: true,
-          antialias: false,
-          powerPreference: "low-power",
-        }}
-        className="w-full h-full pointer-events-none"
       >
-        <TVNoisePlane opacityRef={opacityRef} />
-      </Canvas>
-    </div>
-  );
-});
+        <Canvas
+          camera={{
+            position: [0, 0, 1],
+          }}
+          gl={{
+            alpha: true,
+            antialias: false,
+            powerPreference: "low-power",
+          }}
+          dpr={[1, 1]}
+          frameloop="always"
+          className="w-full h-full pointer-events-none"
+          style={{
+            pointerEvents: "none",
+          }}
+        >
+          <TVNoisePlane
+            opacityRef={opacityRef}
+          />
+        </Canvas>
+      </div>
+    );
+  }
+);
 
-R3FTVNoise.displayName = "R3FTVNoise";
+SharedTVNoise.displayName =
+  "SharedTVNoise";
 
 // ----------------------------------------------------------------------
 // 2. SMALL BUTTON
 // ----------------------------------------------------------------------
 
-const SmallButton = forwardRef(({ isOpen = false }, ref) => {
-  const buttonRef = useRef(null);
+const SmallButton = forwardRef(
+  ({ isOpen = false }, ref) => {
+    const buttonRef = useRef(null);
 
-  useImperativeHandle(ref, () => ({
-    triggerBlur: () => {
-      if (!buttonRef.current) return;
+    useImperativeHandle(ref, () => ({
+      triggerBlur: () => {
+        if (!buttonRef.current) return;
 
-      gsap.killTweensOf(buttonRef.current);
+        gsap.killTweensOf(
+          buttonRef.current
+        );
 
-      gsap.fromTo(
-        buttonRef.current,
-        {
-          filter: "blur(22px) brightness(1.5)",
-          scale: 0.92,
-          opacity: 0.5,
-        },
-        {
-          filter: "blur(0px) brightness(1)",
-          scale: 1,
-          opacity: 1,
-          duration: 0.45,
-          ease: "back.out(1.7)",
-        }
-      );
-    },
-  }));
+        gsap.fromTo(
+          buttonRef.current,
+          {
+            filter:
+              "blur(22px) brightness(1.5)",
+            scale: 0.92,
+            opacity: 0.5,
+          },
+          {
+            filter:
+              "blur(0px) brightness(1)",
+            scale: 1,
+            opacity: 1,
+            duration: 0.45,
+            ease: "back.out(1.7)",
+          }
+        );
+      },
+    }));
 
-  return (
-    <div
-      ref={buttonRef}
-      className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(6.5rem,6vw,7.0875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
-        isOpen
-          ? "bg-ghost-white text-black border-ghost-white hover:bg-zinc-300"
-          : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
-      }`}
-    >
-      {isOpen ? "CLOSE" : "WATCH FILM"}
-    </div>
-  );
-});
+    return (
+      <div
+        ref={buttonRef}
+        className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(6.5rem,6vw,7.0875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
+          isOpen
+            ? "bg-ghost-white text-black border-ghost-white hover:bg-zinc-300"
+            : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
+        }`}
+      >
+        {isOpen ? "CLOSE" : "WATCH FILM"}
+      </div>
+    );
+  }
+);
 
 SmallButton.displayName = "SmallButton";
 
@@ -268,7 +401,9 @@ const formatTime = (seconds) => {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
 
-  return `${mins < 10 ? "0" : ""}${mins}:${secs < 10 ? "0" : ""}${secs}`;
+  return `${mins < 10 ? "0" : ""}${mins}:${
+    secs < 10 ? "0" : ""
+  }${secs}`;
 };
 
 // ----------------------------------------------------------------------
@@ -288,7 +423,6 @@ function WorkCard({
 
   const containerRef = useRef(null);
   const buttonRef = useRef(null);
-  const noiseRef = useRef(null);
   const videoRef = useRef(null);
 
   const videoUrl = getVideoUrl(
@@ -300,39 +434,47 @@ function WorkCard({
   // --------------------------------------------------
 
   useEffect(() => {
-    if (!containerRef.current || !videoUrl) {
+    if (
+      !containerRef.current ||
+      !videoUrl
+    ) {
       return;
     }
 
-    // Priority videos begin loading immediately.
-    // These are the videos closest to the top of the page.
     if (priority) {
       return;
     }
 
-    if (!("IntersectionObserver" in window)) {
+    if (
+      !(
+        "IntersectionObserver" in
+        window
+      )
+    ) {
       return;
     }
 
-    const element = containerRef.current;
+    const element =
+      containerRef.current;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
+    const observer =
+      new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
 
-        if (entry.isIntersecting) {
-          if (videoRef.current) {
-            videoRef.current.load();
+          if (entry.isIntersecting) {
+            if (videoRef.current) {
+              videoRef.current.load();
+            }
+
+            observer.disconnect();
           }
-
-          observer.disconnect();
+        },
+        {
+          rootMargin: "2000px 0px",
+          threshold: 0,
         }
-      },
-      {
-        rootMargin: "2000px 0px",
-        threshold: 0,
-      }
-    );
+      );
 
     observer.observe(element);
 
@@ -346,7 +488,8 @@ function WorkCard({
   // --------------------------------------------------
 
   const handleLoadedMetadata = (e) => {
-    const videoEl = e.currentTarget;
+    const videoEl =
+      e.currentTarget;
 
     if (
       videoEl &&
@@ -354,7 +497,8 @@ function WorkCard({
       videoEl.duration > 0
     ) {
       videoEl.currentTime =
-        Math.random() * videoEl.duration;
+        Math.random() *
+        videoEl.duration;
     }
   };
 
@@ -363,11 +507,14 @@ function WorkCard({
   // --------------------------------------------------
 
   const handleTimeUpdate = (e) => {
-    const videoEl = e.currentTarget;
+    const videoEl =
+      e.currentTarget;
 
     if (videoEl) {
       setCurrentTime(
-        formatTime(videoEl.currentTime)
+        formatTime(
+          videoEl.currentTime
+        )
       );
     }
   };
@@ -377,11 +524,14 @@ function WorkCard({
   // --------------------------------------------------
 
   const handleMouseEnter = () => {
-    onHoverChange(true);
+    onHoverChange(
+      true,
+      containerRef.current
+    );
 
-    if (!containerRef.current) return;
-
-    noiseRef.current?.triggerNoise?.();
+    if (!containerRef.current) {
+      return;
+    }
 
     const brackets =
       containerRef.current.querySelectorAll(
@@ -410,9 +560,14 @@ function WorkCard({
   // --------------------------------------------------
 
   const handleMouseLeave = () => {
-    onHoverChange(false);
+    onHoverChange(
+      false,
+      containerRef.current
+    );
 
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return;
+    }
 
     const topL =
       containerRef.current.querySelector(
@@ -475,7 +630,9 @@ function WorkCard({
     });
 
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {});
+      videoRef.current
+        .play()
+        .catch(() => {});
     }
   };
 
@@ -520,11 +677,15 @@ function WorkCard({
             loop
             muted
             playsInline
-            preload={priority ? "auto" : "metadata"}
+            preload={
+              priority ? "auto" : "metadata"
+            }
             onLoadedMetadata={
               handleLoadedMetadata
             }
-            onTimeUpdate={handleTimeUpdate}
+            onTimeUpdate={
+              handleTimeUpdate
+            }
             className="block w-full aspect-video object-cover brightness-90 contrast-105"
           />
         ) : (
@@ -542,10 +703,6 @@ function WorkCard({
         {/* DARK OVERLAY */}
 
         <div className="absolute inset-0 bg-black/40 pointer-events-none transition-opacity duration-300 group-hover:opacity-10" />
-
-        {/* TV NOISE */}
-
-        <R3FTVNoise ref={noiseRef} />
 
         {/* CORNERS */}
 
@@ -576,7 +733,9 @@ function WorkCard({
           />
         </div>
 
-        <SmallButton ref={buttonRef} />
+        <SmallButton
+          ref={buttonRef}
+        />
       </div>
     </TransitionLink>
   );
@@ -596,75 +755,78 @@ function ListItemRow({
   const subtitleRef = useRef(null);
   const dateRef = useRef(null);
 
-  const activateRow = useCallback(() => {
-    onHoverStart(project);
+  const activateRow =
+    useCallback(() => {
+      onHoverStart(project);
 
-    gsap.to(rowRef.current, {
-      backgroundColor: "#ffffff",
-      duration: 0.3,
-      ease: "power2.out",
-      overwrite: "auto",
-    });
+      gsap.to(rowRef.current, {
+        backgroundColor: "#ffffff",
+        duration: 0.3,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
 
-    gsap.to(titleRef.current, {
-      x: 12,
-      color: "#000000",
-      duration: 0.35,
-      ease: "power3.out",
-      overwrite: "auto",
-    });
+      gsap.to(titleRef.current, {
+        x: 12,
+        color: "#000000",
+        duration: 0.35,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
 
-    gsap.to(subtitleRef.current, {
-      x: 8,
-      color: "#000000",
-      duration: 0.35,
-      ease: "power3.out",
-      overwrite: "auto",
-    });
+      gsap.to(subtitleRef.current, {
+        x: 8,
+        color: "#000000",
+        duration: 0.35,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
 
-    gsap.to(dateRef.current, {
-      x: -8,
-      color: "#000000",
-      duration: 0.35,
-      ease: "power3.out",
-      overwrite: "auto",
-    });
-  }, [onHoverStart, project]);
+      gsap.to(dateRef.current, {
+        x: -8,
+        color: "#000000",
+        duration: 0.35,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
+    }, [onHoverStart, project]);
 
-  const deactivateRow = useCallback(() => {
-    onHoverEnd();
+  const deactivateRow =
+    useCallback(() => {
+      onHoverEnd();
 
-    gsap.to(rowRef.current, {
-      backgroundColor: "transparent",
-      duration: 0.3,
-      ease: "power2.out",
-      overwrite: "auto",
-    });
+      gsap.to(rowRef.current, {
+        backgroundColor:
+          "transparent",
+        duration: 0.3,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
 
-    gsap.to(titleRef.current, {
-      x: 0,
-      color: "#f8f8f8",
-      duration: 0.35,
-      ease: "power3.out",
-      overwrite: "auto",
-    });
+      gsap.to(titleRef.current, {
+        x: 0,
+        color: "#f8f8f8",
+        duration: 0.35,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
 
-    gsap.to(subtitleRef.current, {
-      x: 0,
-      color: "#a1a1a1",
-      duration: 0.35,
-      ease: "power3.out",
-      overwrite: "auto",
-    });
+      gsap.to(subtitleRef.current, {
+        x: 0,
+        color: "#a1a1a1",
+        duration: 0.35,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
 
-    gsap.to(dateRef.current, {
-      x: 0,
-      color: "#71717a",
-      duration: 0.35,
-      ease: "power3.out",
-      overwrite: "auto",
-    });
-  }, [onHoverEnd]);
+      gsap.to(dateRef.current, {
+        x: 0,
+        color: "#71717a",
+        duration: 0.35,
+        ease: "power3.out",
+        overwrite: "auto",
+      });
+    }, [onHoverEnd]);
 
   return (
     <div
@@ -726,7 +888,9 @@ function ClientFilter({
     if (!optionsRef.current) return;
 
     const items =
-      optionItemsRef.current.filter(Boolean);
+      optionItemsRef.current.filter(
+        Boolean
+      );
 
     gsap.set(optionsRef.current, {
       width: 0,
@@ -744,123 +908,138 @@ function ClientFilter({
   // OPEN
   // --------------------------------------------------
 
-  const openFilter = useCallback(() => {
-    if (!clientFilters.length) return;
+  const openFilter =
+    useCallback(() => {
+      if (!clientFilters.length) return;
 
-    setIsOpen(true);
+      setIsOpen(true);
 
-    requestAnimationFrame(() => {
-      if (!optionsRef.current) return;
+      requestAnimationFrame(() => {
+        if (!optionsRef.current) return;
+
+        const items =
+          optionItemsRef.current.filter(
+            Boolean
+          );
+
+        gsap.killTweensOf([
+          optionsRef.current,
+          ...items,
+        ]);
+
+        gsap.to(optionsRef.current, {
+          width: "auto",
+          opacity: 1,
+          duration: 0.55,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+
+        gsap.to(items, {
+          opacity: 1,
+          x: 0,
+          duration: 0.5,
+          stagger: 0.055,
+          ease: "power3.out",
+          overwrite: "auto",
+        });
+      });
+    }, [clientFilters]);
+
+  // --------------------------------------------------
+  // CLOSE
+  // --------------------------------------------------
+
+  const closeFilter =
+    useCallback(() => {
+      if (!optionsRef.current) {
+        setIsOpen(false);
+        return;
+      }
 
       const items =
-        optionItemsRef.current.filter(Boolean);
+        optionItemsRef.current.filter(
+          Boolean
+        );
 
       gsap.killTweensOf([
         optionsRef.current,
         ...items,
       ]);
 
-      gsap.to(optionsRef.current, {
-        width: "auto",
-        opacity: 1,
-        duration: 0.55,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
-
       gsap.to(items, {
-        opacity: 1,
-        x: 0,
-        duration: 0.5,
-        stagger: 0.055,
-        ease: "power3.out",
+        opacity: 0,
+        x: -18,
+        duration: 0.35,
+        stagger: 0.025,
+        ease: "power3.inOut",
         overwrite: "auto",
       });
-    });
-  }, [clientFilters]);
 
-  // --------------------------------------------------
-  // CLOSE
-  // --------------------------------------------------
-
-  const closeFilter = useCallback(() => {
-    if (!optionsRef.current) {
-      setIsOpen(false);
-      return;
-    }
-
-    const items =
-      optionItemsRef.current.filter(Boolean);
-
-    gsap.killTweensOf([
-      optionsRef.current,
-      ...items,
-    ]);
-
-    gsap.to(items, {
-      opacity: 0,
-      x: -18,
-      duration: 0.35,
-      stagger: 0.025,
-      ease: "power3.inOut",
-      overwrite: "auto",
-    });
-
-    gsap.to(optionsRef.current, {
-      width: 0,
-      opacity: 0,
-      duration: 0.5,
-      delay: 0.04,
-      ease: "power3.inOut",
-      overwrite: "auto",
-      onComplete: () => {
-        setIsOpen(false);
-      },
-    });
-  }, []);
+      gsap.to(optionsRef.current, {
+        width: 0,
+        opacity: 0,
+        duration: 0.5,
+        delay: 0.04,
+        ease: "power3.inOut",
+        overwrite: "auto",
+        onComplete: () => {
+          setIsOpen(false);
+        },
+      });
+    }, []);
 
   // --------------------------------------------------
   // MOBILE TAP
   // --------------------------------------------------
 
-  const handleFilterClick = () => {
-    if (window.innerWidth < 640) {
-      if (isOpen) {
-        closeFilter();
-      } else {
-        openFilter();
+  const handleFilterClick =
+    () => {
+      if (window.innerWidth < 640) {
+        if (isOpen) {
+          closeFilter();
+        } else {
+          openFilter();
+        }
       }
-    }
-  };
+    };
 
   // --------------------------------------------------
   // HOVER
   // --------------------------------------------------
 
-  const handleMouseEnter = () => {
-    if (window.innerWidth >= 640) {
-      openFilter();
-    }
-  };
+  const handleMouseEnter =
+    () => {
+      if (window.innerWidth >= 640) {
+        openFilter();
+      }
+    };
 
-  const handleMouseLeave = () => {
-    if (window.innerWidth >= 640) {
-      closeFilter();
-    }
-  };
+  const handleMouseLeave =
+    () => {
+      if (window.innerWidth >= 640) {
+        closeFilter();
+      }
+    };
 
   return (
     <div
       ref={filterRef}
       className="relative flex items-center w-fit"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={
+        handleMouseEnter
+      }
+      onMouseLeave={
+        handleMouseLeave
+      }
     >
       {/* FILTER LABEL */}
 
       <button
         type="button"
-        onClick={handleFilterClick}
+        onClick={
+          handleFilterClick
+        }
         className="font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase text-zinc-500 hover:text-white transition-colors duration-300 cursor-pointer whitespace-nowrap"
       >
         FILTER
@@ -878,7 +1057,8 @@ function ClientFilter({
       >
         <button
           ref={(el) => {
-            optionItemsRef.current[0] = el;
+            optionItemsRef.current[0] =
+              el;
           }}
           onClick={() =>
             onClientFilter("ALL")
@@ -893,7 +1073,10 @@ function ClientFilter({
         </button>
 
         {clientFilters.map(
-          (clientName, index) => (
+          (
+            clientName,
+            index
+          ) => (
             <React.Fragment
               key={clientName}
             >
@@ -941,11 +1124,17 @@ function ClientFilter({
 // ----------------------------------------------------------------------
 
 export default function AllWorksSection() {
-  const containerRef = useRef(null);
+  const containerRef =
+    useRef(null);
+
   const listContainerRef =
     useRef(null);
 
-  const bgVideoRef = useRef(null);
+  const bgVideoRef =
+    useRef(null);
+
+  const noiseRef =
+    useRef(null);
 
   const [viewMode, setViewMode] =
     useState("grid");
@@ -979,15 +1168,16 @@ export default function AllWorksSection() {
       try {
         setIsLoading(true);
 
-        const data = await client.fetch(
-          WORKS_QUERY,
-          {},
-          {
-            next: {
-              revalidate: 60,
-            },
-          }
-        );
+        const data =
+          await client.fetch(
+            WORKS_QUERY,
+            {},
+            {
+              next: {
+                revalidate: 60,
+              },
+            }
+          );
 
         console.log(
           "SANITY WORKS:",
@@ -1028,75 +1218,93 @@ export default function AllWorksSection() {
   // CLIENT FILTERS
   // --------------------------------------------------
 
-  const clientFilters = useMemo(() => {
-    const clientCounts = {};
+  const clientFilters =
+    useMemo(() => {
+      const clientCounts = {};
 
-    projects.forEach((project) => {
-      const clientName =
-        project.client?.trim();
+      projects.forEach(
+        (project) => {
+          const clientName =
+            project.client?.trim();
 
-      if (!clientName) return;
+          if (!clientName) return;
 
-      const normalizedName =
-        clientName.toLowerCase();
+          const normalizedName =
+            clientName.toLowerCase();
 
-      if (!clientCounts[normalizedName]) {
-        clientCounts[normalizedName] = {
-          name: clientName,
-          count: 0,
-        };
-      }
+          if (
+            !clientCounts[
+              normalizedName
+            ]
+          ) {
+            clientCounts[
+              normalizedName
+            ] = {
+              name: clientName,
+              count: 0,
+            };
+          }
 
-      clientCounts[
-        normalizedName
-      ].count += 1;
-    });
-
-    return Object.values(clientCounts)
-      .filter(
-        (client) => client.count >= 2
-      )
-      .map(
-        (client) => client.name
+          clientCounts[
+            normalizedName
+          ].count += 1;
+        }
       );
-  }, [projects]);
+
+      return Object.values(
+        clientCounts
+      )
+        .filter(
+          (client) =>
+            client.count >= 2
+        )
+        .map(
+          (client) =>
+            client.name
+        );
+    }, [projects]);
 
   // --------------------------------------------------
   // FILTERED PROJECTS
   // --------------------------------------------------
 
-  const filteredProjects = useMemo(() => {
-    if (selectedClient === "ALL") {
-      return projects;
-    }
+  const filteredProjects =
+    useMemo(() => {
+      if (
+        selectedClient ===
+        "ALL"
+      ) {
+        return projects;
+      }
 
-    return projects.filter(
-      (project) =>
-        project.client
-          ?.trim()
-          .toLowerCase() ===
-        selectedClient
-          .trim()
-          .toLowerCase()
-    );
-  }, [
-    projects,
-    selectedClient,
-  ]);
+      return projects.filter(
+        (project) =>
+          project.client
+            ?.trim()
+            .toLowerCase() ===
+          selectedClient
+            .trim()
+            .toLowerCase()
+      );
+    }, [
+      projects,
+      selectedClient,
+    ]);
 
   // --------------------------------------------------
   // VISIBLE PROJECTS
   // --------------------------------------------------
 
-  const activeProjects = useMemo(() => {
-    return filteredProjects.slice(
-      0,
-      visibleCount
-    );
-  }, [
-    filteredProjects,
-    visibleCount,
-  ]);
+  const activeProjects =
+    useMemo(() => {
+      return filteredProjects.slice(
+        0,
+        visibleCount
+      );
+    }, [
+      filteredProjects,
+      visibleCount,
+    ]);
 
   // --------------------------------------------------
   // RESET VISIBLE COUNT
@@ -1119,31 +1327,32 @@ export default function AllWorksSection() {
       return;
     }
 
-    const ctx = gsap.context(() => {
-      const cards =
-        containerRef.current.querySelectorAll(
-          ".work-card-reveal"
-        );
+    const ctx =
+      gsap.context(() => {
+        const cards =
+          containerRef.current.querySelectorAll(
+            ".work-card-reveal"
+          );
 
-      if (!cards.length) return;
+        if (!cards.length) return;
 
-      gsap.set(cards, {
-        opacity: 0,
-        y: 50,
-        filter: "blur(10px)",
-      });
+        gsap.set(cards, {
+          opacity: 0,
+          y: 50,
+          filter: "blur(10px)",
+        });
 
-      gsap.to(cards, {
-        opacity: 1,
-        y: 0,
-        filter: "blur(0px)",
-        duration: 0.9,
-        stagger: 0.12,
-        ease: "power4.out",
-        delay: 0.1,
-        overwrite: "auto",
-      });
-    }, containerRef);
+        gsap.to(cards, {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          duration: 0.9,
+          stagger: 0.12,
+          ease: "power4.out",
+          delay: 0.1,
+          overwrite: "auto",
+        });
+      }, containerRef);
 
     return () => ctx.revert();
   }, [
@@ -1156,99 +1365,111 @@ export default function AllWorksSection() {
   // VIEW TOGGLE
   // --------------------------------------------------
 
-  const handleToggleView = (mode) => {
-    if (mode === viewMode) return;
+  const handleToggleView =
+    (mode) => {
+      if (mode === viewMode)
+        return;
 
-    if (containerRef.current) {
-      gsap.to(containerRef.current, {
-        opacity: 0,
-        y: 10,
-        duration: 0.25,
-        ease: "power2.in",
+      if (containerRef.current) {
+        gsap.to(
+          containerRef.current,
+          {
+            opacity: 0,
+            y: 10,
+            duration: 0.25,
+            ease: "power2.in",
+            onComplete: () => {
+              setViewMode(mode);
 
-        onComplete: () => {
-          setViewMode(mode);
-
-          gsap.to(
-            containerRef.current,
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.35,
-              ease: "power2.out",
-            }
-          );
-        },
-      });
-    } else {
-      setViewMode(mode);
-    }
-  };
+              gsap.to(
+                containerRef.current,
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.35,
+                  ease: "power2.out",
+                }
+              );
+            },
+          }
+        );
+      } else {
+        setViewMode(mode);
+      }
+    };
 
   // --------------------------------------------------
   // CLIENT FILTER
   // --------------------------------------------------
 
-  const handleClientFilter = (
-    clientName
-  ) => {
-    if (
-      clientName === selectedClient
-    ) {
-      return;
-    }
+  const handleClientFilter =
+    (clientName) => {
+      if (
+        clientName ===
+        selectedClient
+      ) {
+        return;
+      }
 
-    if (containerRef.current) {
-      gsap.to(containerRef.current, {
-        opacity: 0,
-        y: 10,
-        duration: 0.25,
-        ease: "power2.in",
+      if (containerRef.current) {
+        gsap.to(
+          containerRef.current,
+          {
+            opacity: 0,
+            y: 10,
+            duration: 0.25,
+            ease: "power2.in",
+            onComplete: () => {
+              setSelectedClient(
+                clientName
+              );
 
-        onComplete: () => {
-          setSelectedClient(
-            clientName
-          );
-
-          gsap.to(
-            containerRef.current,
-            {
-              opacity: 1,
-              y: 0,
-              duration: 0.35,
-              ease: "power2.out",
-            }
-          );
-        },
-      });
-    } else {
-      setSelectedClient(clientName);
-    }
-  };
+              gsap.to(
+                containerRef.current,
+                {
+                  opacity: 1,
+                  y: 0,
+                  duration: 0.35,
+                  ease: "power2.out",
+                }
+              );
+            },
+          }
+        );
+      } else {
+        setSelectedClient(
+          clientName
+        );
+      }
+    };
 
   // --------------------------------------------------
   // LOAD MORE
   // --------------------------------------------------
 
-  const handleLoadMore = () => {
-    setVisibleCount((prev) =>
-      Math.min(
-        prev + 5,
-        filteredProjects.length
-      )
-    );
-  };
+  const handleLoadMore =
+    () => {
+      setVisibleCount(
+        (prev) =>
+          Math.min(
+            prev + 5,
+            filteredProjects.length
+          )
+      );
+    };
 
   // --------------------------------------------------
   // REFRESH SCROLLTRIGGER
   // --------------------------------------------------
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 150);
+    const timer =
+      setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 150);
 
-    return () => clearTimeout(timer);
+    return () =>
+      clearTimeout(timer);
   }, [
     viewMode,
     visibleCount,
@@ -1281,9 +1502,12 @@ export default function AllWorksSection() {
         bgVideoRef.current.play();
 
       if (
-        playPromise !== undefined
+        playPromise !==
+        undefined
       ) {
-        playPromise.catch(() => {});
+        playPromise.catch(
+          () => {}
+        );
       }
     }
   }, [
@@ -1303,40 +1527,40 @@ export default function AllWorksSection() {
       return;
     }
 
-    const ctx = gsap.context(() => {
-      const listItems =
-        listContainerRef.current.querySelectorAll(
-          ".list-item-row"
-        );
+    const ctx =
+      gsap.context(() => {
+        const listItems =
+          listContainerRef.current.querySelectorAll(
+            ".list-item-row"
+          );
 
-      gsap.set(listItems, {
-        opacity: 0,
-        y: 40,
-      });
-
-      gsap.fromTo(
-        listItems,
-        {
+        gsap.set(listItems, {
           opacity: 0,
           y: 40,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.08,
-          ease: "power3.out",
+        });
 
-          scrollTrigger: {
-            trigger:
-              listContainerRef.current,
-            start: "top 85%",
-            toggleActions:
-              "play none none reset",
+        gsap.fromTo(
+          listItems,
+          {
+            opacity: 0,
+            y: 40,
           },
-        }
-      );
-    }, listContainerRef);
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.08,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger:
+                listContainerRef.current,
+              start: "top 85%",
+              toggleActions:
+                "play none none reset",
+            },
+          }
+        );
+      }, listContainerRef);
 
     return () => ctx.revert();
   }, [
@@ -1350,22 +1574,23 @@ export default function AllWorksSection() {
   // --------------------------------------------------
 
   useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
+    const lenis =
+      new Lenis({
+        duration: 1.2,
 
-      easing: (t) =>
-        Math.min(
-          1,
-          1.001 -
-            Math.pow(
-              2,
-              -10 * t
-            )
-        ),
+        easing: (t) =>
+          Math.min(
+            1,
+            1.001 -
+              Math.pow(
+                2,
+                -10 * t
+              )
+          ),
 
-      smoothWheel: true,
-      touchMultiplier: 2,
-    });
+        smoothWheel: true,
+        touchMultiplier: 2,
+      });
 
     let frameId;
 
@@ -1373,7 +1598,9 @@ export default function AllWorksSection() {
       lenis.raf(time);
 
       frameId =
-        requestAnimationFrame(raf);
+        requestAnimationFrame(
+          raf
+        );
     }
 
     frameId =
@@ -1406,6 +1633,11 @@ export default function AllWorksSection() {
 
   return (
     <div className="bg-black w-full min-h-screen px-4 py-6 md:px-4 md:pt-22 relative overflow-x-hidden">
+      {/* SHARED TV NOISE */}
+
+      <SharedTVNoise
+        ref={noiseRef}
+      />
 
       {/* BACKGROUND VIDEO */}
 
@@ -1452,11 +1684,9 @@ export default function AllWorksSection() {
       {/* HEADER */}
 
       <div className="relative z-10 flex flex-col space-y-6 pt-14 md:pt-8 lg:pt-20">
-
         {/* TOP BAR */}
 
         <div className="flex flex-row items-center justify-between w-full text-zinc-300">
-
           <div className="opacity-0 font-geist-mono font-medium tracking-tight text-[clamp(0.5rem,0.8vw,0.625rem)] flex items-center gap-2">
             <div className="w-2 h-2 bg-zinc-300" />
 
@@ -1473,29 +1703,25 @@ export default function AllWorksSection() {
         {/* TITLE / CONTROLS */}
 
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between w-full text-ghost-white gap-6 sm:gap-0 pb-6">
-
           <div className="flex flex-row items-start gap-4 sm:gap-6">
-
             <h1 className="text-[clamp(5rem,15vw,16.875rem)] tracking-[-8%] font-monot leading-none uppercase">
               Works
             </h1>
 
             <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
               [
-              {projects.length < 10
+              {projects.length <
+              10
                 ? `0${projects.length}`
                 : projects.length}
               ]
             </sup>
-
           </div>
 
           <div className="flex flex-col items-start sm:items-end justify-end space-y-4 w-full sm:w-auto">
-
             {/* GRID / LIST */}
 
             <div className="flex items-center space-x-3 font-geist-mono text-sm md:text-lg tracking-widest uppercase">
-
               <button
                 onClick={() =>
                   handleToggleView(
@@ -1503,7 +1729,8 @@ export default function AllWorksSection() {
                   )
                 }
                 className={`transition-colors cursor-pointer ${
-                  viewMode === "grid"
+                  viewMode ===
+                  "grid"
                     ? "text-white font-bold"
                     : "text-zinc-500 hover:text-white"
                 }`}
@@ -1522,14 +1749,14 @@ export default function AllWorksSection() {
                   )
                 }
                 className={`transition-colors cursor-pointer ${
-                  viewMode === "list"
+                  viewMode ===
+                  "list"
                     ? "text-white font-bold"
                     : "text-zinc-500 hover:text-white"
                 }`}
               >
                 LIST
               </button>
-
             </div>
 
             {/* CLIENT FILTER */}
@@ -1548,7 +1775,6 @@ export default function AllWorksSection() {
                 }
               />
             )}
-
           </div>
         </div>
 
@@ -1558,17 +1784,14 @@ export default function AllWorksSection() {
           ref={containerRef}
           className="w-full transition-all duration-300"
         >
-
-          {viewMode === "grid" ? (
-
+          {viewMode ===
+          "grid" ? (
             <div className="flex flex-col space-y-8 lg:space-y-14 pt-4">
-
               {/* FIRST 3 PROJECTS */}
 
               {activeProjects.length >
                 0 && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-0 text-lavender">
-
                   {activeProjects
                     .slice(0, 3)
                     .map(
@@ -1587,11 +1810,25 @@ export default function AllWorksSection() {
                             index < 6
                           }
                           heightClassName="w-full aspect-video"
-                          onHoverChange={() => {}}
+                          onHoverChange={(
+                            isHovered,
+                            element
+                          ) => {
+                            if (
+                              isHovered
+                            ) {
+                              noiseRef.current?.setTarget?.(
+                                element
+                              );
+
+                              noiseRef.current?.triggerNoise?.();
+                            } else {
+                              noiseRef.current?.clearTarget?.();
+                            }
+                          }}
                         />
                       )
                     )}
-
                 </div>
               )}
 
@@ -1600,7 +1837,6 @@ export default function AllWorksSection() {
               {activeProjects.length >=
                 4 && (
                 <div className="w-full">
-
                   <WorkCard
                     video={
                       activeProjects[3]
@@ -1608,9 +1844,23 @@ export default function AllWorksSection() {
                     priority
                     fullBleedVideo
                     heightClassName="w-full"
-                    onHoverChange={() => {}}
-                  />
+                    onHoverChange={(
+                      isHovered,
+                      element
+                    ) => {
+                      if (
+                        isHovered
+                      ) {
+                        noiseRef.current?.setTarget?.(
+                          element
+                        );
 
+                        noiseRef.current?.triggerNoise?.();
+                      } else {
+                        noiseRef.current?.clearTarget?.();
+                      }
+                    }}
+                  />
                 </div>
               )}
 
@@ -1619,36 +1869,60 @@ export default function AllWorksSection() {
               {activeProjects.length >=
                 5 && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 w-full gap-8 items-start py-2">
-
                   <div className="lg:col-span-5">
-
                     <WorkCard
                       video={
                         activeProjects[4]
                       }
                       priority
                       heightClassName="w-full aspect-video"
-                      onHoverChange={() => {}}
-                    />
+                      onHoverChange={(
+                        isHovered,
+                        element
+                      ) => {
+                        if (
+                          isHovered
+                        ) {
+                          noiseRef.current?.setTarget?.(
+                            element
+                          );
 
+                          noiseRef.current?.triggerNoise?.();
+                        } else {
+                          noiseRef.current?.clearTarget?.();
+                        }
+                      }}
+                    />
                   </div>
 
                   {activeProjects.length >=
                     6 && (
                     <div className="lg:col-span-5 lg:col-start-7 lg:translate-y-12">
-
                       <WorkCard
                         video={
                           activeProjects[5]
                         }
                         priority
                         heightClassName="w-full aspect-video"
-                        onHoverChange={() => {}}
-                      />
+                        onHoverChange={(
+                          isHovered,
+                          element
+                        ) => {
+                          if (
+                            isHovered
+                          ) {
+                            noiseRef.current?.setTarget?.(
+                              element
+                            );
 
+                            noiseRef.current?.triggerNoise?.();
+                          } else {
+                            noiseRef.current?.clearTarget?.();
+                          }
+                        }}
+                      />
                     </div>
                   )}
-
                 </div>
               )}
 
@@ -1657,13 +1931,27 @@ export default function AllWorksSection() {
               {activeProjects.length >=
                 7 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 text-lavender md:pt-30">
-
                   <WorkCard
                     video={
                       activeProjects[6]
                     }
                     heightClassName="w-full aspect-video"
-                    onHoverChange={() => {}}
+                    onHoverChange={(
+                      isHovered,
+                      element
+                    ) => {
+                      if (
+                        isHovered
+                      ) {
+                        noiseRef.current?.setTarget?.(
+                          element
+                        );
+
+                        noiseRef.current?.triggerNoise?.();
+                      } else {
+                        noiseRef.current?.clearTarget?.();
+                      }
+                    }}
                   />
 
                   {activeProjects.length >=
@@ -1673,10 +1961,24 @@ export default function AllWorksSection() {
                         activeProjects[7]
                       }
                       heightClassName="w-full aspect-video"
-                      onHoverChange={() => {}}
+                      onHoverChange={(
+                        isHovered,
+                        element
+                      ) => {
+                        if (
+                          isHovered
+                        ) {
+                          noiseRef.current?.setTarget?.(
+                            element
+                          );
+
+                          noiseRef.current?.triggerNoise?.();
+                        } else {
+                          noiseRef.current?.clearTarget?.();
+                        }
+                      }}
                     />
                   )}
-
                 </div>
               )}
 
@@ -1685,11 +1987,12 @@ export default function AllWorksSection() {
               {activeProjects.length >=
                 9 && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-6 md:gap-2 text-lavender md:pt-30">
-
                   {activeProjects
                     .slice(8, 11)
                     .map(
-                      (project) => (
+                      (
+                        project
+                      ) => (
                         <WorkCard
                           key={
                             project._id
@@ -1698,11 +2001,25 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
-                          onHoverChange={() => {}}
+                          onHoverChange={(
+                            isHovered,
+                            element
+                          ) => {
+                            if (
+                              isHovered
+                            ) {
+                              noiseRef.current?.setTarget?.(
+                                element
+                              );
+
+                              noiseRef.current?.triggerNoise?.();
+                            } else {
+                              noiseRef.current?.clearTarget?.();
+                            }
+                          }}
                         />
                       )
                     )}
-
                 </div>
               )}
 
@@ -1711,11 +2028,12 @@ export default function AllWorksSection() {
               {activeProjects.length >=
                 12 && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 w-full gap-6 md:gap-3 text-lavender md:pt-30">
-
                   {activeProjects
                     .slice(11, 13)
                     .map(
-                      (project) => (
+                      (
+                        project
+                      ) => (
                         <WorkCard
                           key={
                             project._id
@@ -1724,11 +2042,25 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
-                          onHoverChange={() => {}}
+                          onHoverChange={(
+                            isHovered,
+                            element
+                          ) => {
+                            if (
+                              isHovered
+                            ) {
+                              noiseRef.current?.setTarget?.(
+                                element
+                              );
+
+                              noiseRef.current?.triggerNoise?.();
+                            } else {
+                              noiseRef.current?.clearTarget?.();
+                            }
+                          }}
                         />
                       )
                     )}
-
                 </div>
               )}
 
@@ -1737,11 +2069,12 @@ export default function AllWorksSection() {
               {activeProjects.length >
                 13 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
-
                   {activeProjects
                     .slice(13)
                     .map(
-                      (project) => (
+                      (
+                        project
+                      ) => (
                         <WorkCard
                           key={
                             project._id
@@ -1750,11 +2083,25 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
-                          onHoverChange={() => {}}
+                          onHoverChange={(
+                            isHovered,
+                            element
+                          ) => {
+                            if (
+                              isHovered
+                            ) {
+                              noiseRef.current?.setTarget?.(
+                                element
+                              );
+
+                              noiseRef.current?.triggerNoise?.();
+                            } else {
+                              noiseRef.current?.clearTarget?.();
+                            }
+                          }}
                         />
                       )
                     )}
-
                 </div>
               )}
 
@@ -1763,11 +2110,9 @@ export default function AllWorksSection() {
               {activeProjects.length ===
                 0 && (
                 <div className="flex items-center justify-center py-32">
-
                   <span className="font-geist-mono text-xs text-zinc-600 uppercase tracking-widest">
                     No projects found
                   </span>
-
                 </div>
               )}
 
@@ -1776,7 +2121,6 @@ export default function AllWorksSection() {
               {visibleCount <
                 filteredProjects.length && (
                 <div className="flex justify-center pt-12">
-
                   <button
                     onClick={
                       handleLoadMore
@@ -1785,14 +2129,10 @@ export default function AllWorksSection() {
                   >
                     LOAD MORE
                   </button>
-
                 </div>
               )}
-
             </div>
-
           ) : (
-
             /* LIST VIEW */
 
             <div
@@ -1801,9 +2141,7 @@ export default function AllWorksSection() {
               }
               className="relative w-full pt-8 pb-8"
             >
-
               <div className="grid grid-cols-3 items-center text-zinc-500 font-geist-mono text-[0.65rem] md:text-xs uppercase tracking-wider pb-4 border-b border-zinc-800">
-
                 <span className="text-left">
                   CLIENT
                 </span>
@@ -1815,11 +2153,9 @@ export default function AllWorksSection() {
                 <span className="text-right">
                   YEAR
                 </span>
-
               </div>
 
               <div className="flex flex-col divide-y divide-zinc-800/60">
-
                 {activeProjects.map(
                   (project) => (
                     <ListItemRow
@@ -1840,24 +2176,20 @@ export default function AllWorksSection() {
                     />
                   )
                 )}
-
               </div>
 
               {activeProjects.length ===
                 0 && (
                 <div className="flex items-center justify-center py-32">
-
                   <span className="font-geist-mono text-xs text-zinc-600 uppercase tracking-widest">
                     No projects found
                   </span>
-
                 </div>
               )}
 
               {visibleCount <
                 filteredProjects.length && (
                 <div className="flex justify-center pt-12">
-
                   <button
                     onClick={
                       handleLoadMore
@@ -1866,20 +2198,16 @@ export default function AllWorksSection() {
                   >
                     LOAD MORE
                   </button>
-
                 </div>
               )}
-
             </div>
           )}
-
         </div>
       </div>
 
       {/* FOOTER */}
 
       <Footer />
-
     </div>
   );
 }

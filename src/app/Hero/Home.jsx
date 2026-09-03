@@ -11,14 +11,8 @@ import gsap from 'gsap'
 const getMobileOptimizedUrl = (url) => {
   if (!url) return url
 
-  if (
-    typeof window !== 'undefined' &&
-    window.innerWidth <= 768
-  ) {
-    return url.replace(
-      '/upload/',
-      '/upload/q_auto,f_mp4,w_720,vc_h264/'
-    )
+  if (typeof window !== 'undefined' && window.innerWidth <= 768) {
+    return url.replace('/upload/', '/upload/q_auto,f_auto,w_720,vc_h264/')
   }
 
   return url
@@ -26,7 +20,7 @@ const getMobileOptimizedUrl = (url) => {
 
 const RAW_PROJECTS = [
   {
-    src: 'https://res.cloudinary.com/eafm1vdw/video/upload/v1787731790/cloudhaus_landing_video_1440p.mp4',
+    src: 'https://ik.imagekit.io/sivo7t3nqf/cloudhaus_landing_video%20(1440p).mp4',
     title: 'THE BUILDING COMPANY'
   },
 ]
@@ -60,6 +54,11 @@ function Home() {
   // Bottom UI Animation Refs
   const bottomTextRef = useRef(null)
   const scrollTextRef = useRef(null)
+
+  // Interaction Guide
+  const [showInteractionGuide, setShowInteractionGuide] = useState(false)
+  const [interactionGuideDismissed, setInteractionGuideDismissed] = useState(false)
+  const interactionGuideRef = useRef(null)
 
   // Process project video URLs based on client screen size
   const PROJECTS = useMemo(() => {
@@ -221,132 +220,155 @@ function Home() {
     }
   }, [isLoaded])
 
-  const handleVideoInit = useCallback((videoEl) => {
-  if (!videoEl) return
+  // Automatically show interaction guide after page has loaded
+  useEffect(() => {
+    if (!isLoaded || interactionGuideDismissed) return
 
-  activeVideoRef.current = videoEl
+    const timer = setTimeout(() => {
+      setShowInteractionGuide(true)
+    }, 1800)
 
-  videoEl.muted = isMuted
-  videoEl.defaultMuted = isMuted
-  videoEl.setAttribute('playsinline', 'true')
-  videoEl.setAttribute('webkit-playsinline', 'true')
+    return () => clearTimeout(timer)
+  }, [isLoaded, interactionGuideDismissed])
 
-  const updateDuration = () => {
-    if (videoEl.duration && !isNaN(videoEl.duration)) {
-      setDuration(formatTime(videoEl.duration))
-    }
-  }
+  // Smooth entrance animation for interaction guide
+  useEffect(() => {
+    if (!showInteractionGuide || !interactionGuideRef.current) return
 
-  const updateCurrentTime = () => {
-  if (
-    videoEl.duration !== undefined &&
-    !isNaN(videoEl.duration) &&
-    !isNaN(videoEl.currentTime)
-  ) {
-    const remaining = Math.max(
-      0,
-      videoEl.duration - videoEl.currentTime
+    gsap.fromTo(
+      interactionGuideRef.current,
+      {
+        opacity: 0,
+        scale: 0.94,
+        y: 10,
+        filter: 'blur(6px)'
+      },
+      {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 0.45,
+        ease: 'power3.out'
+      }
     )
+  }, [showInteractionGuide])
 
-    setDuration(formatTime(remaining))
-  }
-}
-
- videoEl.addEventListener('timeupdate', updateCurrentTime)
-
-  // Set the initial countdown immediately
-  updateCurrentTime()
-
-  const handleProgress = () => {
-    if (videoEl.buffered.length > 0 && videoEl.duration) {
-      const bufferedEnd =
-        videoEl.buffered.end(videoEl.buffered.length - 1)
-
-      const pct = Math.min(
-        100,
-        Math.round((bufferedEnd / videoEl.duration) * 100)
-      )
-
-      targetProgress.current = Math.max(
-        targetProgress.current,
-        pct
-      )
+  // Interaction guide exit animation
+  const closeInteractionGuide = () => {
+    if (!interactionGuideRef.current) {
+      setShowInteractionGuide(false)
+      setInteractionGuideDismissed(true)
+      return
     }
-  }
 
-  if (videoEl.readyState >= 1) {
-    updateDuration()
-
-    targetProgress.current = Math.max(
-      targetProgress.current,
-      85
-    )
-  }
-
-  if (videoEl.readyState >= 3) {
-    targetProgress.current = 100
-  }
-
-  videoEl.addEventListener(
-    'loadedmetadata',
-    updateDuration
-  )
-
-  videoEl.addEventListener(
-    'durationchange',
-    updateDuration
-  )
-
-  videoEl.addEventListener(
-    'timeupdate',
-    updateCurrentTime
-  )
-
-  videoEl.addEventListener(
-    'progress',
-    handleProgress
-  )
-
-  videoEl.addEventListener(
-    'canplay',
-    () => {
-      targetProgress.current = 100
-    }
-  )
-
-  const playPromise = videoEl.play()
-
-  if (playPromise !== undefined) {
-    playPromise.catch((err) => {
-      console.warn(
-        'Autoplay restricted or deferred:',
-        err
-      )
+    gsap.to(interactionGuideRef.current, {
+      opacity: 0,
+      scale: 0.94,
+      filter: 'blur(6px)',
+      duration: 0.3,
+      ease: 'power2.out',
+      onComplete: () => {
+        setShowInteractionGuide(false)
+        setInteractionGuideDismissed(true)
+      }
     })
   }
 
-  return () => {
-    videoEl.removeEventListener(
+  const handleVideoInit = useCallback((videoEl) => {
+    if (!videoEl) return
+
+    activeVideoRef.current = videoEl
+    videoEl.muted = isMuted
+
+    videoEl.setAttribute('playsinline', 'true')
+    videoEl.setAttribute('webkit-playsinline', 'true')
+
+    const updateDuration = () => {
+      if (videoEl.duration && !isNaN(videoEl.duration)) {
+        setDuration(formatTime(videoEl.duration))
+      }
+    }
+
+    const handleProgress = () => {
+      if (videoEl.buffered.length > 0 && videoEl.duration) {
+        const bufferedEnd =
+          videoEl.buffered.end(videoEl.buffered.length - 1)
+
+        const pct = Math.min(
+          100,
+          Math.round((bufferedEnd / videoEl.duration) * 100)
+        )
+
+        targetProgress.current = Math.max(
+          targetProgress.current,
+          pct
+        )
+      }
+    }
+
+    if (videoEl.readyState >= 1) {
+      updateDuration()
+      targetProgress.current = Math.max(
+        targetProgress.current,
+        85
+      )
+    }
+
+    if (videoEl.readyState >= 3) {
+      targetProgress.current = 100
+    }
+
+    videoEl.addEventListener(
       'loadedmetadata',
       updateDuration
     )
 
-    videoEl.removeEventListener(
+    videoEl.addEventListener(
       'durationchange',
       updateDuration
     )
 
-    videoEl.removeEventListener(
-      'timeupdate',
-      updateCurrentTime
-    )
-
-    videoEl.removeEventListener(
+    videoEl.addEventListener(
       'progress',
       handleProgress
     )
-  }
-}, [isMuted])
+
+    videoEl.addEventListener(
+      'canplaythrough',
+      () => {
+        targetProgress.current = 100
+      }
+    )
+
+    const playPromise = videoEl.play()
+
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => {
+        console.warn(
+          "Autoplay restricted or deferred:",
+          err
+        )
+      })
+    }
+
+    return () => {
+      videoEl.removeEventListener(
+        'loadedmetadata',
+        updateDuration
+      )
+
+      videoEl.removeEventListener(
+        'durationchange',
+        updateDuration
+      )
+
+      videoEl.removeEventListener(
+        'progress',
+        handleProgress
+      )
+    }
+  }, [isMuted])
 
   const handleToggleSound = () => {
     const nextMutedState = !isMuted
@@ -472,7 +494,7 @@ function Home() {
           {/* BOTTOM UI WITH WORD SPLIT REVEAL */}
           <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal pointer-events-auto">
 
-            <h1
+            <p
               ref={bottomTextRef}
               className="w-[clamp(320px,25vw,925px)] text-[clamp(1rem,0.55rem+0.6vw,4.8rem)] flex flex-wrap gap-x-[0.3em] gap-y-[0.1em]"
             >
@@ -485,7 +507,7 @@ function Home() {
                   {word}
                 </span>
               ))}
-            </h1>
+            </p>
 
             <p
               ref={scrollTextRef}
@@ -497,6 +519,80 @@ function Home() {
 
           </div>
         </div>
+
+        {/* INTERACTION GUIDE */}
+        {showInteractionGuide && (
+          <div
+            ref={interactionGuideRef}
+            className="
+              fixed
+              right-4
+              bottom-4
+              z-[70]
+              w-[260px]
+              md:w-[300px]
+              overflow-hidden
+              rounded-md
+              border
+              border-white/10
+              bg-carbon-black
+              text-white
+              shadow-2xl
+              pointer-events-auto
+            "
+          >
+            <div className="relative aspect-video w-full overflow-hidden bg-zinc-900">
+
+              <video
+                src="/videos/hover-guide.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+              <button
+                type="button"
+                onClick={closeInteractionGuide}
+                className="
+                  absolute
+                  top-2
+                  right-2
+                  z-10
+                  flex
+                  items-center
+                  justify-center
+                  w-6
+                  h-6
+                  rounded-full
+                  bg-black/90
+                  backdrop-blur-sm
+                  border
+                  border-white/10
+                  text-white
+                  text-xs
+                  leading-none
+                  hover:bg-black/80
+                  transition-colors
+                "
+                aria-label="Close interaction guide"
+              >
+                ×
+              </button>
+
+            </div>
+
+            <div className="px-3 py-2.5">
+              <p className="font-sans font-medium text-[9px] md:text-[10px] uppercase tracking-tight text-zinc-300">
+                Hover for interaction
+              </p>
+            </div>
+          </div>
+        )}
+
       </main>
     </>
   )

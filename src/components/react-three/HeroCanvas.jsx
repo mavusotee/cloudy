@@ -331,17 +331,8 @@ const SmudgeTransitionShader = {
 
 
       // =====================================================
-      // CINEMATIC HOVER — DOLLY PUSH-IN
+      // CINEMATIC HOVER — DYNAMIC DOLLY PUSH-IN
       // =====================================================
-
-      /*
-        Instead of warping the image, the hover now behaves
-        like a camera operator subtly pushing in toward the
-        cursor — a very small dolly zoom, the way a director
-        pulls focus toward a point of interest.
-
-        The footage itself is never distorted. Only framed.
-      */
 
       vec2 mouseDelta =
         vUv -
@@ -369,14 +360,26 @@ const SmudgeTransitionShader = {
         uHover;
 
 
+      // Increased movement
       float dollyAmount =
-        uHover * 0.032;
+        uHover * 0.075;
 
 
       vec2 dollyUv =
         uMouse +
         (vUv - uMouse) *
         (1.0 - dollyAmount);
+
+
+      // Subtle directional movement following the cursor
+      vec2 cursorDrift =
+        mouseDelta *
+        uHover *
+        0.018;
+
+
+      dollyUv +=
+        cursorDrift;
 
 
       vec2 uvA =
@@ -437,25 +440,33 @@ const SmudgeTransitionShader = {
       // GATE WEAVE
       // =====================================================
 
-      /*
-        A tiny, slow positional drift — the way real film
-        wobbles slightly in an old projector gate. Barely
-        perceptible on its own, but it's what keeps the
-        grain below from reading as a flat digital filter.
-      */
-
       vec2 weave =
         vec2(
-          snoise(vec2(uTime * 0.55, 11.0)),
-          snoise(vec2(31.0, uTime * 0.5))
+
+          snoise(
+            vec2(
+              uTime * 0.55,
+              11.0
+            )
+          ),
+
+          snoise(
+            vec2(
+              31.0,
+              uTime * 0.5
+            )
+          )
+
         )
         *
         uHover
         *
-        0.0022;
+        0.005;
+
 
       distortedUvA +=
         weave;
+
 
       distortedUvB +=
         weave;
@@ -464,15 +475,6 @@ const SmudgeTransitionShader = {
       // =====================================================
       // CHROMATIC ABERRATION
       // =====================================================
-
-      /*
-        The transition keeps its original RGB motion.
-
-        The hover now contributes a clean, radial anamorphic
-        fringe centered on the cursor rather than an organic
-        noise-driven smear — closer to the way a real lens
-        separates color under strain.
-      */
 
       float transitionRgb =
         transitionVelocity *
@@ -497,7 +499,7 @@ const SmudgeTransitionShader = {
       float hoverRgb =
         spotlight *
         hoverFade *
-        0.011;
+        0.018;
 
 
       float rgbSplit =
@@ -1049,15 +1051,6 @@ function ShaderPlane({
   // =======================================================
   // CURSOR TRACKING + IDLE-DRIVEN HOVER REVEAL
   // =======================================================
-
-  /*
-    The cinematic treatment (dolly push-in, aberration,
-    weave) should track actual movement, not just "is the
-    cursor somewhere over the canvas". So: every real
-    mousemove wakes uHover toward 1, and resets a short
-    idle timer that eases it back to 0 once the cursor
-    stops moving — not just once it leaves the canvas.
-  */
 
   useEffect(() => {
 
