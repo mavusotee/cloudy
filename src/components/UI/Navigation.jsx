@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/Assets/Logo/cloud.svg";
@@ -14,7 +18,10 @@ import TransitionLink from "../PageTransitions/TransitionLink";
 
 gsap.registerPlugin(ScrollTrigger);
 
-function Navigation({ isMuted = true, onToggleSound }) {
+function Navigation({
+  isMuted = true,
+  onToggleSound,
+}) {
   const navRef = useRef(null);
   const logoRef = useRef(null);
   const linksRef = useRef(null);
@@ -26,7 +33,8 @@ function Navigation({ isMuted = true, onToggleSound }) {
   const menuOpenTimelineRef = useRef(null);
   const menuCloseTimelineRef = useRef(null);
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] =
+    useState(false);
 
   const lockBodyScroll = useCallback(() => {
     document.body.style.overflow = "hidden";
@@ -51,6 +59,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
       /* =====================================================
           INITIAL NAVIGATION STATE
       ===================================================== */
+
       gsap.set([logo, links, rightActions], {
         opacity: 1,
         x: 0,
@@ -60,7 +69,9 @@ function Navigation({ isMuted = true, onToggleSound }) {
       /* =====================================================
           FOOTER NAVIGATION ANIMATION
       ===================================================== */
-      const footerEl = document.querySelector("#footer");
+
+      const footerEl =
+        document.querySelector("#footer");
 
       if (footerEl) {
         ScrollTrigger.create({
@@ -69,7 +80,11 @@ function Navigation({ isMuted = true, onToggleSound }) {
           end: "bottom bottom",
 
           onEnter: () => {
-            gsap.killTweensOf([logo, links, rightActions]);
+            gsap.killTweensOf([
+              logo,
+              links,
+              rightActions,
+            ]);
 
             gsap.to(links, {
               opacity: 0,
@@ -95,22 +110,33 @@ function Navigation({ isMuted = true, onToggleSound }) {
               overwrite: true,
             });
 
-            gsap.set(nav, { pointerEvents: "none" });
+            gsap.set(nav, {
+              pointerEvents: "none",
+            });
           },
 
           onLeaveBack: () => {
-            gsap.killTweensOf([logo, links, rightActions]);
+            gsap.killTweensOf([
+              logo,
+              links,
+              rightActions,
+            ]);
 
-            gsap.to([logo, links, rightActions], {
-              opacity: 1,
-              x: 0,
-              y: 0,
-              duration: 0.4,
-              ease: "power2.out",
-              overwrite: true,
+            gsap.to(
+              [logo, links, rightActions],
+              {
+                opacity: 1,
+                x: 0,
+                y: 0,
+                duration: 0.4,
+                ease: "power2.out",
+                overwrite: true,
+              }
+            );
+
+            gsap.set(nav, {
+              pointerEvents: "auto",
             });
-
-            gsap.set(nav, { pointerEvents: "auto" });
           },
         });
       }
@@ -118,14 +144,19 @@ function Navigation({ isMuted = true, onToggleSound }) {
       /* =====================================================
           MOBILE MENU TIMELINES
       ===================================================== */
+
       if (!overlay || !menuContent) return;
 
-      const linkItems = menuContent.querySelectorAll(".menu-anim-item");
+      const linkItems =
+        menuContent.querySelectorAll(
+          ".menu-anim-item"
+        );
 
       // Hide overlay and reset elements off-screen initially
       gsap.set(overlay, {
         visibility: "hidden",
-        clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+        clipPath:
+          "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
         pointerEvents: "none",
       });
 
@@ -134,12 +165,22 @@ function Navigation({ isMuted = true, onToggleSound }) {
         opacity: 0,
       });
 
-      /* OPEN TIMELINE */
-      const openTl = gsap.timeline({ paused: true });
+      /* =====================================================
+          OPEN TIMELINE
+      ===================================================== */
+
+      const openTl = gsap.timeline({
+        paused: true,
+      });
+
       openTl
-        .set(overlay, { visibility: "visible", pointerEvents: "none", })
+        .set(overlay, {
+          visibility: "visible",
+          pointerEvents: "auto",
+        })
         .to(overlay, {
-          clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+          clipPath:
+            "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
           duration: 0.75,
           ease: "power3.inOut",
         })
@@ -152,19 +193,29 @@ function Navigation({ isMuted = true, onToggleSound }) {
             stagger: 0.08,
             ease: "power3.out",
           },
-          "-=0.4",
+          "-=0.4"
         );
 
-      /* CLOSE TIMELINE */
+      /* =====================================================
+          CLOSE TIMELINE
+      ===================================================== */
+
       const closeTl = gsap.timeline({
         paused: true,
+
         onComplete: () => {
           gsap.set(overlay, {
             visibility: "hidden",
             pointerEvents: "none",
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+            clipPath:
+              "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
           });
-          gsap.set(linkItems, { yPercent: 100, opacity: 0 });
+
+          gsap.set(linkItems, {
+            yPercent: 100,
+            opacity: 0,
+          });
+
           unlockBodyScroll();
         },
       });
@@ -180,11 +231,12 @@ function Navigation({ isMuted = true, onToggleSound }) {
         .to(
           overlay,
           {
-            clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+            clipPath:
+              "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
             duration: 0.6,
             ease: "power3.inOut",
           },
-          "-=0.2",
+          "-=0.2"
         );
 
       menuOpenTimelineRef.current = openTl;
@@ -194,31 +246,119 @@ function Navigation({ isMuted = true, onToggleSound }) {
       scope: navRef,
       dependencies: [],
       revertOnUpdate: true,
-    },
+    }
   );
 
   /* =======================================================
       MOBILE MENU TOGGLE HANDLER
   ======================================================= */
+
   const toggleMobileMenu = useCallback(() => {
-    const openTl = menuOpenTimelineRef.current;
-    const closeTl = menuCloseTimelineRef.current;
+    const openTl =
+      menuOpenTimelineRef.current;
+
+    const closeTl =
+      menuCloseTimelineRef.current;
+
+    const overlay =
+      menuOverlayRef.current;
 
     if (!openTl || !closeTl) return;
 
     if (!isMobileMenuOpen) {
+      // =====================================================
       // OPEN MENU
+      // =====================================================
+
       setIsMobileMenuOpen(true);
+
       lockBodyScroll();
+
       closeTl.pause(0);
+
+      gsap.set(overlay, {
+        visibility: "visible",
+        pointerEvents: "auto",
+      });
+
       openTl.restart();
     } else {
-      // CLOSE MENU - Toggle state immediately so button text updates instantly
+      // =====================================================
+      // CLOSE MENU
+      // =====================================================
+
       setIsMobileMenuOpen(false);
+
       openTl.pause();
+
       closeTl.restart();
     }
-  }, [isMobileMenuOpen, lockBodyScroll, unlockBodyScroll]);
+  }, [
+    isMobileMenuOpen,
+    lockBodyScroll,
+  ]);
+
+  /* =======================================================
+      MOBILE MENU NAVIGATION
+      ======================================================= */
+
+  const handleMenuNavigation =
+    useCallback(() => {
+      const openTl =
+        menuOpenTimelineRef.current;
+
+      const closeTl =
+        menuCloseTimelineRef.current;
+
+      const overlay =
+        menuOverlayRef.current;
+
+      // -----------------------------------------------------
+      // IMPORTANT:
+      // Release body scrolling IMMEDIATELY.
+      //
+      // We do not wait for the menu close animation.
+      // The route transition is already taking over the
+      // screen, so there is no reason for the menu to remain
+      // interactive while navigation is happening.
+      // -----------------------------------------------------
+
+      unlockBodyScroll();
+
+      setIsMobileMenuOpen(false);
+
+      // Stop menu animations
+      openTl?.pause();
+      closeTl?.pause();
+
+      // Immediately remove the menu from interaction
+      // and hide it so it cannot sit above the new page.
+      if (overlay) {
+        gsap.killTweensOf(overlay);
+
+        gsap.set(overlay, {
+          visibility: "hidden",
+          pointerEvents: "none",
+          clipPath:
+            "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+        });
+      }
+
+      // Reset menu items
+      if (menuContentRef.current) {
+        const linkItems =
+          menuContentRef.current.querySelectorAll(
+            ".menu-anim-item"
+          );
+
+        gsap.killTweensOf(linkItems);
+
+        gsap.set(linkItems, {
+          yPercent: 100,
+          opacity: 0,
+        });
+      }
+    }, [unlockBodyScroll]);
 
   return (
     <>
@@ -230,7 +370,10 @@ function Navigation({ isMuted = true, onToggleSound }) {
           ref={logoRef}
           className="mix-blend-difference pointer-events-auto [isolation:auto]"
         >
-          <Link href="/" className="block">
+          <Link
+            href="/"
+            className="block"
+          >
             <Image
               src={Logo}
               alt="Logo"
@@ -247,16 +390,27 @@ function Navigation({ isMuted = true, onToggleSound }) {
           className="hidden md:flex items-center justify-center space-x-4 font-mono uppercase text-[clamp(0.75rem,0.65rem+0.35vw,1.2rem)] translate-x-[clamp(0px,12vw,190px)] pointer-events-auto"
         >
           <BlurFlicker>
-            <TransitionLink href="/About">ABOUT</TransitionLink>
+            <TransitionLink href="/About">
+              ABOUT
+            </TransitionLink>
           </BlurFlicker>
+
           <BlurFlicker>
-            <TransitionLink href="/All-Works">WORKS</TransitionLink>
+            <TransitionLink href="/All-Works">
+              WORKS
+            </TransitionLink>
           </BlurFlicker>
+
           <BlurFlicker>
-            <TransitionLink href="/Weddings">MORE</TransitionLink>
+            <TransitionLink href="/Weddings">
+              MORE
+            </TransitionLink>
           </BlurFlicker>
+
           <BlurFlicker>
-            <TransitionLink href="/#footer">CONTACT</TransitionLink>
+            <TransitionLink href="/#footer">
+              CONTACT
+            </TransitionLink>
           </BlurFlicker>
         </div>
 
@@ -277,20 +431,29 @@ function Navigation({ isMuted = true, onToggleSound }) {
             type="button"
             onClick={toggleMobileMenu}
             aria-expanded={isMobileMenuOpen}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-label={
+              isMobileMenuOpen
+                ? "Close menu"
+                : "Open menu"
+            }
             className="flex md:hidden bg-ghost-white hover:bg-zinc-200 transition-colors px-5 py-0 h-[clamp(44px,2.5vw+20px,55px)] rounded-full border border-ghost-white font-mono tracking-tighter uppercase text-[clamp(0.75rem,0.63rem+0.3vw,1rem)] text-carbon-black items-center justify-center font-bold cursor-pointer"
           >
-            {isMobileMenuOpen ? "Close" : "Menu"}
+            {isMobileMenuOpen
+              ? "Close"
+              : "Menu"}
           </button>
         </div>
       </nav>
 
       <div
-  ref={menuOverlayRef}
-  className="fixed inset-0 z-[110] bg-black flex flex-col justify-between text-ghost-white md:hidden h-[85vh] border-b border-eclipse pointer-events-auto"
->
+        ref={menuOverlayRef}
+        className="fixed inset-0 z-[110] bg-black flex flex-col justify-between text-ghost-white md:hidden h-[85vh] border-b border-eclipse pointer-events-none"
+      >
         <div className="flex items-center justify-between w-full p-4">
-          <Link href="/" onClick={toggleMobileMenu}>
+          <Link
+            href="/"
+            onClick={handleMenuNavigation}
+          >
             <Image
               src={Logo}
               alt="Logo"
@@ -311,13 +474,13 @@ function Navigation({ isMuted = true, onToggleSound }) {
         </div>
 
         <div
-  ref={menuContentRef}
-  className="relative z-[1] flex flex-col font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6 pointer-events-auto"
->
+          ref={menuContentRef}
+          className="relative z-[1] flex flex-col font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6 pointer-events-auto"
+        >
           <div className="overflow-hidden">
             <TransitionLink
               href="/"
-              onClick={toggleMobileMenu}
+              onClick={handleMenuNavigation}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
               HOME
@@ -327,7 +490,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
           <div className="overflow-hidden mt-3">
             <TransitionLink
               href="/About"
-              onClick={toggleMobileMenu}
+              onClick={handleMenuNavigation}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
               ABOUT
@@ -337,7 +500,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
           <div className="overflow-hidden mt-3">
             <TransitionLink
               href="/All-Works"
-              onClick={toggleMobileMenu}
+              onClick={handleMenuNavigation}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
               WORKS
@@ -348,11 +511,14 @@ function Navigation({ isMuted = true, onToggleSound }) {
             <div className="menu-anim-item">
               <TransitionLink
                 href="/Weddings"
-                onClick={toggleMobileMenu}
+                onClick={handleMenuNavigation}
                 className="inline-flex items-start hover:text-zinc-400 transition-colors leading-none"
               >
-                <span>MORE</span>
-                <sup className="inline-block text-[8px] font-geist-mono text-zinc-600 uppercase  font-medium tracking-wide leading-tight font-medium max-w-[70px] -mt-[-8px] whitespace-normal ml-4">
+                <span>
+                  MORE
+                </span>
+
+                <sup className="inline-block text-[8px] font-geist-mono text-zinc-600 uppercase font-medium tracking-wide leading-tight max-w-[70px] -mt-[-8px] whitespace-normal ml-4">
                   MEDIA BY CLOUDHAUS
                 </sup>
               </TransitionLink>
@@ -362,7 +528,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
           <div className="overflow-hidden mt-6">
             <TransitionLink
               href="/#footer"
-              onClick={toggleMobileMenu}
+              onClick={handleMenuNavigation}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
               CONTACT
@@ -385,7 +551,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
               >
                 INSTAGRAM
               </Link>
-              
+
               <Link
                 className="hover:text-zinc-700"
                 href="https://vimeo.com/user135969253"
@@ -396,8 +562,6 @@ function Navigation({ isMuted = true, onToggleSound }) {
               </Link>
             </div>
           </div>
-
-          
         </div>
       </div>
     </>

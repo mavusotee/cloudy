@@ -87,8 +87,7 @@ export default function TransitionLink({
         // ---------------------------------------------------
 
         if (
-          performance.now() -
-            startTime >
+          performance.now() - startTime >
           4000
         ) {
           finishTransition();
