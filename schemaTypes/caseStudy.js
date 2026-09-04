@@ -57,29 +57,35 @@ export default defineType({
     defineField({
       name: "heroVideos",
       title: "Hero Videos",
-      description:
-        "Upload one or more videos or add Cloudinary video URLs for the project hero.",
+      description: "Add one or more Vimeo video IDs for the project hero.",
       type: "array",
 
       of: [
         {
-          type: "file",
-          options: {
-            accept: "video/*",
-          },
-        },
-        {
           type: "object",
-          name: "cloudinaryVideo",
-          title: "Cloudinary Video",
+          name: "vimeoVideo",
+          title: "Vimeo Video",
           fields: [
             defineField({
-              name: "url",
-              title: "Cloudinary URL",
-              type: "url",
+              name: "vimeoId",
+              title: "Vimeo Video ID",
+              type: "string",
+              description: "Paste only the Vimeo video ID. Example: 123456789",
               validation: (Rule) => Rule.required(),
             }),
           ],
+
+          preview: {
+            select: {
+              vimeoId: "vimeoId",
+            },
+
+            prepare({ vimeoId }) {
+              return {
+                title: `Vimeo Video: ${vimeoId || "No ID"}`,
+              };
+            },
+          },
         },
       ],
     }),
@@ -176,9 +182,7 @@ export default defineType({
       type: "array",
 
       validation: (Rule) =>
-  Rule.max(26).error(
-    "You can upload a maximum of 26 gallery items."
-  ),
+        Rule.max(26).error("You can upload a maximum of 26 gallery items."),
 
       options: {
         layout: "grid",

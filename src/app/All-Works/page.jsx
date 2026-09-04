@@ -12,13 +12,17 @@ import React, {
 
 import TransitionLink from "@/components/PageTransitions/TransitionLink";
 import SmudgyTitleReveal from "@/components/Animations/SmudgyTitleReveal";
+
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+
 import Footer from "@/components/Sections/Footer";
 import Navigation from "@/components/UI/Navigation";
+
 import { client } from "@/lib/client";
 import { groq } from "next-sanity";
 
@@ -40,15 +44,76 @@ const WORKS_QUERY = groq`
     client,
     date,
     "slug": slug.current,
+
     heroVideos[] {
       _key,
-      "src": coalesce(
-        asset->url,
-        url
-      )
+      vimeoId
     }
   }
 `;
+
+// ----------------------------------------------------------------------
+// VIMEO SOURCE HELPER
+// ----------------------------------------------------------------------
+
+const getVimeoSource = async (vimeoId) => {
+  if (!vimeoId) return null;
+
+  try {
+    const response = await fetch(
+      `/api/vimeo/${encodeURIComponent(vimeoId)}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to retrieve Vimeo video ${vimeoId}`
+      );
+    }
+
+    const data = await response.json();
+
+    if (!data?.url) {
+      throw new Error(
+        `No playable Vimeo URL returned for ${vimeoId}`
+      );
+    }
+
+    return data.url;
+  } catch (error) {
+    console.error(
+      "Vimeo playback error:",
+      vimeoId,
+      error
+    );
+
+    return null;
+  }
+};
+
+// ----------------------------------------------------------------------
+// GET VIMEO ID
+// ----------------------------------------------------------------------
+
+const getVimeoId = (video) => {
+  if (!video) return null;
+
+  if (typeof video === "string") {
+    return video.trim() || null;
+  }
+
+  if (
+    typeof video.vimeoId === "string" &&
+    video.vimeoId.trim()
+  ) {
+    return video.vimeoId.trim();
+  }
+
+  return null;
+};
 
 // ----------------------------------------------------------------------
 // 1. ANALOG TV NOISE SHADER
@@ -65,6 +130,7 @@ const noiseShaderDefinition = {
 
     void main() {
       vUv = uv;
+
       gl_Position = vec4(position, 1.0);
     }
   `,
@@ -135,10 +201,13 @@ function TVNoisePlane({ opacityRef }) {
         uTime: { value: 0 },
         uOpacity: { value: 0 },
       },
+
       vertexShader:
         noiseShaderDefinition.vertexShader,
+
       fragmentShader:
         noiseShaderDefinition.fragmentShader,
+
       transparent: true,
       depthTest: false,
       depthWrite: false,
@@ -208,10 +277,17 @@ const SharedTVNoise = forwardRef(
         return;
       }
 
-      container.style.left = `${rect.left}px`;
-      container.style.top = `${rect.top}px`;
-      container.style.width = `${rect.width}px`;
-      container.style.height = `${rect.height}px`;
+      container.style.left =
+        `${rect.left}px`;
+
+      container.style.top =
+        `${rect.top}px`;
+
+      container.style.width =
+        `${rect.width}px`;
+
+      container.style.height =
+        `${rect.height}px`;
 
       container.style.opacity = "1";
     }, []);
@@ -221,7 +297,6 @@ const SharedTVNoise = forwardRef(
       () => ({
         setTarget: (element) => {
           targetRef.current = element;
-
           updatePosition();
         },
 
@@ -286,7 +361,13 @@ const SharedTVNoise = forwardRef(
       <div
         ref={containerRef}
         aria-hidden="true"
-        className="fixed pointer-events-none mix-blend-screen z-20 overflow-hidden"
+        className="
+          fixed
+          pointer-events-none
+          mix-blend-screen
+          z-20
+          overflow-hidden
+        "
         style={{
           left: 0,
           top: 0,
@@ -362,44 +443,58 @@ const SmallButton = forwardRef(
     return (
       <div
         ref={buttonRef}
-        className={`font-mono tracking-tight text-[clamp(0.6875rem,0.9vw,0.75rem)] border transition-colors duration-300 rounded-full w-[clamp(6.5rem,6vw,7.0875rem)] h-[clamp(1.75rem,2.5vw,2rem)] px-3 py-1 flex items-center justify-center text-center cursor-pointer select-none ${
-          isOpen
-            ? "bg-ghost-white text-black border-ghost-white hover:bg-zinc-300"
-            : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
-        }`}
+        className={`
+          font-mono
+          tracking-tight
+          text-[clamp(0.6875rem,0.9vw,0.75rem)]
+          border
+          transition-colors
+          duration-300
+          rounded-full
+          w-[clamp(6.5rem,6vw,7.0875rem)]
+          h-[clamp(1.75rem,2.5vw,2rem)]
+          px-3
+          py-1
+          flex
+          items-center
+          justify-center
+          text-center
+          cursor-pointer
+          select-none
+          ${
+            isOpen
+              ? "bg-ghost-white text-black border-ghost-white hover:bg-zinc-300"
+              : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
+          }
+        `}
       >
-        {isOpen ? "CLOSE" : "WATCH FILM"}
+        {isOpen
+          ? "CLOSE"
+          : "WATCH FILM"}
       </div>
     );
   }
 );
 
-SmallButton.displayName = "SmallButton";
+SmallButton.displayName =
+  "SmallButton";
 
 // ----------------------------------------------------------------------
 // HELPERS
 // ----------------------------------------------------------------------
 
-const getVideoUrl = (video) => {
-  if (!video) return null;
-
-  if (typeof video === "string") {
-    return video;
+const formatTime = (seconds) => {
+  if (isNaN(seconds)) {
+    return "00:00";
   }
 
-  return (
-    video.src ||
-    video.url ||
-    video.secure_url ||
-    null
+  const mins = Math.floor(
+    seconds / 60
   );
-};
 
-const formatTime = (seconds) => {
-  if (isNaN(seconds)) return "00:00";
-
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
+  const secs = Math.floor(
+    seconds % 60
+  );
 
   return `${mins < 10 ? "0" : ""}${mins}:${
     secs < 10 ? "0" : ""
@@ -417,16 +512,72 @@ function WorkCard({
   onHoverChange,
   fullBleedVideo = false,
   priority = false,
+  onVideoSourceLoaded,
 }) {
   const [currentTime, setCurrentTime] =
     useState("00:00");
 
-  const containerRef = useRef(null);
-  const buttonRef = useRef(null);
-  const videoRef = useRef(null);
+  const [videoUrl, setVideoUrl] =
+    useState(null);
 
-  const videoUrl = getVideoUrl(
-    video?.heroVideos?.[0]
+  const containerRef =
+    useRef(null);
+
+  const buttonRef =
+    useRef(null);
+
+  const videoRef =
+    useRef(null);
+
+  const loadingRef =
+    useRef(false);
+
+  const vimeoId =
+    getVimeoId(
+      video?.heroVideos?.[0]
+    );
+
+  // --------------------------------------------------
+  // LOAD VIMEO VIDEO
+  // --------------------------------------------------
+
+  const loadVideo = useCallback(
+    async () => {
+      if (
+        !vimeoId ||
+        videoUrl ||
+        loadingRef.current
+      ) {
+        return null;
+      }
+
+      loadingRef.current = true;
+
+      const source =
+        await getVimeoSource(
+          vimeoId
+        );
+
+      loadingRef.current = false;
+
+      if (!source) {
+        return null;
+      }
+
+      setVideoUrl(source);
+
+      onVideoSourceLoaded?.(
+        vimeoId,
+        source
+      );
+
+      return source;
+    },
+    [
+      vimeoId,
+      videoUrl,
+      onVideoSourceLoaded,
+    ]
   );
 
   // --------------------------------------------------
@@ -436,12 +587,13 @@ function WorkCard({
   useEffect(() => {
     if (
       !containerRef.current ||
-      !videoUrl
+      !vimeoId
     ) {
       return;
     }
 
     if (priority) {
+      loadVideo();
       return;
     }
 
@@ -451,6 +603,7 @@ function WorkCard({
         window
       )
     ) {
+      loadVideo();
       return;
     }
 
@@ -460,18 +613,20 @@ function WorkCard({
     const observer =
       new IntersectionObserver(
         (entries) => {
-          const entry = entries[0];
+          const entry =
+            entries[0];
 
-          if (entry.isIntersecting) {
-            if (videoRef.current) {
-              videoRef.current.load();
-            }
-
+          if (
+            entry &&
+            entry.isIntersecting
+          ) {
+            loadVideo();
             observer.disconnect();
           }
         },
         {
-          rootMargin: "2000px 0px",
+          rootMargin:
+            "2000px 0px",
           threshold: 0,
         }
       );
@@ -481,19 +636,27 @@ function WorkCard({
     return () => {
       observer.disconnect();
     };
-  }, [videoUrl, priority]);
+  }, [
+    vimeoId,
+    priority,
+    loadVideo,
+  ]);
 
   // --------------------------------------------------
   // VIDEO METADATA
   // --------------------------------------------------
 
-  const handleLoadedMetadata = (e) => {
+  const handleLoadedMetadata = (
+    e
+  ) => {
     const videoEl =
       e.currentTarget;
 
     if (
       videoEl &&
-      Number.isFinite(videoEl.duration) &&
+      Number.isFinite(
+        videoEl.duration
+      ) &&
       videoEl.duration > 0
     ) {
       videoEl.currentTime =
@@ -506,7 +669,9 @@ function WorkCard({
   // VIDEO TIME
   // --------------------------------------------------
 
-  const handleTimeUpdate = (e) => {
+  const handleTimeUpdate = (
+    e
+  ) => {
     const videoEl =
       e.currentTarget;
 
@@ -523,13 +688,25 @@ function WorkCard({
   // HOVER ENTER
   // --------------------------------------------------
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = async () => {
+    let source =
+      videoUrl;
+
+    if (!source) {
+      source =
+        await loadVideo();
+    }
+
     onHoverChange(
       true,
-      containerRef.current
+      containerRef.current,
+      video,
+      source
     );
 
-    if (!containerRef.current) {
+    if (
+      !containerRef.current
+    ) {
       return;
     }
 
@@ -562,10 +739,14 @@ function WorkCard({
   const handleMouseLeave = () => {
     onHoverChange(
       false,
-      containerRef.current
+      containerRef.current,
+      video,
+      videoUrl
     );
 
-    if (!containerRef.current) {
+    if (
+      !containerRef.current
+    ) {
       return;
     }
 
@@ -636,14 +817,20 @@ function WorkCard({
     }
   };
 
-  if (!video) return null;
+  if (!video) {
+    return null;
+  }
 
   return (
     <TransitionLink
       href={`/Work/${video.slug}`}
-      className={`work-card-reveal flex flex-col w-full ${
-        containerClassName || ""
-      }`}
+      className={`
+        work-card-reveal
+        flex
+        flex-col
+        w-full
+        ${containerClassName || ""}
+      `}
     >
       {/* TOP META */}
 
@@ -661,13 +848,23 @@ function WorkCard({
 
       <div
         ref={containerRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className={`relative overflow-hidden cursor-pointer ${
-          fullBleedVideo
-            ? "-mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]"
-            : "w-full"
-        } ${heightClassName || ""}`}
+        onMouseEnter={
+          handleMouseEnter
+        }
+        onMouseLeave={
+          handleMouseLeave
+        }
+        className={`
+          relative
+          overflow-hidden
+          cursor-pointer
+          ${
+            fullBleedVideo
+              ? "-mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]"
+              : "w-full"
+          }
+          ${heightClassName || ""}
+        `}
       >
         {videoUrl ? (
           <video
@@ -678,7 +875,9 @@ function WorkCard({
             muted
             playsInline
             preload={
-              priority ? "auto" : "metadata"
+              priority
+                ? "auto"
+                : "metadata"
             }
             onLoadedMetadata={
               handleLoadedMetadata
@@ -686,7 +885,14 @@ function WorkCard({
             onTimeUpdate={
               handleTimeUpdate
             }
-            className="block w-full aspect-video object-cover brightness-90 contrast-105"
+            className="
+              block
+              w-full
+              aspect-video
+              object-cover
+              brightness-90
+              contrast-105
+            "
           />
         ) : (
           <div className="w-full aspect-video bg-zinc-900 flex flex-col items-center justify-center gap-2">
@@ -750,13 +956,20 @@ function ListItemRow({
   onHoverStart,
   onHoverEnd,
 }) {
-  const rowRef = useRef(null);
-  const titleRef = useRef(null);
-  const subtitleRef = useRef(null);
-  const dateRef = useRef(null);
+  const rowRef =
+    useRef(null);
+
+  const titleRef =
+    useRef(null);
+
+  const subtitleRef =
+    useRef(null);
+
+  const dateRef =
+    useRef(null);
 
   const activateRow =
-    useCallback(() => {
+    useCallback(async () => {
       onHoverStart(project);
 
       gsap.to(rowRef.current, {
@@ -774,13 +987,16 @@ function ListItemRow({
         overwrite: "auto",
       });
 
-      gsap.to(subtitleRef.current, {
-        x: 8,
-        color: "#000000",
-        duration: 0.35,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
+      gsap.to(
+        subtitleRef.current,
+        {
+          x: 8,
+          color: "#000000",
+          duration: 0.35,
+          ease: "power3.out",
+          overwrite: "auto",
+        }
+      );
 
       gsap.to(dateRef.current, {
         x: -8,
@@ -789,7 +1005,10 @@ function ListItemRow({
         ease: "power3.out",
         overwrite: "auto",
       });
-    }, [onHoverStart, project]);
+    }, [
+      onHoverStart,
+      project,
+    ]);
 
   const deactivateRow =
     useCallback(() => {
@@ -811,13 +1030,16 @@ function ListItemRow({
         overwrite: "auto",
       });
 
-      gsap.to(subtitleRef.current, {
-        x: 0,
-        color: "#a1a1a1",
-        duration: 0.35,
-        ease: "power3.out",
-        overwrite: "auto",
-      });
+      gsap.to(
+        subtitleRef.current,
+        {
+          x: 0,
+          color: "#a1a1a1",
+          duration: 0.35,
+          ease: "power3.out",
+          overwrite: "auto",
+        }
+      );
 
       gsap.to(dateRef.current, {
         x: 0,
@@ -831,8 +1053,12 @@ function ListItemRow({
   return (
     <div
       ref={rowRef}
-      onMouseEnter={activateRow}
-      onMouseLeave={deactivateRow}
+      onMouseEnter={
+        activateRow
+      }
+      onMouseLeave={
+        deactivateRow
+      }
       className="list-item-row"
     >
       <TransitionLink
@@ -876,16 +1102,23 @@ function ClientFilter({
   const [isOpen, setIsOpen] =
     useState(false);
 
-  const filterRef = useRef(null);
-  const optionsRef = useRef(null);
-  const optionItemsRef = useRef([]);
+  const filterRef =
+    useRef(null);
+
+  const optionsRef =
+    useRef(null);
+
+  const optionItemsRef =
+    useRef([]);
 
   // --------------------------------------------------
   // INITIAL STATE
   // --------------------------------------------------
 
   useEffect(() => {
-    if (!optionsRef.current) return;
+    if (!optionsRef.current) {
+      return;
+    }
 
     const items =
       optionItemsRef.current.filter(
@@ -910,12 +1143,16 @@ function ClientFilter({
 
   const openFilter =
     useCallback(() => {
-      if (!clientFilters.length) return;
+      if (!clientFilters.length) {
+        return;
+      }
 
       setIsOpen(true);
 
       requestAnimationFrame(() => {
-        if (!optionsRef.current) return;
+        if (!optionsRef.current) {
+          return;
+        }
 
         const items =
           optionItemsRef.current.filter(
@@ -927,13 +1164,16 @@ function ClientFilter({
           ...items,
         ]);
 
-        gsap.to(optionsRef.current, {
-          width: "auto",
-          opacity: 1,
-          duration: 0.55,
-          ease: "power3.out",
-          overwrite: "auto",
-        });
+        gsap.to(
+          optionsRef.current,
+          {
+            width: "auto",
+            opacity: 1,
+            duration: 0.55,
+            ease: "power3.out",
+            overwrite: "auto",
+          }
+        );
 
         gsap.to(items, {
           opacity: 1,
@@ -976,17 +1216,20 @@ function ClientFilter({
         overwrite: "auto",
       });
 
-      gsap.to(optionsRef.current, {
-        width: 0,
-        opacity: 0,
-        duration: 0.5,
-        delay: 0.04,
-        ease: "power3.inOut",
-        overwrite: "auto",
-        onComplete: () => {
-          setIsOpen(false);
-        },
-      });
+      gsap.to(
+        optionsRef.current,
+        {
+          width: 0,
+          opacity: 0,
+          duration: 0.5,
+          delay: 0.04,
+          ease: "power3.inOut",
+          overwrite: "auto",
+          onComplete: () => {
+            setIsOpen(false);
+          },
+        }
+      );
     }, []);
 
   // --------------------------------------------------
@@ -995,7 +1238,9 @@ function ClientFilter({
 
   const handleFilterClick =
     () => {
-      if (window.innerWidth < 640) {
+      if (
+        window.innerWidth < 640
+      ) {
         if (isOpen) {
           closeFilter();
         } else {
@@ -1010,14 +1255,18 @@ function ClientFilter({
 
   const handleMouseEnter =
     () => {
-      if (window.innerWidth >= 640) {
+      if (
+        window.innerWidth >= 640
+      ) {
         openFilter();
       }
     };
 
   const handleMouseLeave =
     () => {
-      if (window.innerWidth >= 640) {
+      if (
+        window.innerWidth >= 640
+      ) {
         closeFilter();
       }
     };
@@ -1063,11 +1312,22 @@ function ClientFilter({
           onClick={() =>
             onClientFilter("ALL")
           }
-          className={`font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase transition-colors duration-300 cursor-pointer ${
-            selectedClient === "ALL"
-              ? "text-white font-bold"
-              : "text-zinc-600 hover:text-zinc-300"
-          }`}
+          className={`
+            font-geist-mono
+            text-[0.65rem]
+            md:text-xs
+            tracking-widest
+            uppercase
+            transition-colors
+            duration-300
+            cursor-pointer
+            ${
+              selectedClient ===
+              "ALL"
+                ? "text-white font-bold"
+                : "text-zinc-600 hover:text-zinc-300"
+            }
+          `}
         >
           ALL
         </button>
@@ -1102,12 +1362,22 @@ function ClientFilter({
                     clientName
                   )
                 }
-                className={`font-geist-mono text-[0.65rem] md:text-xs tracking-widest uppercase transition-colors duration-300 cursor-pointer ${
-                  selectedClient ===
-                  clientName
-                    ? "text-white font-bold"
-                    : "text-zinc-600 hover:text-zinc-300"
-                }`}
+                className={`
+                  font-geist-mono
+                  text-[0.65rem]
+                  md:text-xs
+                  tracking-widest
+                  uppercase
+                  transition-colors
+                  duration-300
+                  cursor-pointer
+                  ${
+                    selectedClient ===
+                    clientName
+                      ? "text-white font-bold"
+                      : "text-zinc-600 hover:text-zinc-300"
+                  }
+                `}
               >
                 {clientName}
               </button>
@@ -1156,6 +1426,82 @@ export default function AllWorksSection() {
 
   const [selectedClient, setSelectedClient] =
     useState("ALL");
+
+  // --------------------------------------------------
+  // VIMEO SOURCE CACHE
+  // --------------------------------------------------
+
+  const [vimeoSources, setVimeoSources] =
+    useState({});
+
+  const vimeoLoadingRef =
+    useRef(new Set());
+
+  // --------------------------------------------------
+  // LOAD VIMEO SOURCE
+  // --------------------------------------------------
+
+  const loadVimeoSource =
+    useCallback(
+      async (vimeoId) => {
+        if (!vimeoId) {
+          return null;
+        }
+
+        const normalizedId =
+          String(vimeoId).trim();
+
+        if (!normalizedId) {
+          return null;
+        }
+
+        if (
+          vimeoSources[
+            normalizedId
+          ]
+        ) {
+          return vimeoSources[
+            normalizedId
+          ];
+        }
+
+        if (
+          vimeoLoadingRef.current.has(
+            normalizedId
+          )
+        ) {
+          return null;
+        }
+
+        vimeoLoadingRef.current.add(
+          normalizedId
+        );
+
+        try {
+          const source =
+            await getVimeoSource(
+              normalizedId
+            );
+
+          if (source) {
+            setVimeoSources(
+              (current) => ({
+                ...current,
+                [normalizedId]:
+                  source,
+              })
+            );
+          }
+
+          return source;
+        } finally {
+          vimeoLoadingRef.current.delete(
+            normalizedId
+          );
+        }
+      },
+      [vimeoSources]
+    );
 
   // --------------------------------------------------
   // FETCH PROJECTS
@@ -1367,8 +1713,9 @@ export default function AllWorksSection() {
 
   const handleToggleView =
     (mode) => {
-      if (mode === viewMode)
+      if (mode === viewMode) {
         return;
+      }
 
       if (containerRef.current) {
         gsap.to(
@@ -1378,6 +1725,7 @@ export default function AllWorksSection() {
             y: 10,
             duration: 0.25,
             ease: "power2.in",
+
             onComplete: () => {
               setViewMode(mode);
 
@@ -1419,6 +1767,7 @@ export default function AllWorksSection() {
             y: 10,
             duration: 0.25,
             ease: "power2.in",
+
             onComplete: () => {
               setSelectedClient(
                 clientName
@@ -1490,16 +1839,73 @@ export default function AllWorksSection() {
   }, [hoveredProject]);
 
   // --------------------------------------------------
+  // LOAD BACKGROUND VIMEO VIDEO
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (!displayProject) {
+      return;
+    }
+
+    const vimeoId =
+      getVimeoId(
+        displayProject
+          .heroVideos?.[0]
+      );
+
+    if (!vimeoId) {
+      return;
+    }
+
+    const cachedSource =
+      vimeoSources[
+        vimeoId
+      ];
+
+    if (cachedSource) {
+      return;
+    }
+
+    loadVimeoSource(
+      vimeoId
+    );
+  }, [
+    displayProject,
+    vimeoSources,
+    loadVimeoSource,
+  ]);
+
+  // --------------------------------------------------
   // PLAY BACKGROUND VIDEO
   // --------------------------------------------------
 
   useEffect(() => {
+    const vimeoId =
+      getVimeoId(
+        displayProject?.heroVideos?.[0]
+      );
+
+    const source =
+      vimeoId
+        ? vimeoSources[
+            vimeoId
+          ]
+        : null;
+
     if (
-      hoveredProject &&
+      source &&
       bgVideoRef.current
     ) {
+      const video =
+        bgVideoRef.current;
+
+      if (video.src !== source) {
+        video.src = source;
+        video.load();
+      }
+
       const playPromise =
-        bgVideoRef.current.play();
+        video.play();
 
       if (
         playPromise !==
@@ -1512,6 +1918,7 @@ export default function AllWorksSection() {
     }
   }, [
     displayProject,
+    vimeoSources,
     hoveredProject,
   ]);
 
@@ -1551,10 +1958,13 @@ export default function AllWorksSection() {
             duration: 0.6,
             stagger: 0.08,
             ease: "power3.out",
+
             scrollTrigger: {
               trigger:
                 listContainerRef.current,
+
               start: "top 85%",
+
               toggleActions:
                 "play none none reset",
             },
@@ -1604,7 +2014,9 @@ export default function AllWorksSection() {
     }
 
     frameId =
-      requestAnimationFrame(raf);
+      requestAnimationFrame(
+        raf
+      );
 
     return () => {
       cancelAnimationFrame(
@@ -1642,35 +2054,60 @@ export default function AllWorksSection() {
       {/* BACKGROUND VIDEO */}
 
       <div
-        className={`fixed inset-0 z-0 pointer-events-none overflow-hidden transition-opacity duration-500 ease-out ${
-          hoveredProject
-            ? "opacity-100"
-            : "opacity-0"
-        }`}
+        className={`
+          fixed
+          inset-0
+          z-0
+          pointer-events-none
+          overflow-hidden
+          transition-opacity
+          duration-500
+          ease-out
+          ${
+            hoveredProject
+              ? "opacity-100"
+              : "opacity-0"
+          }
+        `}
       >
         {displayProject && (
           <>
-            {getVideoUrl(
-              displayProject
-                .heroVideos?.[0]
-            ) && (
-              <video
-                key={
-                  displayProject._id
-                }
-                ref={bgVideoRef}
-                src={getVideoUrl(
+            {(() => {
+              const vimeoId =
+                getVimeoId(
                   displayProject
                     .heroVideos?.[0]
-                )}
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="auto"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
+                );
+
+              const source =
+                vimeoId
+                  ? vimeoSources[
+                      vimeoId
+                    ]
+                  : null;
+
+              return source ? (
+                <video
+                  key={
+                    displayProject._id
+                  }
+                  ref={bgVideoRef}
+                  src={source}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  className="
+                    absolute
+                    inset-0
+                    w-full
+                    h-full
+                    object-cover
+                  "
+                />
+              ) : null;
+            })()}
           </>
         )}
 
@@ -1710,8 +2147,7 @@ export default function AllWorksSection() {
 
             <sup className="text-[clamp(1rem,2vw,1.875rem)] pt-1 sm:pt-6 leading-none font-sans font-medium tracking-tight">
               [
-              {projects.length <
-              10
+              {projects.length < 10
                 ? `0${projects.length}`
                 : projects.length}
               ]
@@ -1728,12 +2164,16 @@ export default function AllWorksSection() {
                     "grid"
                   )
                 }
-                className={`transition-colors cursor-pointer ${
-                  viewMode ===
-                  "grid"
-                    ? "text-white font-bold"
-                    : "text-zinc-500 hover:text-white"
-                }`}
+                className={`
+                  transition-colors
+                  cursor-pointer
+                  ${
+                    viewMode ===
+                    "grid"
+                      ? "text-white font-bold"
+                      : "text-zinc-500 hover:text-white"
+                  }
+                `}
               >
                 GRID
               </button>
@@ -1748,12 +2188,16 @@ export default function AllWorksSection() {
                     "list"
                   )
                 }
-                className={`transition-colors cursor-pointer ${
-                  viewMode ===
-                  "list"
-                    ? "text-white font-bold"
-                    : "text-zinc-500 hover:text-white"
-                }`}
+                className={`
+                  transition-colors
+                  cursor-pointer
+                  ${
+                    viewMode ===
+                    "list"
+                      ? "text-white font-bold"
+                      : "text-zinc-500 hover:text-white"
+                  }
+                `}
               >
                 LIST
               </button>
@@ -1810,19 +2254,59 @@ export default function AllWorksSection() {
                             index < 6
                           }
                           heightClassName="w-full aspect-video"
+                          onVideoSourceLoaded={(
+                            id,
+                            source
+                          ) => {
+                            setVimeoSources(
+                              (
+                                current
+                              ) => ({
+                                ...current,
+                                [id]: source,
+                              })
+                            );
+                          }}
                           onHoverChange={(
                             isHovered,
-                            element
+                            element,
+                            projectData,
+                            source
                           ) => {
                             if (
                               isHovered
                             ) {
+                              if (
+                                source
+                              ) {
+                                setVimeoSources(
+                                  (
+                                    current
+                                  ) => ({
+                                    ...current,
+                                    [getVimeoId(
+                                      projectData
+                                        ?.heroVideos?.[0]
+                                    )]:
+                                      source,
+                                  })
+                                );
+                              }
+
+                              setHoveredProject(
+                                projectData
+                              );
+
                               noiseRef.current?.setTarget?.(
                                 element
                               );
 
                               noiseRef.current?.triggerNoise?.();
                             } else {
+                              setHoveredProject(
+                                null
+                              );
+
                               noiseRef.current?.clearTarget?.();
                             }
                           }}
@@ -1844,19 +2328,57 @@ export default function AllWorksSection() {
                     priority
                     fullBleedVideo
                     heightClassName="w-full"
+                    onVideoSourceLoaded={(
+                      id,
+                      source
+                    ) => {
+                      setVimeoSources(
+                        (
+                          current
+                        ) => ({
+                          ...current,
+                          [id]: source,
+                        })
+                      );
+                    }}
                     onHoverChange={(
                       isHovered,
-                      element
+                      element,
+                      projectData,
+                      source
                     ) => {
                       if (
                         isHovered
                       ) {
+                        if (source) {
+                          setVimeoSources(
+                            (
+                              current
+                            ) => ({
+                              ...current,
+                              [getVimeoId(
+                                projectData
+                                  ?.heroVideos?.[0]
+                              )]:
+                                source,
+                            })
+                          );
+                        }
+
+                        setHoveredProject(
+                          projectData
+                        );
+
                         noiseRef.current?.setTarget?.(
                           element
                         );
 
                         noiseRef.current?.triggerNoise?.();
                       } else {
+                        setHoveredProject(
+                          null
+                        );
+
                         noiseRef.current?.clearTarget?.();
                       }
                     }}
@@ -1876,19 +2398,59 @@ export default function AllWorksSection() {
                       }
                       priority
                       heightClassName="w-full aspect-video"
+                      onVideoSourceLoaded={(
+                        id,
+                        source
+                      ) => {
+                        setVimeoSources(
+                          (
+                            current
+                          ) => ({
+                            ...current,
+                            [id]: source,
+                          })
+                        );
+                      }}
                       onHoverChange={(
                         isHovered,
-                        element
+                        element,
+                        projectData,
+                        source
                       ) => {
                         if (
                           isHovered
                         ) {
+                          if (
+                            source
+                          ) {
+                            setVimeoSources(
+                              (
+                                current
+                              ) => ({
+                                ...current,
+                                [getVimeoId(
+                                  projectData
+                                    ?.heroVideos?.[0]
+                                )]:
+                                  source,
+                              })
+                            );
+                          }
+
+                          setHoveredProject(
+                            projectData
+                          );
+
                           noiseRef.current?.setTarget?.(
                             element
                           );
 
                           noiseRef.current?.triggerNoise?.();
                         } else {
+                          setHoveredProject(
+                            null
+                          );
+
                           noiseRef.current?.clearTarget?.();
                         }
                       }}
@@ -1904,19 +2466,59 @@ export default function AllWorksSection() {
                         }
                         priority
                         heightClassName="w-full aspect-video"
+                        onVideoSourceLoaded={(
+                          id,
+                          source
+                        ) => {
+                          setVimeoSources(
+                            (
+                              current
+                            ) => ({
+                              ...current,
+                              [id]: source,
+                            })
+                          );
+                        }}
                         onHoverChange={(
                           isHovered,
-                          element
+                          element,
+                          projectData,
+                          source
                         ) => {
                           if (
                             isHovered
                           ) {
+                            if (
+                              source
+                            ) {
+                              setVimeoSources(
+                                (
+                                  current
+                                ) => ({
+                                  ...current,
+                                  [getVimeoId(
+                                    projectData
+                                      ?.heroVideos?.[0]
+                                  )]:
+                                    source,
+                                })
+                              );
+                            }
+
+                            setHoveredProject(
+                              projectData
+                            );
+
                             noiseRef.current?.setTarget?.(
                               element
                             );
 
                             noiseRef.current?.triggerNoise?.();
                           } else {
+                            setHoveredProject(
+                              null
+                            );
+
                             noiseRef.current?.clearTarget?.();
                           }
                         }}
@@ -1936,19 +2538,57 @@ export default function AllWorksSection() {
                       activeProjects[6]
                     }
                     heightClassName="w-full aspect-video"
+                    onVideoSourceLoaded={(
+                      id,
+                      source
+                    ) => {
+                      setVimeoSources(
+                        (
+                          current
+                        ) => ({
+                          ...current,
+                          [id]: source,
+                        })
+                      );
+                    }}
                     onHoverChange={(
                       isHovered,
-                      element
+                      element,
+                      projectData,
+                      source
                     ) => {
                       if (
                         isHovered
                       ) {
+                        if (source) {
+                          setVimeoSources(
+                            (
+                              current
+                            ) => ({
+                              ...current,
+                              [getVimeoId(
+                                projectData
+                                  ?.heroVideos?.[0]
+                              )]:
+                                source,
+                            })
+                          );
+                        }
+
+                        setHoveredProject(
+                          projectData
+                        );
+
                         noiseRef.current?.setTarget?.(
                           element
                         );
 
                         noiseRef.current?.triggerNoise?.();
                       } else {
+                        setHoveredProject(
+                          null
+                        );
+
                         noiseRef.current?.clearTarget?.();
                       }
                     }}
@@ -1961,19 +2601,59 @@ export default function AllWorksSection() {
                         activeProjects[7]
                       }
                       heightClassName="w-full aspect-video"
+                      onVideoSourceLoaded={(
+                        id,
+                        source
+                      ) => {
+                        setVimeoSources(
+                          (
+                            current
+                          ) => ({
+                            ...current,
+                            [id]: source,
+                          })
+                        );
+                      }}
                       onHoverChange={(
                         isHovered,
-                        element
+                        element,
+                        projectData,
+                        source
                       ) => {
                         if (
                           isHovered
                         ) {
+                          if (
+                            source
+                          ) {
+                            setVimeoSources(
+                              (
+                                current
+                              ) => ({
+                                ...current,
+                                [getVimeoId(
+                                  projectData
+                                    ?.heroVideos?.[0]
+                                )]:
+                                  source,
+                              })
+                            );
+                          }
+
+                          setHoveredProject(
+                            projectData
+                          );
+
                           noiseRef.current?.setTarget?.(
                             element
                           );
 
                           noiseRef.current?.triggerNoise?.();
                         } else {
+                          setHoveredProject(
+                            null
+                          );
+
                           noiseRef.current?.clearTarget?.();
                         }
                       }}
@@ -2001,19 +2681,59 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
+                          onVideoSourceLoaded={(
+                            id,
+                            source
+                          ) => {
+                            setVimeoSources(
+                              (
+                                current
+                              ) => ({
+                                ...current,
+                                [id]: source,
+                              })
+                            );
+                          }}
                           onHoverChange={(
                             isHovered,
-                            element
+                            element,
+                            projectData,
+                            source
                           ) => {
                             if (
                               isHovered
                             ) {
+                              if (
+                                source
+                              ) {
+                                setVimeoSources(
+                                  (
+                                    current
+                                  ) => ({
+                                    ...current,
+                                    [getVimeoId(
+                                      projectData
+                                        ?.heroVideos?.[0]
+                                    )]:
+                                      source,
+                                  })
+                                );
+                              }
+
+                              setHoveredProject(
+                                projectData
+                              );
+
                               noiseRef.current?.setTarget?.(
                                 element
                               );
 
                               noiseRef.current?.triggerNoise?.();
                             } else {
+                              setHoveredProject(
+                                null
+                              );
+
                               noiseRef.current?.clearTarget?.();
                             }
                           }}
@@ -2042,19 +2762,59 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
+                          onVideoSourceLoaded={(
+                            id,
+                            source
+                          ) => {
+                            setVimeoSources(
+                              (
+                                current
+                              ) => ({
+                                ...current,
+                                [id]: source,
+                              })
+                            );
+                          }}
                           onHoverChange={(
                             isHovered,
-                            element
+                            element,
+                            projectData,
+                            source
                           ) => {
                             if (
                               isHovered
                             ) {
+                              if (
+                                source
+                              ) {
+                                setVimeoSources(
+                                  (
+                                    current
+                                  ) => ({
+                                    ...current,
+                                    [getVimeoId(
+                                      projectData
+                                        ?.heroVideos?.[0]
+                                    )]:
+                                      source,
+                                  })
+                                );
+                              }
+
+                              setHoveredProject(
+                                projectData
+                              );
+
                               noiseRef.current?.setTarget?.(
                                 element
                               );
 
                               noiseRef.current?.triggerNoise?.();
                             } else {
+                              setHoveredProject(
+                                null
+                              );
+
                               noiseRef.current?.clearTarget?.();
                             }
                           }}
@@ -2083,19 +2843,59 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
+                          onVideoSourceLoaded={(
+                            id,
+                            source
+                          ) => {
+                            setVimeoSources(
+                              (
+                                current
+                              ) => ({
+                                ...current,
+                                [id]: source,
+                              })
+                            );
+                          }}
                           onHoverChange={(
                             isHovered,
-                            element
+                            element,
+                            projectData,
+                            source
                           ) => {
                             if (
                               isHovered
                             ) {
+                              if (
+                                source
+                              ) {
+                                setVimeoSources(
+                                  (
+                                    current
+                                  ) => ({
+                                    ...current,
+                                    [getVimeoId(
+                                      projectData
+                                        ?.heroVideos?.[0]
+                                    )]:
+                                      source,
+                                  })
+                                );
+                              }
+
+                              setHoveredProject(
+                                projectData
+                              );
+
                               noiseRef.current?.setTarget?.(
                                 element
                               );
 
                               noiseRef.current?.triggerNoise?.();
                             } else {
+                              setHoveredProject(
+                                null
+                              );
+
                               noiseRef.current?.clearTarget?.();
                             }
                           }}
@@ -2165,9 +2965,13 @@ export default function AllWorksSection() {
                       project={
                         project
                       }
-                      onHoverStart={
-                        setHoveredProject
-                      }
+                      onHoverStart={(
+                        projectData
+                      ) => {
+                        setHoveredProject(
+                          projectData
+                        );
+                      }}
                       onHoverEnd={() =>
                         setHoveredProject(
                           null

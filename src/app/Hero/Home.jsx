@@ -51,6 +51,7 @@ function Home() {
   // =========================================================
   // PRELOADER
   // =========================================================
+
   const [progress, setProgress] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
   const [preloaderUnmounted, setPreloaderUnmounted] = useState(false)
@@ -58,12 +59,14 @@ function Home() {
   // =========================================================
   // AUDIO & DOM REFS
   // =========================================================
-  const [isMuted, setIsMuted] = useState(true)
 
+  const [isMuted, setIsMuted] = useState(true)
   const activeVideoRef = useRef(null)
+
   const preloaderRef = useRef(null)
   const progressBarRef = useRef(null)
   const counterRef = useRef(null)
+
   const targetProgress = useRef(0)
 
   // Canvas Wrapper Ref for Scale & Skew Reveal
@@ -73,14 +76,24 @@ function Home() {
   const bottomTextRef = useRef(null)
   const scrollTextRef = useRef(null)
 
-  // Interaction Guide
+  // =========================================================
+  // INTERACTION GUIDE
+  // =========================================================
+
   const [showInteractionGuide, setShowInteractionGuide] = useState(false)
   const [interactionGuideDismissed, setInteractionGuideDismissed] = useState(false)
+
   const interactionGuideRef = useRef(null)
+  const interactionGuideBackdropRef = useRef(null)
+
+  // Prevent the interaction guide from being triggered
+  // more than once during the current component lifetime.
+  const interactionGuideShownRef = useRef(false)
 
   // =========================================================
   // PROCESS PROJECT VIDEO URL
   // =========================================================
+
   const PROJECTS = useMemo(() => {
     return RAW_PROJECTS.map((project) => ({
       ...project,
@@ -91,6 +104,7 @@ function Home() {
   // =========================================================
   // SPLIT SENTENCE INTO WORDS
   // =========================================================
+
   const words = useMemo(
     () => BOTTOM_TEXT.split(' '),
     []
@@ -99,6 +113,7 @@ function Home() {
   // =========================================================
   // FORMAT VIDEO TIME
   // =========================================================
+
   const formatTime = (seconds) => {
     if (
       !Number.isFinite(seconds) ||
@@ -116,6 +131,7 @@ function Home() {
   // =========================================================
   // TRACK INITIAL PAGE / ASSET LOAD PROGRESS
   // =========================================================
+
   useEffect(() => {
     targetProgress.current = Math.max(
       targetProgress.current,
@@ -149,6 +165,7 @@ function Home() {
   // =========================================================
   // SMOOTHLY INTERPOLATE PROGRESS
   // =========================================================
+
   useGSAP(() => {
     if (isLoaded) {
       return
@@ -189,6 +206,7 @@ function Home() {
   // =========================================================
   // GSAP EXIT CURTAIN ANIMATION
   // =========================================================
+
   useGSAP(() => {
     if (progress < 100) {
       return
@@ -229,6 +247,7 @@ function Home() {
   // =========================================================
   // CANVAS SCALE-DOWN & ENTRANCE ANIMATIONS
   // =========================================================
+
   useGSAP(() => {
     if (!isLoaded) return
 
@@ -325,15 +344,57 @@ function Home() {
   // =========================================================
   // INTERACTION GUIDE
   // =========================================================
+
   useEffect(() => {
     if (
       !isLoaded ||
-      interactionGuideDismissed
+      interactionGuideDismissed ||
+      interactionGuideShownRef.current ||
+      typeof window === 'undefined' ||
+      window.innerWidth <= 768
     ) {
       return
     }
 
+    // Check sessionStorage so the popup only ever appears
+    // once during the current browser session.
+    const hasShownInteractionGuide =
+      sessionStorage.getItem(
+        'cloudhaus-interaction-guide-shown'
+      )
+
+    if (hasShownInteractionGuide === 'true') {
+      interactionGuideShownRef.current = true
+      return
+    }
+
     const timer = setTimeout(() => {
+      // Double-check the viewport when the timer fires.
+      if (window.innerWidth <= 768) {
+        return
+      }
+
+      // Check again in case another mount has already
+      // displayed the guide.
+      const alreadyShown =
+        sessionStorage.getItem(
+          'cloudhaus-interaction-guide-shown'
+        )
+
+      if (alreadyShown === 'true') {
+        interactionGuideShownRef.current = true
+        return
+      }
+
+      // Mark as shown BEFORE changing state.
+      // This prevents duplicate triggers.
+      sessionStorage.setItem(
+        'cloudhaus-interaction-guide-shown',
+        'true'
+      )
+
+      interactionGuideShownRef.current = true
+
       setShowInteractionGuide(true)
     }, 1800)
 
@@ -348,6 +409,7 @@ function Home() {
   // =========================================================
   // INTERACTION GUIDE ENTRANCE
   // =========================================================
+
   useEffect(() => {
     if (
       !showInteractionGuide ||
@@ -356,6 +418,24 @@ function Home() {
       return
     }
 
+    // Animate backdrop in
+    if (
+      interactionGuideBackdropRef.current
+    ) {
+      gsap.fromTo(
+        interactionGuideBackdropRef.current,
+        {
+          opacity: 0
+        },
+        {
+          opacity: 1,
+          duration: 0.45,
+          ease: 'power2.out'
+        }
+      )
+    }
+
+    // Animate card in
     gsap.fromTo(
       interactionGuideRef.current,
       {
@@ -380,34 +460,57 @@ function Home() {
   // =========================================================
   // INTERACTION GUIDE EXIT
   // =========================================================
+
   const closeInteractionGuide = () => {
-    if (
-      !interactionGuideRef.current
-    ) {
+    const card =
+      interactionGuideRef.current
+
+    const backdrop =
+      interactionGuideBackdropRef.current
+
+    if (!card) {
       setShowInteractionGuide(false)
       setInteractionGuideDismissed(true)
       return
     }
 
-    gsap.to(
-      interactionGuideRef.current,
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setShowInteractionGuide(false)
+        setInteractionGuideDismissed(true)
+      }
+    })
+
+    // Fade card out
+    tl.to(
+      card,
       {
         opacity: 0,
         scale: 0.94,
         filter: 'blur(6px)',
         duration: 0.3,
-        ease: 'power2.out',
-        onComplete: () => {
-          setShowInteractionGuide(false)
-          setInteractionGuideDismissed(true)
-        }
+        ease: 'power2.out'
       }
     )
+
+    // Fade backdrop out simultaneously
+    if (backdrop) {
+      tl.to(
+        backdrop,
+        {
+          opacity: 0,
+          duration: 0.3,
+          ease: 'power2.out'
+        },
+        0
+      )
+    }
   }
 
   // =========================================================
   // VIDEO INITIALIZATION + DURATION
   // =========================================================
+
   const handleVideoInit = useCallback(
     (videoEl) => {
       if (!videoEl) return
@@ -431,6 +534,7 @@ function Home() {
       // -------------------------------------------------------
       // DURATION
       // -------------------------------------------------------
+
       const updateDuration = () => {
         const videoDuration =
           videoEl.duration
@@ -457,10 +561,9 @@ function Home() {
       updateDuration()
 
       // -------------------------------------------------------
-      // Sometimes Cloudinary/video metadata arrives slightly
-      // after HeroCanvas calls onVideoInit().
       // Retry briefly until duration becomes available.
       // -------------------------------------------------------
+
       let durationAttempts = 0
 
       const durationRetry =
@@ -483,6 +586,7 @@ function Home() {
       // -------------------------------------------------------
       // Duration events
       // -------------------------------------------------------
+
       const handleLoadedMetadata = () => {
         updateDuration()
       }
@@ -522,6 +626,7 @@ function Home() {
       // -------------------------------------------------------
       // PRELOADER VIDEO BUFFER PROGRESS
       // -------------------------------------------------------
+
       const handleProgress = () => {
         if (
           videoEl.buffered.length > 0 &&
@@ -561,6 +666,7 @@ function Home() {
       // -------------------------------------------------------
       // READY STATE
       // -------------------------------------------------------
+
       if (
         videoEl.readyState >= 1
       ) {
@@ -582,6 +688,7 @@ function Home() {
       // -------------------------------------------------------
       // CAN PLAY THROUGH
       // -------------------------------------------------------
+
       const handleCanPlayThrough = () => {
         targetProgress.current = 100
         updateDuration()
@@ -595,6 +702,7 @@ function Home() {
       // -------------------------------------------------------
       // PLAY VIDEO
       // -------------------------------------------------------
+
       const playPromise =
         videoEl.play()
 
@@ -612,6 +720,7 @@ function Home() {
       // -------------------------------------------------------
       // CLEANUP
       // -------------------------------------------------------
+
       return () => {
         clearInterval(
           durationRetry
@@ -654,6 +763,7 @@ function Home() {
   // =========================================================
   // TOGGLE SOUND
   // =========================================================
+
   const handleToggleSound = () => {
     const nextMutedState =
       !isMuted
@@ -682,6 +792,7 @@ function Home() {
   // =========================================================
   // NEXT VIDEO
   // =========================================================
+
   const handleNext = () => {
     if (
       isTransitioning ||
@@ -706,6 +817,7 @@ function Home() {
   // =========================================================
   // TRANSITION COMPLETE
   // =========================================================
+
   const handleTransitionComplete = () => {
     if (
       nextIndex !== null
@@ -727,9 +839,11 @@ function Home() {
   // =========================================================
   // RENDER
   // =========================================================
+
   return (
     <>
       {/* FIXED NAVIGATION */}
+
       <header className="fixed top-0 left-0 right-0 z-[90] p-4 w-full pointer-events-none">
         <Navigation
           isMuted={isMuted}
@@ -747,10 +861,10 @@ function Home() {
 
           IMPORTANT:
           No sessionStorage here.
-
           Therefore the preloader runs every time
           the Home component mounts.
           ===================================================== */}
+
       {!preloaderUnmounted && (
         <div
           ref={
@@ -788,9 +902,11 @@ function Home() {
       {/* =====================================================
           MAIN PAGE
           ===================================================== */}
+
       <main className="relative w-full h-dvh overflow-hidden bg-zinc-900 [perspective:1200px]">
 
         {/* THREE.JS CANVAS WRAPPER */}
+
         <div
           ref={
             heroCanvasWrapperRef
@@ -825,14 +941,16 @@ function Home() {
         </div>
 
         {/* OVERLAY */}
+
         <div className="absolute inset-0 bg-black/30 z-0 pointer-events-none" />
 
         {/* FOREGROUND UI WRAPPER */}
-        <div className="relative z-10 w-full h-full p-4 pt-20 flex flex-col justify-between box-border pointer-events-none">
 
+        <div className="relative z-10 w-full h-full p-4 pt-20 flex flex-col justify-between box-border pointer-events-none">
           <div aria-hidden="true" />
 
           {/* CONTROLS */}
+
           <div className="pointer-events-auto">
             <Controls
               onNext={
@@ -857,8 +975,8 @@ function Home() {
           </div>
 
           {/* BOTTOM UI */}
-          <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal pointer-events-auto">
 
+          <div className="flex flex-col gap-4 md:flex-row items-start md:items-end justify-between w-full mb-0 text-white font-geist-mono uppercase tracking-tight leading-[140%] md:leading-normal pointer-events-auto">
             <p
               ref={
                 bottomTextRef
@@ -891,13 +1009,33 @@ function Home() {
             >
               (scroll down)
             </p>
-
           </div>
         </div>
 
         {/* =====================================================
+            INTERACTION GUIDE BACKDROP
+            ===================================================== */}
+
+        {showInteractionGuide && (
+          <div
+            ref={
+              interactionGuideBackdropRef
+            }
+            className="
+              fixed
+              inset-0
+              z-[60]
+              bg-black/40
+              pointer-events-none
+            "
+            aria-hidden="true"
+          />
+        )}
+
+        {/* =====================================================
             INTERACTION GUIDE
             ===================================================== */}
+
         {showInteractionGuide && (
           <div
             ref={
@@ -914,16 +1052,15 @@ function Home() {
               rounded-md
               border
               border-white/10
-              bg-carbon-black
+              bg-black
               text-white
               shadow-2xl
               pointer-events-auto
             "
           >
-            <div className="relative aspect-video w-full overflow-hidden bg-zinc-900">
-
+            <div className="relative aspect-video w-full overflow-hidden bg-zinc-900 pt-2">
               <video
-                src="/videos/hover-guide.mp4"
+                src="/Images/guide.mp4"
                 autoPlay
                 muted
                 loop
@@ -948,6 +1085,7 @@ function Home() {
                   justify-center
                   w-6
                   h-6
+                  text-center
                   rounded-full
                   bg-black/90
                   backdrop-blur-sm
@@ -963,7 +1101,6 @@ function Home() {
               >
                 ×
               </button>
-
             </div>
 
             <div className="px-3 py-2.5">
@@ -973,7 +1110,6 @@ function Home() {
             </div>
           </div>
         )}
-
       </main>
     </>
   )
