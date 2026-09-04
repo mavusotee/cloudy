@@ -10,6 +10,7 @@ export default function TransitionLink({
   href,
   children,
   className,
+  onClick,
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -20,6 +21,11 @@ export default function TransitionLink({
     e.preventDefault();
 
     if (isTransitioning.current) return;
+
+    // Run any custom click handler
+    if (onClick) {
+      onClick(e);
+    }
 
     // Don't transition to the current page
     if (href === pathname) return;
