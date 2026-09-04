@@ -45,7 +45,6 @@ export default function TransitionLink({
     gsap.set(overlay, {
       "--wipe": "0%",
       opacity: 0,
-      pointerEvents: "auto",
     });
 
     // =======================================================
@@ -66,63 +65,33 @@ export default function TransitionLink({
     // =======================================================
 
     tl.call(() => {
-      // Reset scroll before mounting the new route.
       window.scrollTo(0, 0);
 
       router.push(href);
 
       // =====================================================
-      // FAIL-SAFE TRANSITION CLEANUP
-      // =====================================================
-
-      let finished = false;
-
-      const cleanupTransition = () => {
-        if (finished) return;
-
-        finished = true;
-
-        gsap.killTweensOf(overlay);
-
-        gsap.to(overlay, {
-          "--wipe": "0%",
-          opacity: 0,
-          duration: 0.75,
-          ease: "power4.inOut",
-          overwrite: true,
-          onComplete: () => {
-            gsap.set(overlay, {
-              "--wipe": "0%",
-              opacity: 0,
-              pointerEvents: "none",
-            });
-
-            isTransitioning.current = false;
-
-            ScrollTrigger.refresh();
-          },
-        });
-      };
-
-      // =====================================================
-      // HARD FALLBACK
-      // =====================================================
-      //
-      // If something goes wrong with route detection,
-      // image loading, React rendering, etc., the overlay
-      // can NEVER remain over the page indefinitely.
-      //
-
-      const fallbackTimer = setTimeout(() => {
-        cleanupTransition();
-      }, 4000);
-
-      // =====================================================
       // WAIT FOR NEW ROUTE
       // =====================================================
 
+      const startTime = performance.now();
+
       const waitForPageReady = () => {
-        if (finished) return;
+        // ---------------------------------------------------
+        // SAFETY FALLBACK
+        // ---------------------------------------------------
+
+        if (
+          performance.now() -
+            startTime >
+          4000
+        ) {
+          finishTransition();
+          return;
+        }
+
+        // ---------------------------------------------------
+        // WAIT FOR ROUTE
+        // ---------------------------------------------------
 
         if (
           window.location.pathname !==
@@ -135,78 +104,46 @@ export default function TransitionLink({
           return;
         }
 
-        // ===================================================
-        // WAIT FOR REACT/NEXT TO RENDER
-        // ===================================================
+        // ---------------------------------------------------
+        // WAIT FOR REACT TO RENDER
+        // ---------------------------------------------------
 
         requestAnimationFrame(() => {
-          if (finished) return;
-
           requestAnimationFrame(() => {
-            if (finished) return;
-
-            // ===============================================
-            // WAIT FOR PAGE IMAGES
-            // ===============================================
-
-            const images =
-              Array.from(
-                document.images
-              );
-
-            const imagePromises =
-              images.map((img) => {
-                if (img.complete) {
-                  return Promise.resolve();
-                }
-
-                return new Promise(
-                  (resolve) => {
-                    img.addEventListener(
-                      "load",
-                      resolve,
-                      {
-                        once: true,
-                      }
-                    );
-
-                    img.addEventListener(
-                      "error",
-                      resolve,
-                      {
-                        once: true,
-                      }
-                    );
-
-                    // Individual image timeout
-                    setTimeout(
-                      resolve,
-                      1500
-                    );
-                  }
-                );
-              });
-
-            Promise.all(
-              imagePromises
-            ).then(() => {
-              if (finished) return;
-
-              // =============================================
-              // GIVE THE BROWSER ONE FINAL FRAME
-              // =============================================
-
-              requestAnimationFrame(() => {
-                if (finished) return;
-
-                clearTimeout(
-                  fallbackTimer
-                );
-
-                cleanupTransition();
-              });
-            });
+            finishTransition();
           });
+        });
+      };
+
+      // =====================================================
+      // FINISH TRANSITION
+      // =====================================================
+
+      const finishTransition = () => {
+        if (!isTransitioning.current) {
+          return;
+        }
+
+        gsap.killTweensOf(overlay);
+
+        gsap.to(overlay, {
+          "--wipe": "0%",
+          opacity: 0,
+          duration: 0.75,
+          ease: "power4.inOut",
+          overwrite: true,
+
+          onComplete: () => {
+            gsap.set(overlay, {
+              "--wipe": "0%",
+              opacity: 0,
+            });
+
+            isTransitioning.current =
+              false;
+
+            ScrollTrigger.refresh();
+          },
         });
       };
 
