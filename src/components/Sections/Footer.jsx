@@ -85,7 +85,7 @@ function Footer() {
           scrollTrigger: {
             trigger: logoRef.current,
             start: "top 90%",
-            toggleActions: "play none none reverse",
+            toggleActions: "play none none none",
           },
         },
       );
@@ -147,7 +147,7 @@ function Footer() {
           scrollTrigger: {
             trigger: metaRef.current,
             start: "top 95%",
-            toggleActions: "play none none reverse",
+            toggleActions: "play none none none",
           },
         },
       );
@@ -194,11 +194,176 @@ Great work deserves to be seen.`}
         </div>
 
         {/* =====================================================
-            ROW 1 ON MOBILE/TABLET:
-            NAVIGATION & CONTACT
+            MOBILE/TABLET INFORMATION GRID
+            DESKTOP RETURNS TO ORIGINAL COLUMN STRUCTURE
             ===================================================== */}
 
-        <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)] font-regular">
+        <div className="grid grid-cols-2 lg:hidden w-full gap-x-6 gap-y-12">
+          {/* =====================================================
+              NAVIGATION
+              ===================================================== */}
+
+          <div
+            ref={navigationRef}
+            className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full"
+          >
+            <div className="font-mono tracking-tight text-[clamp(0.625rem,0.6vw,0.65rem)] flex items-center gap-2 text-ghost-white">
+              <div className="w-2 h-2 bg-ghost-white" />
+
+              <span className="text-zinc-600 text-[clamp(0.65rem,1.1vw,1rem)]">
+                NAVIGATION
+              </span>
+            </div>
+
+            <div className="flex flex-col font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.6vw,1.025rem)] uppercase">
+              <BlurFlicker>
+                <TransitionLink
+                  href="/#top"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  HOME
+                </TransitionLink>
+              </BlurFlicker>
+
+              <BlurFlicker>
+                <TransitionLink
+                  href="/About"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  ABOUT
+                </TransitionLink>
+              </BlurFlicker>
+
+              <BlurFlicker>
+                <a
+                  href="#services"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  SERVICES
+                </a>
+              </BlurFlicker>
+
+              <BlurFlicker>
+                <TransitionLink
+                  href="/All-Works"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  WORK
+                </TransitionLink>
+              </BlurFlicker>
+
+              <BlurFlicker>
+                <TransitionLink
+                  href="/Weddings"
+                  className="hover:opacity-70 transition-opacity"
+                >
+                  MORE
+                </TransitionLink>
+              </BlurFlicker>
+            </div>
+          </div>
+
+          {/* =====================================================
+              CONTACT
+              ===================================================== */}
+
+          <div
+            ref={contactRef}
+            className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full"
+          >
+            <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
+              <div className="w-2 h-2 bg-ghost-white" />
+
+              <span className="text-zinc-600 text-[clamp(0.65rem,1.1vw,1rem)]">
+                CONTACT
+              </span>
+            </div>
+
+            <div className="flex flex-col space-y-1 font-sans font-medium text-ghost-white text-[clamp(0.325rem,3vw,1.025rem)] uppercase">
+              <span>0404 104 360</span>
+
+              <span>ADELAIDE, SOUTH AUSTRALIA</span>
+
+              <a
+                href="mailto:hello@cloudhausmedia.com"
+                className="hover:opacity-70 transition-opacity"
+              >
+                hello@cloudhausmedia.com
+              </a>
+            </div>
+          </div>
+
+          {/* =====================================================
+              TIME / TELEMETRY
+              ===================================================== */}
+
+          <div
+            ref={timeRef}
+            className="flex flex-col space-y-[clamp(0.25rem,0.5vw,0.5rem)] items-start justify-start w-full font-geist-mono uppercase"
+          >
+            <div className="flex items-center gap-2 text-[clamp(0.325rem,3vw,1.025rem)] text-ghost-white">
+              <span className="text-zinc-100 tabular-nums">
+                ADL {time || "12:00:00 AM"}
+              </span>
+            </div>
+
+            <div className="text-[clamp(0.325rem,3vw,1.025rem)] text-zinc-600 flex flex-col -space-y-0.5 tracking-tight font-sans">
+              <span>34.9285° S, 138.6007° E</span>
+
+              <span>ELEV. 50M • ACDT/ACST</span>
+            </div>
+          </div>
+
+          {/* =====================================================
+              SOCIALS
+              ===================================================== */}
+
+          <div
+            ref={socialsRef}
+            className="flex flex-col space-y-[clamp(0.75rem,2vw,1.5rem)] items-start justify-start w-full"
+          >
+            <div className="flex flex-col space-y-[clamp(0.25rem,1vw,0.5rem)] items-start justify-start w-full">
+              <div className="font-mono tracking-tight text-[clamp(0.625rem,1vw,0.75rem)] flex items-center gap-2 text-ghost-white">
+                <div className="w-2 h-2 bg-ghost-white" />
+
+                <span className="text-zinc-600 text-[clamp(0.65rem,1.1vw,1rem)]">
+                  SOCIALS
+                </span>
+              </div>
+
+              <div className="flex flex-col items-start justify-start w-full space-y-0.5 font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
+                <BlurFlicker>
+                  <a
+                    href="https://www.instagram.com/cloudhausmedia/?utm_source=ig_web_button_share_sheet"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-70 transition-opacity"
+                  >
+                    INSTAGRAM
+                  </a>
+                </BlurFlicker>
+
+                <BlurFlicker>
+                  <a
+                    href="https://vimeo.com/user135969253"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:opacity-70 transition-opacity"
+                  >
+                    VIMEO
+                  </a>
+                </BlurFlicker>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* =====================================================
+            DESKTOP INFORMATION COLUMNS
+            ORIGINAL DESKTOP LAYOUT PRESERVED
+            ===================================================== */}
+
+        <div className="hidden lg:flex flex-col justify-between items-start w-auto gap-[clamp(1.5rem,3vw,3rem)] font-regular">
           {/* NAVIGATION LINKS */}
 
           <div
@@ -275,7 +440,7 @@ Great work deserves to be seen.`}
               </span>
             </div>
 
-            <div className="flex flex-col space-y-1 md:space-y-0 font-sans font-medium text-ghost-white text-[clamp(0.325rem,3.0vw,1.025rem)] uppercase">
+            <div className="flex flex-col space-y-1 md:space-y-0 font-sans font-medium text-ghost-white text-[clamp(0.325rem,3vw,1.025rem)] uppercase">
               <span>0404 104 360</span>
 
               <span>ADELAIDE, SOUTH AUSTRALIA</span>
@@ -291,24 +456,24 @@ Great work deserves to be seen.`}
         </div>
 
         {/* =====================================================
-            ROW 2 ON MOBILE/TABLET:
-            TIME / TELEMETRY & SOCIALS
+            DESKTOP TIME / SOCIALS
+            ORIGINAL DESKTOP LAYOUT PRESERVED
             ===================================================== */}
 
-        <div className="flex flex-row lg:flex-col justify-between items-start w-full lg:w-auto gap-[clamp(1.5rem,3vw,3rem)]">
+        <div className="hidden lg:flex flex-col justify-between items-start w-auto gap-[clamp(1.5rem,3vw,3rem)]">
           {/* DYNAMIC TIME & GEOGRAPHIC DATA */}
 
           <div
             ref={timeRef}
-            className="flex flex-col space-y-[clamp(0.25rem,0.5vw,0.5rem)] items-start justify-start w-full pt-2 font-geist-mono uppercase"
+            className="flex flex-col space-y-[clamp(0.25rem,0.5vw,0.5rem)] items-start justify-start w-full font-geist-mono uppercase"
           >
-            <div className="flex items-center gap-2 text-[clamp(0.325rem,3.0vw,1.025rem)] text-ghost-white">
+            <div className="flex items-center gap-2 text-[clamp(0.325rem,3vw,1.025rem)] text-ghost-white">
               <span className="text-zinc-100 tabular-nums">
                 ADL {time || "12:00:00 AM"}
               </span>
             </div>
 
-            <div className="text-[clamp(0.325rem,3.0vw,1.025rem)] text-zinc-600 flex flex-col -space-y-0.5 tracking-tight font-sans">
+            <div className="text-[clamp(0.325rem,3vw,1.025rem)] text-zinc-600 flex flex-col -space-y-0.5 tracking-tight font-sans">
               <span>34.9285° S, 138.6007° E</span>
 
               <span>ELEV. 50M • ACDT/ACST</span>
@@ -330,7 +495,7 @@ Great work deserves to be seen.`}
                 </span>
               </div>
 
-              <div className="flex flex-col items-start justify-start w-full lg:flex-col space-x-[clamp(1.0rem,1.5vw,0.5rem)] font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
+              <div className="flex flex-col items-start justify-start w-full space-y-0.5 font-sans font-medium text-ghost-white text-[clamp(0.625rem,4.5vw,1.025rem)] uppercase">
                 <BlurFlicker>
                   <a
                     href="https://www.instagram.com/cloudhausmedia/?utm_source=ig_web_button_share_sheet"
@@ -364,6 +529,7 @@ Great work deserves to be seen.`}
 
       <div className="w-full mt-auto pt-6 lg:pt-12">
         {/* CLOUDHAUS SVG LOGO */}
+
         <div
           ref={logoRef}
           className="w-full select-none pointer-events-none flex items-center justify-center pb-2"
@@ -380,7 +546,7 @@ Great work deserves to be seen.`}
               fill="white"
             />
             <path
-              d="M78.4355 0.000976562C78.4355 4.3678 78.865 8.69189 79.7006 12.7263C80.5362 16.7607 81.7608 20.4265 83.3047 23.5143C84.8486 26.6021 86.6815 29.0515 88.6988 30.7226C90.7156 32.3937 92.8779 33.2538 95.0619 33.2538C97.2449 33.2538 99.4067 32.3937 101.424 30.7226C103.441 29.0515 105.274 26.6021 106.6021 23.5143C108.362 20.4265 109.587 16.7607 110.423 12.7263C111.258 8.69189 111.688 4.3678 111.688 0.000976562H78.4355Z"
+              d="M78.4355 0.000976562C78.4355 4.3678 78.865 8.69189 79.7006 12.7263C80.5362 16.7607 81.7608 20.4265 83.3047 23.5143C84.8486 26.6021 86.6815 29.0515 88.6988 30.7226C90.7156 32.3937 92.8779 33.2538 95.0619 33.2538C97.2449 33.2538 99.4067 32.3937 101.424 30.7226C103.441 29.0515 105.274 26.6021 106.818 23.5143C108.362 20.4265 109.587 16.7607 110.423 12.7263C111.258 8.69189 111.688 4.3678 111.688 0.000976562H78.4355Z"
               fill="white"
             />
             <path
@@ -392,8 +558,8 @@ Great work deserves to be seen.`}
               fill="white"
             />
             <path
-              fillRule="evenodd"
-              clipRule="evenodd"
+              fill-rule="evenodd"
+              clip-rule="evenodd"
               d="M41.0538 0.38585V32.8691C41.0538 33.0816 40.8588 33.254 40.6186 33.254H27.6422C27.402 33.254 27.207 33.0816 27.207 32.8691V0.38585C27.207 0.1734 27.402 0.000976562 27.6422 0.000976562H40.6186C40.8588 0.000976562 41.0538 0.1734 41.0538 0.38585Z"
               fill="white"
             />
@@ -410,18 +576,18 @@ Great work deserves to be seen.`}
               fill="white"
             />
             <path
-              d="M241.235 28.8183C242.918 30.1301 244.856 31.1958 246.939 31.9543C249.021 32.7123 251.206 33.1483 253.371 33.2369C255.536 33.3254 257.637 33.0643 259.554 32.4698C261.471 31.8757 263.168 30.9588 264.546 29.7711C265.925 28.5844 266.957 27.1501 267.587 25.5514C268.216 23.9523 268.429 22.2197 268.214 20.4525C267.999 18.6849 267.358 16.9177 266.331 15.2509C265.304 13.5844 263.909 12.051 262.226 10.7383L251.73 19.7785L241.235 28.8183Z"
+              d="M241.235 28.8183C242.918 30.1304 244.856 31.1958 246.939 31.9543C249.021 32.7123 251.206 33.1483 253.371 33.2369C255.536 33.3254 257.637 33.0643 259.554 32.4698C261.471 31.8757 263.168 30.9588 264.546 29.7711C265.925 28.5844 266.957 27.1501 267.587 25.5514C268.216 23.9523 268.429 22.2197 268.214 20.4525C267.999 18.6849 267.358 16.9177 266.331 15.2509C265.304 13.5844 263.909 12.051 262.226 10.7383L251.73 19.7785L241.235 28.8183Z"
               fill="white"
             />
             <path
-              fillRule="evenodd"
-              clipRule="evenodd"
+              fill-rule="evenodd"
+              clip-rule="evenodd"
               d="M152.752 0.384868V32.8683C152.752 33.0805 152.542 33.2532 152.284 33.2532H139.372C139.113 33.2532 138.904 33.0805 138.904 32.8683V0.384868C138.904 0.172428 139.113 0 139.372 0H152.284C152.542 0 152.752 0.172428 152.752 0.384868Z"
               fill="white"
             />
             <path
-              fillRule="evenodd"
-              clipRule="evenodd"
+              fill-rule="evenodd"
+              clip-rule="evenodd"
               d="M172.142 0.384868V32.8683C172.142 33.0805 171.932 33.2532 171.674 33.2532H158.763C158.505 33.2532 158.295 33.0805 158.295 32.8683V0.384868C158.295 0.172428 158.505 0 158.763 0H171.674C171.932 0 172.142 0.172428 172.142 0.384868Z"
               fill="white"
             />
@@ -433,6 +599,7 @@ Great work deserves to be seen.`}
         </div>
 
         {/* BOTTOM METADATA */}
+
         <div
           ref={metaRef}
           className="flex flex-col-reverse md:flex-row items-start md:items-end justify-between font-geist-mono text-ghost-white text-[clamp(0.6rem,2.5vw,0.725rem)] uppercase w-full gap-2 pt-2"

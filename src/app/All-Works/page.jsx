@@ -502,6 +502,35 @@ const formatTime = (seconds) => {
 };
 
 // ----------------------------------------------------------------------
+// MOBILE VIDEO HEIGHT
+// ----------------------------------------------------------------------
+
+const mobileVideoHeightVariants = [
+  "max-md:h-[52vw]",
+  "max-md:h-[58vw]",
+  "max-md:h-[54vw]",
+  "max-md:h-[60vw]",
+];
+
+const getMobileVideoHeight = (video) => {
+  const source =
+    video?._id ||
+    video?.slug ||
+    video?.title ||
+    "";
+
+  let hash = 0;
+
+  for (let i = 0; i < source.length; i++) {
+    hash += source.charCodeAt(i);
+  }
+
+  return mobileVideoHeightVariants[
+    hash % mobileVideoHeightVariants.length
+  ];
+};
+
+// ----------------------------------------------------------------------
 // 3. WORK CARD
 // ----------------------------------------------------------------------
 
@@ -535,6 +564,13 @@ function WorkCard({
   const vimeoId =
     getVimeoId(
       video?.heroVideos?.[0]
+    );
+
+  const mobileVideoHeight =
+    useMemo(
+      () =>
+        getMobileVideoHeight(video),
+      [video]
     );
 
   // --------------------------------------------------
@@ -858,11 +894,25 @@ function WorkCard({
           relative
           overflow-hidden
           cursor-pointer
+
+          max-md:relative
+          max-md:left-1/2
+          max-md:-translate-x-1/2
+          max-md:w-screen
+          max-md:aspect-auto
+          ${mobileVideoHeight}
+
+          md:left-auto
+          md:translate-x-0
+          md:ml-0
+          md:w-full
+
           ${
             fullBleedVideo
-              ? "-mx-4 md:-mx-8 w-[calc(100%+2rem)] md:w-[calc(100%+4rem)]"
-              : "w-full"
+              ? "md:-mx-8 md:w-[calc(100%+4rem)]"
+              : ""
           }
+
           ${heightClassName || ""}
         `}
       >
@@ -888,14 +938,14 @@ function WorkCard({
             className="
               block
               w-full
-              aspect-video
+              h-full
               object-cover
               brightness-90
               contrast-105
             "
           />
         ) : (
-          <div className="w-full aspect-video bg-zinc-900 flex flex-col items-center justify-center gap-2">
+          <div className="w-full h-full min-h-[220px] bg-zinc-900 flex flex-col items-center justify-center gap-2">
             <span className="font-geist-mono text-xs text-zinc-500 uppercase">
               No Preview
             </span>
@@ -2154,7 +2204,7 @@ export default function AllWorksSection() {
             </sup>
           </div>
 
-          <div className="flex flex-col items-start  sm:items-end justify-end space-y-4 w-full sm:w-auto">
+          <div className="flex flex-col items-start sm:items-end justify-end space-y-4 w-full sm:w-auto">
             {/* GRID / LIST */}
 
             <div className="flex items-center space-x-3 font-geist-mono text-sm md:text-lg tracking-widest uppercase">
@@ -2327,7 +2377,7 @@ export default function AllWorksSection() {
                     }
                     priority
                     fullBleedVideo
-                    heightClassName="w-full"
+                    heightClassName="w-full md:h-[90vh]"
                     onVideoSourceLoaded={(
                       id,
                       source
@@ -2391,7 +2441,7 @@ export default function AllWorksSection() {
               {activeProjects.length >=
                 5 && (
                 <div className="grid grid-cols-1 lg:grid-cols-12 w-full gap-8 items-start py-2">
-                  <div className="lg:col-span-5">
+                  <div className="lg:col-span-5 lg:translate-x-10">
                     <WorkCard
                       video={
                         activeProjects[4]
@@ -2475,7 +2525,7 @@ export default function AllWorksSection() {
                               current
                             ) => ({
                               ...current,
-                              [id]: source,
+                              [id]: source
                             })
                           );
                         }}
@@ -2547,7 +2597,7 @@ export default function AllWorksSection() {
                           current
                         ) => ({
                           ...current,
-                          [id]: source,
+                          [id]: source
                         })
                       );
                     }}
@@ -2610,7 +2660,7 @@ export default function AllWorksSection() {
                             current
                           ) => ({
                             ...current,
-                            [id]: source,
+                            [id]: source
                           })
                         );
                       }}
@@ -2690,7 +2740,7 @@ export default function AllWorksSection() {
                                 current
                               ) => ({
                                 ...current,
-                                [id]: source,
+                                [id]: source
                               })
                             );
                           }}
@@ -2771,7 +2821,7 @@ export default function AllWorksSection() {
                                 current
                               ) => ({
                                 ...current,
-                                [id]: source,
+                                [id]: source
                               })
                             );
                           }}
@@ -2852,7 +2902,7 @@ export default function AllWorksSection() {
                                 current
                               ) => ({
                                 ...current,
-                                [id]: source,
+                                [id]: source
                               })
                             );
                           }}

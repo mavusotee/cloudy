@@ -126,6 +126,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
       gsap.set(overlay, {
         visibility: "hidden",
         clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
+        pointerEvents: "none",
       });
 
       gsap.set(linkItems, {
@@ -136,7 +137,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
       /* OPEN TIMELINE */
       const openTl = gsap.timeline({ paused: true });
       openTl
-        .set(overlay, { visibility: "visible" })
+        .set(overlay, { visibility: "visible", pointerEvents: "none", })
         .to(overlay, {
           clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
           duration: 0.75,
@@ -160,6 +161,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
         onComplete: () => {
           gsap.set(overlay, {
             visibility: "hidden",
+            pointerEvents: "none",
             clipPath: "polygon(0% 0%, 100% 0%, 100% 0%, 0% 0%)",
           });
           gsap.set(linkItems, { yPercent: 100, opacity: 0 });
@@ -284,9 +286,9 @@ function Navigation({ isMuted = true, onToggleSound }) {
       </nav>
 
       <div
-        ref={menuOverlayRef}
-        className="fixed inset-0 z-[110] bg-black flex flex-col justify-between text-ghost-white md:hidden h-[85vh] border-b border-eclipse"
-      >
+  ref={menuOverlayRef}
+  className="fixed inset-0 z-[110] bg-black flex flex-col justify-between text-ghost-white md:hidden h-[85vh] border-b border-eclipse pointer-events-auto"
+>
         <div className="flex items-center justify-between w-full p-4">
           <Link href="/" onClick={toggleMobileMenu}>
             <Image
@@ -295,7 +297,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
               width={160}
               height={48}
               priority
-              className="w-40 h-auto"
+              className="w-36 h-auto"
             />
           </Link>
 
@@ -309,12 +311,12 @@ function Navigation({ isMuted = true, onToggleSound }) {
         </div>
 
         <div
-          ref={menuContentRef}
-          className="flex flex-col font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6"
-        >
+  ref={menuContentRef}
+  className="relative z-[1] flex flex-col font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6 pointer-events-auto"
+>
           <div className="overflow-hidden">
             <TransitionLink
-              href="/About"
+              href="/"
               onClick={toggleMobileMenu}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
@@ -350,7 +352,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
                 className="inline-flex items-start hover:text-zinc-400 transition-colors leading-none"
               >
                 <span>MORE</span>
-                <sup className="inline-block text-[8px] font-geist-mono text-zinc-600 uppercase  font-medium leading-tight font-medium max-w-[70px] -mt-[-8px] whitespace-normal ml-4">
+                <sup className="inline-block text-[8px] font-geist-mono text-zinc-600 uppercase  font-medium tracking-wide leading-tight font-medium max-w-[70px] -mt-[-8px] whitespace-normal ml-4">
                   MEDIA BY CLOUDHAUS
                 </sup>
               </TransitionLink>
@@ -368,7 +370,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
           </div>
         </div>
 
-        <div className="pt-6 flex flex-row items-start space-y-4 p-4">
+        <div className="pt-6 flex flex-row items-start justify-between w-full space-y-4 p-4">
           <div className="flex flex-col gap-1">
             <h1 className="text-zinc-600 font-mono font-medium tracking-tight text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]">
               SOCIALS
@@ -394,6 +396,8 @@ function Navigation({ isMuted = true, onToggleSound }) {
               </Link>
             </div>
           </div>
+
+          
         </div>
       </div>
     </>
