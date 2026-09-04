@@ -504,6 +504,8 @@ const formatTime = (seconds) => {
 // ----------------------------------------------------------------------
 // MOBILE VIDEO HEIGHT
 // ----------------------------------------------------------------------
+// Mobile only.
+// Desktop is completely unaffected by these classes.
 
 const mobileVideoHeightVariants = [
   "max-md:h-[52vw]",
