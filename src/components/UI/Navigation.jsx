@@ -295,7 +295,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
               width={160}
               height={48}
               priority
-              className="w-36 h-auto"
+              className="w-40 h-auto"
             />
           </Link>
 
@@ -313,58 +313,68 @@ function Navigation({ isMuted = true, onToggleSound }) {
           className="flex flex-col font-sans text-6xl uppercase font-medium my-auto tracking-[-6%] p-6"
         >
           <div className="overflow-hidden">
-            <Link
+            <TransitionLink
+              href="/About"
+              onClick={toggleMobileMenu}
+              className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
+            >
+              HOME
+            </TransitionLink>
+          </div>
+
+          <div className="overflow-hidden mt-3">
+            <TransitionLink
               href="/About"
               onClick={toggleMobileMenu}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
               ABOUT
-            </Link>
+            </TransitionLink>
           </div>
 
           <div className="overflow-hidden mt-3">
-            <Link
+            <TransitionLink
               href="/All-Works"
               onClick={toggleMobileMenu}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
               WORKS
-            </Link>
+            </TransitionLink>
           </div>
 
           <div className="overflow-hidden mt-3">
-  <div className="menu-anim-item">
-    <Link
-      href="/Weddings"
-      onClick={toggleMobileMenu}
-      className="inline-flex items-start hover:text-zinc-400 transition-colors leading-none"
-    >
-      <span>MORE</span>
-      <sup className="inline-block text-[8px] font-geist-mono text-zinc-700 uppercase tracking-widest leading-tight font-medium max-w-[70px] -mt-[-8px] whitespace-normal ml-4">
-        MEDIA BY CLOUDHAUS
-      </sup>
-    </Link>
-  </div>
-</div>
+            <div className="menu-anim-item">
+              <TransitionLink
+                href="/Weddings"
+                onClick={toggleMobileMenu}
+                className="inline-flex items-start hover:text-zinc-400 transition-colors leading-none"
+              >
+                <span>MORE</span>
+                <sup className="inline-block text-[8px] font-geist-mono text-zinc-600 uppercase  font-medium leading-tight font-medium max-w-[70px] -mt-[-8px] whitespace-normal ml-4">
+                  MEDIA BY CLOUDHAUS
+                </sup>
+              </TransitionLink>
+            </div>
+          </div>
 
           <div className="overflow-hidden mt-6">
-            <Link
+            <TransitionLink
               href="/#footer"
               onClick={toggleMobileMenu}
               className="menu-anim-item inline-block hover:text-zinc-400 transition-colors leading-none"
             >
               CONTACT
-            </Link>
+            </TransitionLink>
           </div>
         </div>
 
         <div className="pt-6 flex flex-row items-start space-y-4 p-4">
           <div className="flex flex-col gap-1">
-            <h1 className="text-eclipse font-mono font-medium tracking-tight text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]">
+            <h1 className="text-zinc-600 font-mono font-medium tracking-tight text-[clamp(0.70rem,0.65vw+0.3rem,1rem)]">
               SOCIALS
             </h1>
 
-            <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.65rem,0.65vw+0.3rem,1rem)] font-mono tracking-tight uppercase">
+            <div className="flex flex-row w-full items-center gap-4 text-[clamp(0.8rem,0.65vw+0.3rem,1.25rem)] font-mono tracking-tight uppercase">
               <Link
                 className="hover:text-zinc-700"
                 href="https://instagram.com/itsjmvisuals"
@@ -373,14 +383,7 @@ function Navigation({ isMuted = true, onToggleSound }) {
               >
                 INSTAGRAM
               </Link>
-              <Link
-                className="hover:text-zinc-700"
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                FACEBOOK
-              </Link>
+              
               <Link
                 className="hover:text-zinc-700"
                 href="https://vimeo.com/user135969253"

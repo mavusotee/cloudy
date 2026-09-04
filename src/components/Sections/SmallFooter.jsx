@@ -67,7 +67,8 @@ export default function BottomContent() {
         gap-[clamp(0.45rem,0.8vw,1.5rem)]
         pt-14
         md:pt-28
-        px-2
+        px-4
+        pb-2
         md:pb-4
         md:px-4
       "
@@ -88,7 +89,7 @@ export default function BottomContent() {
             flex-col
             md:flex-row
             space-y-0
-            space-x-[clamp(0.5rem,4.5vw,6rem)]
+            space-x-[clamp(0.4rem,4.5vw,6rem)]
           "
         >
           <h1>BASED IN ADELAIDE</h1>
@@ -102,7 +103,7 @@ export default function BottomContent() {
             flex-col
             md:flex-row
             space-y-0
-            space-x-[clamp(0.5rem,4.5vw,6rem)]
+            space-x-[clamp(0.4rem,4.5vw,6rem)]
           "
         >
           <BlurFlicker>
@@ -133,7 +134,7 @@ export default function BottomContent() {
         className="
           flex
           flex-row
-          space-x-[clamp(0.5rem,4.5vw,6rem)]
+          space-x-[clamp(0.4rem,4.5vw,6rem)]
         "
       >
         <BlurFlicker>

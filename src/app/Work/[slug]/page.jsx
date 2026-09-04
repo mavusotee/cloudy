@@ -350,6 +350,9 @@ export default function CloudhausWorkDetail() {
   const scrollProgressRef =
     useRef(null);
 
+  const galleryRef =
+    useRef(null);
+
   // =======================================================
   // FETCH PROJECT
   // =======================================================
@@ -845,6 +848,55 @@ export default function CloudhausWorkDetail() {
           start: "top 85%",
           end: "bottom 35%",
           scrub: true,
+        },
+      });
+    },
+    {
+      dependencies: [project],
+      revertOnUpdate: true,
+    }
+  );
+
+  // =======================================================
+  // GALLERY IMAGE REVEAL
+  // =======================================================
+
+  useGSAP(
+    () => {
+      const gallerySection =
+        galleryRef.current;
+
+      if (!gallerySection) {
+        return;
+      }
+
+      const images =
+        gallerySection.querySelectorAll(
+          ".gallery-reveal-image"
+        );
+
+      if (!images.length) {
+        return;
+      }
+
+      gsap.set(images, {
+        opacity: 0.25,
+        scale: 0.96,
+        filter: "brightness(0.55)",
+        transformOrigin: "50% 50%",
+      });
+
+      gsap.to(images, {
+        opacity: 1,
+        scale: 1,
+        filter: "brightness(1)",
+        ease: "none",
+
+        scrollTrigger: {
+          trigger: gallerySection,
+          start: "top 92%",
+          end: "top 58%",
+          scrub: 1,
         },
       });
     },
@@ -1585,6 +1637,7 @@ export default function CloudhausWorkDetail() {
       ================================================= */}
 
       <section
+        ref={galleryRef}
         className="
           relative
           z-20
@@ -1684,6 +1737,7 @@ export default function CloudhausWorkDetail() {
                         }
                         quality={75}
                         className="
+                          gallery-reveal-image
                           block
                           w-full
                           h-auto
@@ -1764,8 +1818,8 @@ export default function CloudhausWorkDetail() {
                 flex
                 items-center
                 justify-between
-                mb-16
-                md:mb-24
+                mb-12
+                md:mb-4
               "
             >
               <span

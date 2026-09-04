@@ -464,7 +464,7 @@ const SmallButton = forwardRef(
           ${
             isOpen
               ? "bg-ghost-white text-black border-ghost-white hover:bg-zinc-300"
-              : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-carbon-black hover:border-ghost-white"
+              : "bg-black text-ghost-white border-eclipse hover:bg-ghost-white hover:text-black hover:border-ghost-white"
           }
         `}
       >
@@ -2154,7 +2154,7 @@ export default function AllWorksSection() {
             </sup>
           </div>
 
-          <div className="flex flex-col items-start sm:items-end justify-end space-y-4 w-full sm:w-auto">
+          <div className="flex flex-col items-start  sm:items-end justify-end space-y-4 w-full sm:w-auto">
             {/* GRID / LIST */}
 
             <div className="flex items-center space-x-3 font-geist-mono text-sm md:text-lg tracking-widest uppercase">
@@ -2235,7 +2235,7 @@ export default function AllWorksSection() {
 
               {activeProjects.length >
                 0 && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-0 text-lavender">
+                <div className="grid grid-cols-1 lg:grid-cols-3 w-full gap-12 text-lavender">
                   {activeProjects
                     .slice(0, 3)
                     .map(
