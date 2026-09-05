@@ -47,73 +47,13 @@ const WORKS_QUERY = groq`
 
     heroVideos[] {
       _key,
-      vimeoId
+      "src": coalesce(
+        asset->url,
+        url
+      )
     }
   }
 `;
-
-// ----------------------------------------------------------------------
-// VIMEO SOURCE HELPER
-// ----------------------------------------------------------------------
-
-const getVimeoSource = async (vimeoId) => {
-  if (!vimeoId) return null;
-
-  try {
-    const response = await fetch(
-      `/api/vimeo/${encodeURIComponent(vimeoId)}`,
-      {
-        method: "GET",
-        cache: "no-store",
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to retrieve Vimeo video ${vimeoId}`
-      );
-    }
-
-    const data = await response.json();
-
-    if (!data?.url) {
-      throw new Error(
-        `No playable Vimeo URL returned for ${vimeoId}`
-      );
-    }
-
-    return data.url;
-  } catch (error) {
-    console.error(
-      "Vimeo playback error:",
-      vimeoId,
-      error
-    );
-
-    return null;
-  }
-};
-
-// ----------------------------------------------------------------------
-// GET VIMEO ID
-// ----------------------------------------------------------------------
-
-const getVimeoId = (video) => {
-  if (!video) return null;
-
-  if (typeof video === "string") {
-    return video.trim() || null;
-  }
-
-  if (
-    typeof video.vimeoId === "string" &&
-    video.vimeoId.trim()
-  ) {
-    return video.vimeoId.trim();
-  }
-
-  return null;
-};
 
 // ----------------------------------------------------------------------
 // 1. ANALOG TV NOISE SHADER
@@ -543,7 +483,6 @@ function WorkCard({
   onHoverChange,
   fullBleedVideo = false,
   priority = false,
-  onVideoSourceLoaded,
 }) {
   const [currentTime, setCurrentTime] =
     useState("00:00");
@@ -560,14 +499,6 @@ function WorkCard({
   const videoRef =
     useRef(null);
 
-  const loadingRef =
-    useRef(false);
-
-  const vimeoId =
-    getVimeoId(
-      video?.heroVideos?.[0]
-    );
-
   const mobileVideoHeight =
     useMemo(
       () =>
@@ -576,46 +507,34 @@ function WorkCard({
     );
 
   // --------------------------------------------------
-  // LOAD VIMEO VIDEO
+  // GET CLOUDINARY VIDEO
+  // --------------------------------------------------
+
+  const cloudinaryUrl =
+    typeof video?.heroVideos?.[0]?.src ===
+    "string"
+      ? video.heroVideos[0].src.trim()
+      : null;
+
+  // --------------------------------------------------
+  // LOAD VIDEO
   // --------------------------------------------------
 
   const loadVideo = useCallback(
     async () => {
-      if (
-        !vimeoId ||
-        videoUrl ||
-        loadingRef.current
-      ) {
+      if (!cloudinaryUrl) {
         return null;
       }
 
-      loadingRef.current = true;
-
-      const source =
-        await getVimeoSource(
-          vimeoId
-        );
-
-      loadingRef.current = false;
-
-      if (!source) {
-        return null;
+      if (videoUrl) {
+        return videoUrl;
       }
 
-      setVideoUrl(source);
+      setVideoUrl(cloudinaryUrl);
 
-      onVideoSourceLoaded?.(
-        vimeoId,
-        source
-      );
-
-      return source;
+      return cloudinaryUrl;
     },
-    [
-      vimeoId,
-      videoUrl,
-      onVideoSourceLoaded,
-    ]
+    [cloudinaryUrl, videoUrl]
   );
 
   // --------------------------------------------------
@@ -625,7 +544,7 @@ function WorkCard({
   useEffect(() => {
     if (
       !containerRef.current ||
-      !vimeoId
+      !cloudinaryUrl
     ) {
       return;
     }
@@ -675,7 +594,7 @@ function WorkCard({
       observer.disconnect();
     };
   }, [
-    vimeoId,
+    cloudinaryUrl,
     priority,
     loadVideo,
   ]);
@@ -1480,82 +1399,6 @@ export default function AllWorksSection() {
     useState("ALL");
 
   // --------------------------------------------------
-  // VIMEO SOURCE CACHE
-  // --------------------------------------------------
-
-  const [vimeoSources, setVimeoSources] =
-    useState({});
-
-  const vimeoLoadingRef =
-    useRef(new Set());
-
-  // --------------------------------------------------
-  // LOAD VIMEO SOURCE
-  // --------------------------------------------------
-
-  const loadVimeoSource =
-    useCallback(
-      async (vimeoId) => {
-        if (!vimeoId) {
-          return null;
-        }
-
-        const normalizedId =
-          String(vimeoId).trim();
-
-        if (!normalizedId) {
-          return null;
-        }
-
-        if (
-          vimeoSources[
-            normalizedId
-          ]
-        ) {
-          return vimeoSources[
-            normalizedId
-          ];
-        }
-
-        if (
-          vimeoLoadingRef.current.has(
-            normalizedId
-          )
-        ) {
-          return null;
-        }
-
-        vimeoLoadingRef.current.add(
-          normalizedId
-        );
-
-        try {
-          const source =
-            await getVimeoSource(
-              normalizedId
-            );
-
-          if (source) {
-            setVimeoSources(
-              (current) => ({
-                ...current,
-                [normalizedId]:
-                  source,
-              })
-            );
-          }
-
-          return source;
-        } finally {
-          vimeoLoadingRef.current.delete(
-            normalizedId
-          );
-        }
-      },
-      [vimeoSources]
-    );
-
-  // --------------------------------------------------
   // FETCH PROJECTS
   // --------------------------------------------------
 
@@ -1891,57 +1734,20 @@ export default function AllWorksSection() {
   }, [hoveredProject]);
 
   // --------------------------------------------------
-  // LOAD BACKGROUND VIMEO VIDEO
+  // PLAY BACKGROUND CLOUDINARY VIDEO
+  // (LIST VIEW ONLY)
   // --------------------------------------------------
 
   useEffect(() => {
-    if (!displayProject) {
+    if (viewMode !== "list") {
       return;
     }
-
-    const vimeoId =
-      getVimeoId(
-        displayProject
-          .heroVideos?.[0]
-      );
-
-    if (!vimeoId) {
-      return;
-    }
-
-    const cachedSource =
-      vimeoSources[
-        vimeoId
-      ];
-
-    if (cachedSource) {
-      return;
-    }
-
-    loadVimeoSource(
-      vimeoId
-    );
-  }, [
-    displayProject,
-    vimeoSources,
-    loadVimeoSource,
-  ]);
-
-  // --------------------------------------------------
-  // PLAY BACKGROUND VIDEO
-  // --------------------------------------------------
-
-  useEffect(() => {
-    const vimeoId =
-      getVimeoId(
-        displayProject?.heroVideos?.[0]
-      );
 
     const source =
-      vimeoId
-        ? vimeoSources[
-            vimeoId
-          ]
+      typeof displayProject
+        ?.heroVideos?.[0]?.src ===
+      "string"
+        ? displayProject.heroVideos[0].src
         : null;
 
     if (
@@ -1970,8 +1776,8 @@ export default function AllWorksSection() {
     }
   }, [
     displayProject,
-    vimeoSources,
     hoveredProject,
+    viewMode,
   ]);
 
   // --------------------------------------------------
@@ -2103,7 +1909,7 @@ export default function AllWorksSection() {
         ref={noiseRef}
       />
 
-      {/* BACKGROUND VIDEO */}
+      {/* BACKGROUND VIDEO (LIST VIEW ONLY) */}
 
       <div
         className={`
@@ -2116,7 +1922,7 @@ export default function AllWorksSection() {
           duration-500
           ease-out
           ${
-            hoveredProject
+            hoveredProject && viewMode === "list"
               ? "opacity-100"
               : "opacity-0"
           }
@@ -2125,17 +1931,13 @@ export default function AllWorksSection() {
         {displayProject && (
           <>
             {(() => {
-              const vimeoId =
-                getVimeoId(
-                  displayProject
-                    .heroVideos?.[0]
-                );
-
               const source =
-                vimeoId
-                  ? vimeoSources[
-                      vimeoId
-                    ]
+                typeof displayProject
+                  ?.heroVideos?.[0]?.src ===
+                "string"
+                  ? displayProject
+                      .heroVideos[0]
+                      .src
                   : null;
 
               return source ? (
@@ -2306,19 +2108,6 @@ export default function AllWorksSection() {
                             index < 6
                           }
                           heightClassName="w-full aspect-video"
-                          onVideoSourceLoaded={(
-                            id,
-                            source
-                          ) => {
-                            setVimeoSources(
-                              (
-                                current
-                              ) => ({
-                                ...current,
-                                [id]: source,
-                              })
-                            );
-                          }}
                           onHoverChange={(
                             isHovered,
                             element,
@@ -2328,23 +2117,6 @@ export default function AllWorksSection() {
                             if (
                               isHovered
                             ) {
-                              if (
-                                source
-                              ) {
-                                setVimeoSources(
-                                  (
-                                    current
-                                  ) => ({
-                                    ...current,
-                                    [getVimeoId(
-                                      projectData
-                                        ?.heroVideos?.[0]
-                                    )]:
-                                      source,
-                                  })
-                                );
-                              }
-
                               setHoveredProject(
                                 projectData
                               );
@@ -2380,19 +2152,6 @@ export default function AllWorksSection() {
                     priority
                     fullBleedVideo
                     heightClassName="w-full md:h-[90vh]"
-                    onVideoSourceLoaded={(
-                      id,
-                      source
-                    ) => {
-                      setVimeoSources(
-                        (
-                          current
-                        ) => ({
-                          ...current,
-                          [id]: source,
-                        })
-                      );
-                    }}
                     onHoverChange={(
                       isHovered,
                       element,
@@ -2402,21 +2161,6 @@ export default function AllWorksSection() {
                       if (
                         isHovered
                       ) {
-                        if (source) {
-                          setVimeoSources(
-                            (
-                              current
-                            ) => ({
-                              ...current,
-                              [getVimeoId(
-                                projectData
-                                  ?.heroVideos?.[0]
-                              )]:
-                                source,
-                            })
-                          );
-                        }
-
                         setHoveredProject(
                           projectData
                         );
@@ -2450,19 +2194,6 @@ export default function AllWorksSection() {
                       }
                       priority
                       heightClassName="w-full aspect-video"
-                      onVideoSourceLoaded={(
-                        id,
-                        source
-                      ) => {
-                        setVimeoSources(
-                          (
-                            current
-                          ) => ({
-                            ...current,
-                            [id]: source,
-                          })
-                        );
-                      }}
                       onHoverChange={(
                         isHovered,
                         element,
@@ -2472,23 +2203,6 @@ export default function AllWorksSection() {
                         if (
                           isHovered
                         ) {
-                          if (
-                            source
-                          ) {
-                            setVimeoSources(
-                              (
-                                current
-                              ) => ({
-                                ...current,
-                                [getVimeoId(
-                                  projectData
-                                    ?.heroVideos?.[0]
-                                )]:
-                                  source,
-                              })
-                            );
-                          }
-
                           setHoveredProject(
                             projectData
                           );
@@ -2518,19 +2232,6 @@ export default function AllWorksSection() {
                         }
                         priority
                         heightClassName="w-full aspect-video"
-                        onVideoSourceLoaded={(
-                          id,
-                          source
-                        ) => {
-                          setVimeoSources(
-                            (
-                              current
-                            ) => ({
-                              ...current,
-                              [id]: source
-                            })
-                          );
-                        }}
                         onHoverChange={(
                           isHovered,
                           element,
@@ -2540,23 +2241,6 @@ export default function AllWorksSection() {
                           if (
                             isHovered
                           ) {
-                            if (
-                              source
-                            ) {
-                              setVimeoSources(
-                                (
-                                  current
-                                ) => ({
-                                  ...current,
-                                  [getVimeoId(
-                                    projectData
-                                      ?.heroVideos?.[0]
-                                  )]:
-                                    source,
-                                })
-                              );
-                            }
-
                             setHoveredProject(
                               projectData
                             );
@@ -2590,19 +2274,6 @@ export default function AllWorksSection() {
                       activeProjects[6]
                     }
                     heightClassName="w-full aspect-video"
-                    onVideoSourceLoaded={(
-                      id,
-                      source
-                    ) => {
-                      setVimeoSources(
-                        (
-                          current
-                        ) => ({
-                          ...current,
-                          [id]: source
-                        })
-                      );
-                    }}
                     onHoverChange={(
                       isHovered,
                       element,
@@ -2612,21 +2283,6 @@ export default function AllWorksSection() {
                       if (
                         isHovered
                       ) {
-                        if (source) {
-                          setVimeoSources(
-                            (
-                              current
-                            ) => ({
-                              ...current,
-                              [getVimeoId(
-                                projectData
-                                  ?.heroVideos?.[0]
-                              )]:
-                                source,
-                            })
-                          );
-                        }
-
                         setHoveredProject(
                           projectData
                         );
@@ -2653,19 +2309,6 @@ export default function AllWorksSection() {
                         activeProjects[7]
                       }
                       heightClassName="w-full aspect-video"
-                      onVideoSourceLoaded={(
-                        id,
-                        source
-                      ) => {
-                        setVimeoSources(
-                          (
-                            current
-                          ) => ({
-                            ...current,
-                            [id]: source
-                          })
-                        );
-                      }}
                       onHoverChange={(
                         isHovered,
                         element,
@@ -2675,23 +2318,6 @@ export default function AllWorksSection() {
                         if (
                           isHovered
                         ) {
-                          if (
-                            source
-                          ) {
-                            setVimeoSources(
-                              (
-                                current
-                              ) => ({
-                                ...current,
-                                [getVimeoId(
-                                  projectData
-                                    ?.heroVideos?.[0]
-                                )]:
-                                  source,
-                              })
-                            );
-                          }
-
                           setHoveredProject(
                             projectData
                           );
@@ -2733,19 +2359,6 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
-                          onVideoSourceLoaded={(
-                            id,
-                            source
-                          ) => {
-                            setVimeoSources(
-                              (
-                                current
-                              ) => ({
-                                ...current,
-                                [id]: source
-                              })
-                            );
-                          }}
                           onHoverChange={(
                             isHovered,
                             element,
@@ -2755,23 +2368,6 @@ export default function AllWorksSection() {
                             if (
                               isHovered
                             ) {
-                              if (
-                                source
-                              ) {
-                                setVimeoSources(
-                                  (
-                                    current
-                                  ) => ({
-                                    ...current,
-                                    [getVimeoId(
-                                      projectData
-                                        ?.heroVideos?.[0]
-                                    )]:
-                                      source,
-                                  })
-                                );
-                              }
-
                               setHoveredProject(
                                 projectData
                               );
@@ -2814,19 +2410,6 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
-                          onVideoSourceLoaded={(
-                            id,
-                            source
-                          ) => {
-                            setVimeoSources(
-                              (
-                                current
-                              ) => ({
-                                ...current,
-                                [id]: source
-                              })
-                            );
-                          }}
                           onHoverChange={(
                             isHovered,
                             element,
@@ -2836,23 +2419,6 @@ export default function AllWorksSection() {
                             if (
                               isHovered
                             ) {
-                              if (
-                                source
-                              ) {
-                                setVimeoSources(
-                                  (
-                                    current
-                                  ) => ({
-                                    ...current,
-                                    [getVimeoId(
-                                      projectData
-                                        ?.heroVideos?.[0]
-                                    )]:
-                                      source,
-                                  })
-                                );
-                              }
-
                               setHoveredProject(
                                 projectData
                               );
@@ -2895,19 +2461,6 @@ export default function AllWorksSection() {
                             project
                           }
                           heightClassName="w-full aspect-video"
-                          onVideoSourceLoaded={(
-                            id,
-                            source
-                          ) => {
-                            setVimeoSources(
-                              (
-                                current
-                              ) => ({
-                                ...current,
-                                [id]: source
-                              })
-                            );
-                          }}
                           onHoverChange={(
                             isHovered,
                             element,
@@ -2917,23 +2470,6 @@ export default function AllWorksSection() {
                             if (
                               isHovered
                             ) {
-                              if (
-                                source
-                              ) {
-                                setVimeoSources(
-                                  (
-                                    current
-                                  ) => ({
-                                    ...current,
-                                    [getVimeoId(
-                                      projectData
-                                        ?.heroVideos?.[0]
-                                    )]:
-                                      source,
-                                  })
-                                );
-                              }
-
                               setHoveredProject(
                                 projectData
                               );
@@ -3043,8 +2579,7 @@ export default function AllWorksSection() {
                 </div>
               )}
 
-              {visibleCount <
-                filteredProjects.length && (
+              {visibleCount < filteredProjects.length && (
                 <div className="flex justify-center pt-12">
                   <button
                     onClick={

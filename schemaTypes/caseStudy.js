@@ -55,40 +55,75 @@ export default defineType({
     // =========================================================
 
     defineField({
-      name: "heroVideos",
-      title: "Hero Videos",
-      description: "Add one or more Vimeo video IDs for the project hero.",
-      type: "array",
+  name: "heroVideos",
+  title: "Hero Videos",
+  description:
+    "Add hero videos either by uploading a video directly to Sanity or by providing a Cloudinary URL.",
+  type: "array",
+  of: [
+    {
+      type: "object",
+      name: "heroVideo",
+      title: "Hero Video",
 
-      of: [
-        {
-          type: "object",
-          name: "vimeoVideo",
-          title: "Vimeo Video",
-          fields: [
-            defineField({
-              name: "vimeoId",
-              title: "Vimeo Video ID",
-              type: "string",
-              description: "Paste only the Vimeo video ID. Example: 123456789",
-              validation: (Rule) => Rule.required(),
-            }),
-          ],
-
-          preview: {
-            select: {
-              vimeoId: "vimeoId",
-            },
-
-            prepare({ vimeoId }) {
-              return {
-                title: `Vimeo Video: ${vimeoId || "No ID"}`,
-              };
-            },
+      fields: [
+        defineField({
+          name: "sourceType",
+          title: "Video Source",
+          type: "string",
+          options: {
+            list: [
+              { title: "Upload to Sanity", value: "sanity" },
+              { title: "Cloudinary URL", value: "cloudinary" },
+            ],
+            layout: "radio",
           },
-        },
+          initialValue: "sanity",
+          validation: (Rule) => Rule.required(),
+        }),
+
+        defineField({
+          name: "video",
+          title: "Upload Video",
+          type: "file",
+          options: {
+            accept: "video/*",
+          },
+          hidden: ({ parent }) => parent?.sourceType !== "sanity",
+        }),
+
+        defineField({
+          name: "url",
+          title: "Cloudinary URL",
+          type: "url",
+          hidden: ({ parent }) => parent?.sourceType !== "cloudinary",
+        }),
       ],
-    }),
+
+      preview: {
+        select: {
+          sourceType: "sourceType",
+          videoName: "video.asset.originalFilename",
+          url: "url",
+        },
+
+        prepare({ sourceType, videoName, url }) {
+          return {
+            title:
+              sourceType === "cloudinary"
+                ? "Cloudinary Video"
+                : videoName || "Sanity Video",
+
+            subtitle:
+              sourceType === "cloudinary"
+                ? url || "No Cloudinary URL"
+                : "Uploaded to Sanity",
+          };
+        },
+      },
+    },
+  ],
+}),
 
     // =========================================================
     // PROJECT OVERVIEW

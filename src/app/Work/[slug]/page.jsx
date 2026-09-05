@@ -9,17 +9,29 @@ import React, {
 } from "react";
 
 import Image from "next/image";
+
 import Navigation from "@/components/UI/Navigation";
+
 import HeroCanvas from "@/components/react-three/HeroCanvas";
+
 import BottomContent from "@/components/Sections/SmallFooter";
+
 import CustomVideoPlayer from "@/components/UI/CustomVideoPlayer";
+
 import { useParams } from "next/navigation";
+
 import Lenis from "lenis";
+
 import gsap from "gsap";
+
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+
 import { SplitText } from "gsap/SplitText";
+
 import { useGSAP } from "@gsap/react";
+
 import { client } from "@/lib/client";
+
 import TransitionLink from "@/components/PageTransitions/TransitionLink";
 
 if (typeof window !== "undefined") {
@@ -67,10 +79,16 @@ const PROJECT_QUERY = `
       name,
       role
     },
+
     heroVideos[]{
       _key,
-      vimeoId
+      "src": select(
+        sourceType == "cloudinary" => url,
+        sourceType == "sanity" => video.asset->url,
+        null
+      )
     },
+
     gallery[]{
       _key,
       "src": asset->url,
@@ -319,25 +337,6 @@ export default function CloudhausWorkDetail() {
     useState(false);
 
   // =======================================================
-  // VIMEO SOURCES
-  //
-  // Maps Vimeo video IDs to fresh playable MP4 URLs.
-  //
-  // Example:
-  //
-  // {
-  //   "123456789": "https://...mp4..."
-  // }
-  // =======================================================
-
-  const [vimeoSources, setVimeoSources] =
-    useState({});
-
-  // Prevent duplicate Vimeo API requests.
-  const vimeoLoadingRef =
-    useRef(new Set());
-
-  // =======================================================
   // REFS
   // =======================================================
 
@@ -352,6 +351,9 @@ export default function CloudhausWorkDetail() {
 
   const galleryRef =
     useRef(null);
+
+  const heroPreloadedRef =
+    useRef(false);
 
   // =======================================================
   // FETCH PROJECT
@@ -461,8 +463,14 @@ export default function CloudhausWorkDetail() {
   // =======================================================
   // HERO VIDEOS
   //
-  // Sanity now gives us Vimeo IDs instead of
-  // Cloudinary URLs.
+  // Sanity normalizes both supported sources into:
+  //
+  // {
+  //   sourceType: "sanity" | "cloudinary",
+  //   src: "https://..."
+  // }
+  //
+  // No Vimeo API request is required.
   // =======================================================
 
   const heroVideos = useMemo(() => {
@@ -477,13 +485,12 @@ export default function CloudhausWorkDetail() {
     return project.heroVideos
       .filter(
         (video) =>
-          typeof video?.vimeoId ===
-            "string" &&
-          video.vimeoId.trim().length > 0
+          typeof video?.src === "string" &&
+          video.src.trim().length > 0
       )
       .map((video) => ({
         ...video,
-        vimeoId: video.vimeoId.trim(),
+        src: video.src.trim(),
       }));
   }, [project]);
 
@@ -491,141 +498,34 @@ export default function CloudhausWorkDetail() {
     heroVideos.length;
 
   // =======================================================
-  // LOAD VIMEO VIDEO SOURCE
-  //
-  // This calls our own Next.js API route:
-  //
-  // /api/vimeo/[videoId]
-  //
-  // The Vimeo access token stays server-side.
-  // =======================================================
-
-  const loadVimeoSource = async (
-    vimeoId
-  ) => {
-    if (!vimeoId) {
-      return null;
-    }
-
-    // Already loaded.
-    if (vimeoSources[vimeoId]) {
-      return vimeoSources[vimeoId];
-    }
-
-    // Another request for this video is already running.
-    if (vimeoLoadingRef.current.has(vimeoId)) {
-      return null;
-    }
-
-    vimeoLoadingRef.current.add(vimeoId);
-
-    try {
-      const response = await fetch(
-        `/api/vimeo/${vimeoId}`,
-        {
-          method: "GET",
-          cache: "no-store",
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to load Vimeo video ${vimeoId}`
-        );
-      }
-
-      const data =
-        await response.json();
-
-      if (!data?.url) {
-        throw new Error(
-          `Vimeo returned no playable URL for ${vimeoId}`
-        );
-      }
-
-      setVimeoSources((current) => ({
-        ...current,
-        [vimeoId]: data.url,
-      }));
-
-      return data.url;
-    } catch (err) {
-      console.error(
-        "Failed to load Vimeo video:",
-        vimeoId,
-        err
-      );
-
-      return null;
-    } finally {
-      vimeoLoadingRef.current.delete(
-        vimeoId
-      );
-    }
-  };
-
-  // =======================================================
   // ACTIVE VIDEO
   // =======================================================
 
-  const activeVimeoId =
+  const activeSrc =
     heroVideos[
       currentVideoIndex
-    ]?.vimeoId || null;
-
-  const activeSrc =
-    activeVimeoId
-      ? vimeoSources[
-          activeVimeoId
-        ] || null
-      : null;
+    ]?.src || null;
 
   // =======================================================
   // NEXT VIDEO
   // =======================================================
 
-  const nextVimeoId =
+  const nextSrc =
     nextVideoIndex !== null
       ? heroVideos[
           nextVideoIndex
-        ]?.vimeoId || null
+        ]?.src || null
       : null;
-
-  const nextSrc =
-    nextVimeoId
-      ? vimeoSources[
-          nextVimeoId
-        ] || null
-      : null;
-
-  // =======================================================
-  // LOAD ACTIVE VIMEO VIDEO
-  //
-  // Only the currently active hero video is requested
-  // initially.
-  // =======================================================
-
-  useEffect(() => {
-    if (!activeVimeoId) {
-      return;
-    }
-
-    loadVimeoSource(activeVimeoId);
-  }, [
-    activeVimeoId,
-  ]);
 
   // =======================================================
   // HERO VIDEO PRELOAD
   //
-  // Only preload the FIRST playable Vimeo video.
+  // Only preload the FIRST playable hero video.
   //
-  // We do not create a new preload request every time
-  // the active video changes.
+  // This works for both:
+  // - Sanity CDN videos
+  // - Cloudinary videos
   // =======================================================
-
-  const heroPreloadedRef =
-    useRef(false);
 
   useEffect(() => {
     if (
@@ -661,10 +561,6 @@ export default function CloudhausWorkDetail() {
     setIsTransitioning(false);
     setIsPlayerOpen(false);
 
-    setVimeoSources({});
-
-    vimeoLoadingRef.current.clear();
-
     heroPreloadedRef.current = false;
   }, [project]);
 
@@ -672,7 +568,7 @@ export default function CloudhausWorkDetail() {
   // NEXT HERO VIDEO
   // =======================================================
 
-  const handleNext = async () => {
+  const handleNext = () => {
     if (
       isTransitioning ||
       totalVideos <= 1
@@ -689,23 +585,7 @@ export default function CloudhausWorkDetail() {
     const nextVideo =
       heroVideos[nextIndex];
 
-    if (!nextVideo?.vimeoId) {
-      return;
-    }
-
-    // Make sure the next Vimeo source exists
-    // before starting the HeroCanvas transition.
-    const source =
-      await loadVimeoSource(
-        nextVideo.vimeoId
-      );
-
-    if (!source) {
-      console.error(
-        "Unable to prepare next Vimeo video:",
-        nextVideo.vimeoId
-      );
-
+    if (!nextVideo?.src) {
       return;
     }
 
@@ -799,7 +679,6 @@ export default function CloudhausWorkDetail() {
     };
 
     gsap.ticker.add(raf);
-
     gsap.ticker.lagSmoothing(0);
 
     return () => {
@@ -950,6 +829,7 @@ export default function CloudhausWorkDetail() {
     ? project.gallery
         .map((item) => ({
           ...item,
+
           src:
             typeof item?.src ===
             "string"
@@ -1809,7 +1689,7 @@ export default function CloudhausWorkDetail() {
               px-4
               md:px-8
               py-24
-              md:py-40
+              md:py-20
               overflow-hidden
             "
           >
