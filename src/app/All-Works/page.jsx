@@ -56,6 +56,39 @@ const WORKS_QUERY = groq`
 `;
 
 // ----------------------------------------------------------------------
+// CLOUDINARY VIDEO OPTIMIZATION HELPERS
+// ----------------------------------------------------------------------
+// Injects Cloudinary transformation params into the /upload/ segment of
+// the URL so we transcode/compress/resize on the fly instead of shipping
+// the raw uploaded master file. Falls back to the original URL if it
+// isn't a Cloudinary /upload/ URL (e.g. a plain external url field).
+
+function getOptimizedVideoUrl(url, { width = 960 } = {}) {
+  if (!url || typeof url !== "string" || !url.includes("/upload/")) {
+    return url;
+  }
+
+  return url.replace(
+    "/upload/",
+    `/upload/q_auto:eco,f_auto,w_${width},vc_auto/`
+  );
+}
+
+function getVideoPosterUrl(url, { width = 960 } = {}) {
+  if (!url || typeof url !== "string" || !url.includes("/upload/")) {
+    return null;
+  }
+
+  // Grabs a frame ~1s in, converts to a jpg, resizes it down.
+  return url
+    .replace(
+      "/upload/",
+      `/upload/q_auto,f_jpg,w_${width},so_1/`
+    )
+    .replace(/\.\w+($|\?)/, ".jpg$1");
+}
+
+// ----------------------------------------------------------------------
 // 1. ANALOG TV NOISE SHADER
 // ----------------------------------------------------------------------
 
@@ -507,14 +540,30 @@ function WorkCard({
     );
 
   // --------------------------------------------------
-  // GET CLOUDINARY VIDEO
+  // GET CLOUDINARY VIDEO (RAW + OPTIMIZED + POSTER)
   // --------------------------------------------------
 
-  const cloudinaryUrl =
+  const rawUrl =
     typeof video?.heroVideos?.[0]?.src ===
     "string"
       ? video.heroVideos[0].src.trim()
       : null;
+
+  const cloudinaryUrl = useMemo(
+    () =>
+      getOptimizedVideoUrl(rawUrl, {
+        width: 960,
+      }),
+    [rawUrl]
+  );
+
+  const posterUrl = useMemo(
+    () =>
+      getVideoPosterUrl(rawUrl, {
+        width: 960,
+      }),
+    [rawUrl]
+  );
 
   // --------------------------------------------------
   // LOAD VIDEO
@@ -582,8 +631,11 @@ function WorkCard({
           }
         },
         {
+          // Tightened from 2000px so we don't kick off every
+          // video's download on initial mount regardless of
+          // scroll position.
           rootMargin:
-            "2000px 0px",
+            "400px 0px",
           threshold: 0,
         }
       );
@@ -841,6 +893,7 @@ function WorkCard({
           <video
             ref={videoRef}
             src={videoUrl}
+            poster={posterUrl || undefined}
             autoPlay
             loop
             muted
@@ -856,6 +909,23 @@ function WorkCard({
             onTimeUpdate={
               handleTimeUpdate
             }
+            className="
+              block
+              w-full
+              h-full
+              object-cover
+              brightness-90
+              contrast-105
+            "
+          />
+        ) : posterUrl ? (
+          // Poster-only placeholder while the video hasn't been
+          // requested yet (still outside the lazy-load margin).
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={posterUrl}
+            alt=""
+            aria-hidden="true"
             className="
               block
               w-full
@@ -1743,12 +1813,17 @@ export default function AllWorksSection() {
       return;
     }
 
-    const source =
+    const rawSource =
       typeof displayProject
         ?.heroVideos?.[0]?.src ===
       "string"
         ? displayProject.heroVideos[0].src
         : null;
+
+    const source = getOptimizedVideoUrl(
+      rawSource,
+      { width: 1280 }
+    );
 
     if (
       source &&
@@ -1931,7 +2006,7 @@ export default function AllWorksSection() {
         {displayProject && (
           <>
             {(() => {
-              const source =
+              const rawSource =
                 typeof displayProject
                   ?.heroVideos?.[0]?.src ===
                 "string"
@@ -1939,6 +2014,12 @@ export default function AllWorksSection() {
                       .heroVideos[0]
                       .src
                   : null;
+
+              const source =
+                getOptimizedVideoUrl(
+                  rawSource,
+                  { width: 1280 }
+                );
 
               return source ? (
                 <video
@@ -2105,7 +2186,7 @@ export default function AllWorksSection() {
                             project
                           }
                           priority={
-                            index < 6
+                            index < 2
                           }
                           heightClassName="w-full aspect-video"
                           onHoverChange={(
@@ -2149,7 +2230,6 @@ export default function AllWorksSection() {
                     video={
                       activeProjects[3]
                     }
-                    priority
                     fullBleedVideo
                     heightClassName="w-full md:h-[90vh]"
                     onHoverChange={(
@@ -2192,7 +2272,6 @@ export default function AllWorksSection() {
                       video={
                         activeProjects[4]
                       }
-                      priority
                       heightClassName="w-full aspect-video"
                       onHoverChange={(
                         isHovered,
@@ -2230,7 +2309,6 @@ export default function AllWorksSection() {
                         video={
                           activeProjects[5]
                         }
-                        priority
                         heightClassName="w-full aspect-video"
                         onHoverChange={(
                           isHovered,
